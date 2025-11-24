@@ -1,0 +1,141 @@
+﻿using AutoMapper;
+using DormitoryManagementSystem.BUS.Interfaces;
+using DormitoryManagementSystem.DAO.Interfaces;
+using DormitoryManagementSystem.DTO.Students;
+using DormitoryManagementSystem.Entity;
+
+namespace DormitoryManagementSystem.BUS.Implementations
+{
+    public class StudentBUS : IStudentBUS
+    {
+        private readonly IStudentDAO _studentDAO;
+        private readonly IContractDAO _contractDAO;
+        private readonly IUserDAO _userDAO;
+        private readonly IMapper _mapper;
+
+        public StudentBUS(IStudentDAO studentDAO, IContractDAO contractDAO, IMapper mapper)
+        {
+            this._studentDAO = studentDAO;
+            this._contractDAO = contractDAO;
+            this._mapper = mapper;
+        }
+
+        public async Task<IEnumerable<StudentReadDTO>> GetAllStudentsAsync()
+        {
+            IEnumerable<Student> students = await this._studentDAO.GetAllStudentsAsync();
+            return this._mapper.Map<IEnumerable<StudentReadDTO>>(students);
+        }
+
+        public async Task<IEnumerable<StudentReadDTO>> GetAllStudentsIncludingInactivesAsync()
+        {
+            IEnumerable<Student> students = await this._studentDAO.GetAllStudentsIncludingInactivesAsync();
+            return this._mapper.Map<IEnumerable<StudentReadDTO>>(students);
+        }
+
+        public async Task<StudentReadDTO?> GetStudentByIDAsync(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                throw new ArgumentException("Student id can not be empty");
+
+            Student? student = await this._studentDAO.GetStudentByIDAsync(id);
+            if (student == null) return null;
+
+            return this._mapper.Map<StudentReadDTO>(student);
+        }
+
+        public async Task<StudentReadDTO?> GetStudentByCCCDAsync(string cccd)
+        {
+            if (string.IsNullOrWhiteSpace(cccd))
+                throw new ArgumentException("Student cccd can not be empty");
+
+            Student? student = await this._studentDAO.GetStudentByCCCDAsync(cccd);
+            if (student == null) return null;
+
+            return this._mapper.Map<StudentReadDTO>(student);
+        }
+
+        public async Task<StudentReadDTO?> GetStudentByEmailAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("Student email can not be empty");
+
+            Student? student = await this._studentDAO.GetStudentByEmailAsync(email);
+            if (student == null) return null;
+
+            return this._mapper.Map<StudentReadDTO>(student);
+        }
+
+        public async Task<string> AddStudentAsync(StudentCreateDTO dto)
+        {
+            var existingID = await _studentDAO.GetStudentByIDAsync(dto.StudentID);
+            if (existingID != null)
+                throw new InvalidOperationException($"Student with ID {dto.StudentID} already exists.");
+
+            var existingCCCD = await _studentDAO.GetStudentByCCCDAsync(dto.CCCD);
+            if (existingCCCD != null)
+                throw new InvalidOperationException($"CCCD {dto.CCCD} is already used by another student.");
+
+            if (!string.IsNullOrEmpty(dto.Email))
+            {
+                var existingEmail = await _studentDAO.GetStudentByEmailAsync(dto.Email);
+                if (existingEmail != null)
+                    throw new InvalidOperationException($"Email {dto.Email} is already used by another student.");
+            }
+
+            Student student = _mapper.Map<Student>(dto);
+
+            // LƯU Ý QUAN TRỌNG: 
+            // Bảng Student yêu cầu UserID. Bạn cần logic để gán UserID vào đây.
+            // Ví dụ: Nếu tạo Student cùng lúc tạo User, hoặc truyền UserID vào DTO.
+            // Tạm thời code này giả định DTO hoặc logic khác đã xử lý việc này.
+
+            await _studentDAO.AddStudentAsync(student);
+            return student.Studentid;
+        }
+
+        public async Task UpdateStudentAsync(string id, StudentUpdateDTO dto)
+        {
+            Student? student = await _studentDAO.GetStudentByIDAsync(id);
+            if (student == null)
+                throw new KeyNotFoundException($"No student with ID {id} exists.");
+
+            if (dto.CCCD != student.Idcard)
+            {
+                var duplicateCCCD = await _studentDAO.GetStudentByCCCDAsync(dto.CCCD);
+                if (duplicateCCCD != null)
+                    throw new InvalidOperationException($"CCCD {dto.CCCD} is already taken.");
+            }
+
+            if (!string.IsNullOrEmpty(dto.Email) && dto.Email != student.Email)
+            {
+                var duplicateEmail = await _studentDAO.GetStudentByEmailAsync(dto.Email);
+                if (duplicateEmail != null)
+                    throw new InvalidOperationException($"Email {dto.Email} is already taken.");
+            }
+
+            _mapper.Map(dto, student);
+            student.Studentid = id;
+
+            await _studentDAO.UpdateStudentAsync(student);
+        }
+
+        public async Task DeleteStudentAsync(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("ID cannot be empty");
+
+            var student = await _studentDAO.GetStudentByIDAsync(id);
+            if (student == null) throw new KeyNotFoundException($"Student {id} not found.");
+
+            var activeContract = await _contractDAO.GetActiveContractByStudentIDAsync(id);
+            if (activeContract != null)
+            {
+                throw new InvalidOperationException($"Cannot delete student {id} because they have an active contract in room {activeContract.Roomid}. " +
+                                                    $"Please terminate the contract first.");
+            }
+
+            // THAY VÌ XÓA STUDENT -> TA SOFT DELETE USER CỦA HỌ
+            // Khi User bị set IsActive=false, thì hàm GetAllActiveStudentsAsync sẽ tự động lọc sinh viên này ra.
+            await _userDAO.DeleteUserAsync(student.Userid);
+        }
+    }
+}
