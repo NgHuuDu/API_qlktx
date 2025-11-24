@@ -59,11 +59,56 @@ namespace DormitoryManagementSystem.BUS.Implementations
             if (user.IsActive == false) 
                 throw new UnauthorizedAccessException("Account is disabled/deleted.");
 
-            bool isPasswordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.Password);
+            bool isPasswordValid = false;
+            bool isPlainTextPassword = !IsBCryptHash(user.Password);
+
+            if (isPlainTextPassword)
+            {
+                // Password chưa được hash - so sánh plain text (backward compatible)
+                isPasswordValid = user.Password == dto.Password;
+                
+                // Nếu đăng nhập thành công, tự động hash và update password
+                if (isPasswordValid)
+                {
+                    // Lấy user với tracking để có thể update
+                    User? userToUpdate = await _userDAO.GetUserByIDAsync(user.Userid);
+                    if (userToUpdate != null)
+                    {
+                        userToUpdate.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+                        await _userDAO.UpdateUserAsync(userToUpdate);
+                    }
+                }
+            }
+            else
+            {
+                // Password đã được hash - dùng BCrypt verify
+                try
+                {
+                    isPasswordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.Password);
+                }
+                catch (Exception)
+                {
+                    // Nếu BCrypt verify fail, password không đúng
+                    isPasswordValid = false;
+                }
+            }
+
             if (!isPasswordValid) return null;
 
             // 3. Đăng nhập thành công -> Trả về thông tin User (không kèm Password)
             return _mapper.Map<UserReadDTO>(user);
+        }
+
+        private bool IsBCryptHash(string hash)
+        {
+            // BCrypt hash luôn bắt đầu với $2a$, $2b$, $2x$, $2y$ và có độ dài 60 ký tự
+            if (string.IsNullOrWhiteSpace(hash) || hash.Length != 60)
+                return false;
+
+            return hash.StartsWith("$2a$") || 
+                   hash.StartsWith("$2b$") || 
+                   hash.StartsWith("$2x$") || 
+                   hash.StartsWith("$2y$");
         }
 
         public async Task<string> AddUserAsync(UserCreateDTO dto)

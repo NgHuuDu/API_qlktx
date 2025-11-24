@@ -7,12 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="15.1.0" />
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DormitoryManagementSystem.Mappings\DormitoryManagementSystem.Mappings.csproj" />
+    <ProjectReference Include="..\DormitoryManagementSystem.BUS\DormitoryManagementSystem.BUS.csproj" />
+    <ProjectReference Include="..\DormitoryManagementSystem.DAO\DormitoryManagementSystem.DAO.csproj" />
+    <ProjectReference Include="..\DormitoryManagementSystem.DTO\DormitoryManagementSystem.DTO.csproj" />
+    <ProjectReference Include="..\DormitoryManagementSystemV10.Entity\DormitoryManagementSystem.Entity.csproj" />
   </ItemGroup>
 
 </Project>

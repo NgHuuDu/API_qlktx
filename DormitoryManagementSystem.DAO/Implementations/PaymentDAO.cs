@@ -4,7 +4,7 @@ using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.Entity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Dormitory.DAO.Implementations
+namespace DormitoryManagementSystem.DAO.Implementations
 {
     public class PaymentDAO : IPaymentDAO
     {
