@@ -4,6 +4,7 @@ using DormitoryManagementSystem.GUI.Utils;
 using System;
 using System.Drawing;
 using System.Globalization;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -12,6 +13,9 @@ namespace DormitoryManagementSystem.GUI.UserControls
     public partial class ucPaymentManagement : UserControl
     {
         private Form? mainForm;
+        private bool isLoading = false;
+        private CancellationTokenSource? cancellationTokenSource;
+        private System.Threading.Timer? filterTimer;
 
         public ucPaymentManagement()
         {
@@ -128,12 +132,23 @@ namespace DormitoryManagementSystem.GUI.UserControls
 
         private async Task LoadDataAsync()
         {
+            if (isLoading) return;
+            
+            isLoading = true;
+            cancellationTokenSource?.Cancel();
+            cancellationTokenSource = new CancellationTokenSource();
+            var token = cancellationTokenSource.Token;
+            
             UiHelper.ShowLoading(this);
             try
             {
-                string status = cmbFilterStatus.SelectedIndex > 0 ? cmbFilterStatus.SelectedItem.ToString() : "Tất cả";
+                if (token.IsCancellationRequested) return;
+                
+                string status = cmbFilterStatus.SelectedIndex > 0 ? cmbFilterStatus.SelectedItem?.ToString() : "Tất cả";
                 string search = txtSearch.Text;
-                var payments = await ApiService.GetPaymentsAsync(status, search);
+                var payments = await ApiService.GetPaymentsAsync(status ?? "Tất cả", search);
+
+                if (token.IsCancellationRequested) return;
 
                 dgvPayments.Rows.Clear();
                 if (payments != null)
@@ -151,12 +166,20 @@ namespace DormitoryManagementSystem.GUI.UserControls
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // Ignore cancellation
+            }
             catch (Exception ex)
             {
-                UiHelper.ShowError(this.mainForm, $"Lỗi tải dữ liệu thanh toán: {ex.Message}");
+                if (this.mainForm != null)
+                {
+                    UiHelper.ShowError(this.mainForm, $"Lỗi tải dữ liệu thanh toán: {ex.Message}");
+                }
             }
             finally
             {
+                isLoading = false;
                 UiHelper.HideLoading(this);
             }
         }
@@ -179,11 +202,14 @@ namespace DormitoryManagementSystem.GUI.UserControls
             }
             catch (Exception ex)
             {
-                UiHelper.ShowError(this.mainForm, $"Lỗi tải dữ liệu KPI: {ex.Message}");
+                if (this.mainForm != null)
+                {
+                    UiHelper.ShowError(this.mainForm, $"Lỗi tải dữ liệu KPI: {ex.Message}");
+                }
             }
         }
 
-        private string FormatCurrency(decimal amount)
+        private static string FormatCurrency(decimal amount)
         {
             if (amount == 0)
                 return "0đ";
@@ -192,13 +218,48 @@ namespace DormitoryManagementSystem.GUI.UserControls
 
         private async void btnFilter_Click(object sender, EventArgs e)
         {
-            await LoadDataAsync();
-            await UpdateKPICards();
+            if (btnFilter != null)
+            {
+                btnFilter.Enabled = false;
+            }
+            
+            filterTimer?.Dispose();
+            filterTimer = new System.Threading.Timer(_ =>
+            {
+                if (this.InvokeRequired)
+                {
+                    this.Invoke(new Action(async () => 
+                    {
+                        await LoadDataAsync();
+                        await UpdateKPICards();
+                        if (btnFilter != null) btnFilter.Enabled = true;
+                    }));
+                }
+                else
+                {
+                    Task.Run(async () =>
+                    {
+                        await LoadDataAsync();
+                        await UpdateKPICards();
+                        if (this.InvokeRequired)
+                        {
+                            this.Invoke(new Action(() => { if (btnFilter != null) btnFilter.Enabled = true; }));
+                        }
+                        else
+                        {
+                            if (btnFilter != null) btnFilter.Enabled = true;
+                        }
+                    });
+                }
+            }, null, 300, Timeout.Infinite);
         }
 
         private void btnAddPayment_Click(object sender, EventArgs e)
         {
-            UiHelper.ShowSuccess(this.mainForm, "Chức năng Ghi nhận thanh toán (chưa hoàn thiện)");
+            if (this.mainForm != null)
+            {
+                UiHelper.ShowSuccess(this.mainForm, "Chức năng Ghi nhận thanh toán (chưa hoàn thiện)");
+            }
         }
 
         private void dgvPayments_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -210,8 +271,12 @@ namespace DormitoryManagementSystem.GUI.UserControls
             if (dgv.Columns[e.ColumnIndex].Name == "Detail")
             {
                 int paymentId = (int)dgv.Rows[e.RowIndex].Cells["Id"].Value;
-                UiHelper.ShowSuccess(this.mainForm, $"Xem chi tiết thanh toán ID: {paymentId}");
+                if (this.mainForm != null)
+                {
+                    UiHelper.ShowSuccess(this.mainForm, $"Xem chi tiết thanh toán ID: {paymentId}");
+                }
             }
         }
+
     }
 }

@@ -4,6 +4,7 @@ using DormitoryManagementSystem.GUI.Utils;
 using System;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
@@ -13,6 +14,12 @@ namespace DormitoryManagementSystem.GUI.UserControls
     public partial class ucDashboard : UserControl
     {
         private Form? mainForm;
+        private bool isLoading = false;
+        private CancellationTokenSource? cancellationTokenSource;
+        private System.Threading.Timer? refreshTimer;
+        private System.Threading.Timer? buildingChangeTimer;
+        private System.Threading.Timer? timeRangeChangeTimer;
+        private System.Threading.Timer? searchTimer;
 
         public ucDashboard()
         {
@@ -214,14 +221,27 @@ namespace DormitoryManagementSystem.GUI.UserControls
 
         private async Task LoadDashboardData()
         {
+            // Prevent multiple concurrent loads
+            if (isLoading) return;
+            
+            isLoading = true;
+            cancellationTokenSource?.Cancel();
+            cancellationTokenSource = new CancellationTokenSource();
+            var token = cancellationTokenSource.Token;
+            
             UiHelper.ShowLoading(this);
             try
             {
+                // Check if cancelled
+                if (token.IsCancellationRequested) return;
+                
                 // Load KPI data
                 var kpiData = await ApiService.GetDashboardKPIsAsync(
                     cmbBuilding.SelectedIndex > 0 ? cmbBuilding.SelectedItem?.ToString() : null,
                     GetDateRange()
                 );
+
+                if (token.IsCancellationRequested) return;
 
                 if (kpiData != null)
                 {
@@ -230,22 +250,36 @@ namespace DormitoryManagementSystem.GUI.UserControls
 
                 // Load pending contracts
                 await LoadPendingContracts();
+                
+                if (token.IsCancellationRequested) return;
 
                 // Load charts data
                 await LoadChartsData();
+                
+                if (token.IsCancellationRequested) return;
 
                 // Load alerts
                 await LoadAlerts();
+                
+                if (token.IsCancellationRequested) return;
 
                 // Load recent activity
                 await LoadRecentActivity();
             }
+            catch (OperationCanceledException)
+            {
+                // Ignore cancellation
+            }
             catch (Exception ex)
             {
-                UiHelper.ShowError(this.mainForm, $"Lỗi tải dữ liệu dashboard: {ex.Message}");
+                if (this.mainForm != null)
+                {
+                    UiHelper.ShowError(this.mainForm, $"Lỗi tải dữ liệu dashboard: {ex.Message}");
+                }
             }
             finally
             {
+                isLoading = false;
                 UiHelper.HideLoading(this);
             }
         }
@@ -316,7 +350,10 @@ namespace DormitoryManagementSystem.GUI.UserControls
             }
             catch (Exception ex)
             {
-                UiHelper.ShowError(this.mainForm, $"Lỗi tải hợp đồng chờ duyệt: {ex.Message}");
+                if (this.mainForm != null)
+                {
+                    UiHelper.ShowError(this.mainForm, $"Lỗi tải hợp đồng chờ duyệt: {ex.Message}");
+                }
             }
         }
 
@@ -329,6 +366,12 @@ namespace DormitoryManagementSystem.GUI.UserControls
                     GetDateRange()
                 );
 
+                // Null check trước khi access Series
+                if (chartOccupancyPie?.Series["Occupancy"] == null) return;
+                if (chartOccupancyByBuilding?.Series["Occupied"] == null) return;
+                if (chartOccupancyByBuilding?.Series["Capacity"] == null) return;
+                if (chartTrend?.Series["New Contracts"] == null) return;
+
                 // Clear all charts
                 chartOccupancyPie.Series["Occupancy"].Points.Clear();
                 chartOccupancyByBuilding.Series["Occupied"].Points.Clear();
@@ -340,8 +383,14 @@ namespace DormitoryManagementSystem.GUI.UserControls
                     // Update Pie chart
                     chartOccupancyPie.Series["Occupancy"].Points.AddXY("Đang ở", chartData.OccupiedCount);
                     chartOccupancyPie.Series["Occupancy"].Points.AddXY("Trống", chartData.AvailableCount);
-                    chartOccupancyPie.Series["Occupancy"].Points[0].Color = Theme.Primary;
-                    chartOccupancyPie.Series["Occupancy"].Points[1].Color = Theme.Success;
+                    if (chartOccupancyPie.Series["Occupancy"].Points.Count > 0)
+                    {
+                        chartOccupancyPie.Series["Occupancy"].Points[0].Color = Theme.Primary;
+                        if (chartOccupancyPie.Series["Occupancy"].Points.Count > 1)
+                        {
+                            chartOccupancyPie.Series["Occupancy"].Points[1].Color = Theme.Success;
+                        }
+                    }
 
                     // Update Bar chart
                     if (chartData.OccupancyByBuilding != null && chartData.OccupancyByBuilding.Count > 0)
@@ -365,7 +414,10 @@ namespace DormitoryManagementSystem.GUI.UserControls
             }
             catch (Exception ex)
             {
-                UiHelper.ShowError(this.mainForm, $"Lỗi tải dữ liệu biểu đồ: {ex.Message}");
+                if (this.mainForm != null)
+                {
+                    UiHelper.ShowError(this.mainForm, $"Lỗi tải dữ liệu biểu đồ: {ex.Message}");
+                }
             }
         }
 
@@ -390,7 +442,10 @@ namespace DormitoryManagementSystem.GUI.UserControls
             }
             catch (Exception ex)
             {
-                UiHelper.ShowError(this.mainForm, $"Lỗi tải cảnh báo: {ex.Message}");
+                if (this.mainForm != null)
+                {
+                    UiHelper.ShowError(this.mainForm, $"Lỗi tải cảnh báo: {ex.Message}");
+                }
             }
         }
 
@@ -415,44 +470,33 @@ namespace DormitoryManagementSystem.GUI.UserControls
             }
             catch (Exception ex)
             {
-                UiHelper.ShowError(this.mainForm, $"Lỗi tải hoạt động gần đây: {ex.Message}");
+                if (this.mainForm != null)
+                {
+                    UiHelper.ShowError(this.mainForm, $"Lỗi tải hoạt động gần đây: {ex.Message}");
+                }
             }
         }
 
         private DateTime[] GetDateRange()
         {
             var now = DateTime.Now;
-            DateTime from, to = now;
+            var to = now;
 
-            switch (cmbTimeRange.SelectedIndex)
+            var from = cmbTimeRange.SelectedIndex switch
             {
-                case 0: // Hôm nay
-                    from = now.Date;
-                    break;
-                case 1: // Tuần này
-                    from = now.AddDays(-(int)now.DayOfWeek);
-                    break;
-                case 2: // Tháng này
-                    from = new DateTime(now.Year, now.Month, 1);
-                    break;
-                case 3: // 3 tháng
-                    from = now.AddMonths(-3);
-                    break;
-                case 4: // 6 tháng
-                    from = now.AddMonths(-6);
-                    break;
-                case 5: // Năm nay
-                    from = new DateTime(now.Year, 1, 1);
-                    break;
-                default:
-                    from = new DateTime(now.Year, now.Month, 1);
-                    break;
-            }
+                0 => now.Date, // Hôm nay
+                1 => now.AddDays(-(int)now.DayOfWeek), // Tuần này
+                2 => new DateTime(now.Year, now.Month, 1), // Tháng này
+                3 => now.AddMonths(-3), // 3 tháng
+                4 => now.AddMonths(-6), // 6 tháng
+                5 => new DateTime(now.Year, 1, 1), // Năm nay
+                _ => new DateTime(now.Year, now.Month, 1) // Default: Tháng này
+            };
 
             return new[] { from, to };
         }
 
-        private string FormatCurrency(decimal amount)
+        private static string FormatCurrency(decimal amount)
         {
             if (amount == 0)
                 return "0đ";
@@ -467,22 +511,78 @@ namespace DormitoryManagementSystem.GUI.UserControls
         // Event handlers
         private async void btnRefresh_Click(object sender, EventArgs e)
         {
-            await LoadDashboardData();
+            if (btnRefresh != null)
+            {
+                btnRefresh.Enabled = false;
+            }
+            
+            refreshTimer?.Dispose();
+            refreshTimer = new System.Threading.Timer(_ =>
+            {
+                if (this.InvokeRequired)
+                {
+                    this.Invoke(new Action(async () => 
+                    {
+                        await LoadDashboardData();
+                        if (btnRefresh != null) btnRefresh.Enabled = true;
+                    }));
+                }
+                else
+                {
+                    LoadDashboardData().ContinueWith(_ =>
+                    {
+                        if (btnRefresh != null) btnRefresh.Enabled = true;
+                    }, TaskScheduler.FromCurrentSynchronizationContext());
+                }
+            }, null, 300, Timeout.Infinite);
         }
 
         private async void cmbBuilding_SelectedIndexChanged(object sender, EventArgs e)
         {
-            await LoadDashboardData();
+            buildingChangeTimer?.Dispose();
+            buildingChangeTimer = new System.Threading.Timer(_ =>
+            {
+                if (this.InvokeRequired)
+                {
+                    this.Invoke(new Action(async () => await LoadDashboardData()));
+                }
+                else
+                {
+                    _ = LoadDashboardData();
+                }
+            }, null, 500, Timeout.Infinite);
         }
 
         private async void cmbTimeRange_SelectedIndexChanged(object sender, EventArgs e)
         {
-            await LoadDashboardData();
+            timeRangeChangeTimer?.Dispose();
+            timeRangeChangeTimer = new System.Threading.Timer(_ =>
+            {
+                if (this.InvokeRequired)
+                {
+                    this.Invoke(new Action(async () => await LoadDashboardData()));
+                }
+                else
+                {
+                    _ = LoadDashboardData();
+                }
+            }, null, 500, Timeout.Infinite);
         }
 
         private async void btnSearchContracts_Click(object sender, EventArgs e)
         {
-            await LoadPendingContracts();
+            searchTimer?.Dispose();
+            searchTimer = new System.Threading.Timer(_ =>
+            {
+                if (this.InvokeRequired)
+                {
+                    this.Invoke(new Action(async () => await LoadPendingContracts()));
+                }
+                else
+                {
+                    _ = LoadPendingContracts();
+                }
+            }, null, 300, Timeout.Infinite);
         }
 
         private async void dgvPendingContracts_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -497,7 +597,10 @@ namespace DormitoryManagementSystem.GUI.UserControls
                 var contractId = dgv.Rows[e.RowIndex].Cells["Student"].Value?.ToString();
                 if (await ApiService.ApproveContractAsync(contractId ?? ""))
                 {
-                    UiHelper.ShowSuccess(this.mainForm, "Duyệt hợp đồng thành công!");
+                    if (this.mainForm != null)
+                    {
+                        UiHelper.ShowSuccess(this.mainForm, "Duyệt hợp đồng thành công!");
+                    }
                     await LoadPendingContracts();
                     await LoadDashboardData();
                 }
@@ -507,7 +610,10 @@ namespace DormitoryManagementSystem.GUI.UserControls
                 var contractId = dgv.Rows[e.RowIndex].Cells["Student"].Value?.ToString();
                 if (await ApiService.RejectContractAsync(contractId ?? ""))
                 {
-                    UiHelper.ShowSuccess(this.mainForm, "Từ chối hợp đồng thành công!");
+                    if (this.mainForm != null)
+                    {
+                        UiHelper.ShowSuccess(this.mainForm, "Từ chối hợp đồng thành công!");
+                    }
                     await LoadPendingContracts();
                     await LoadDashboardData();
                 }
@@ -568,5 +674,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
                 btnContract?.PerformClick();
             }
         }
+
     }
 }

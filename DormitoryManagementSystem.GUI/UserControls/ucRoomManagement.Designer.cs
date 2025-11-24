@@ -7,9 +7,16 @@ namespace DormitoryManagementSystem.GUI.UserControls
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing)
             {
-                components.Dispose();
+                if (components != null)
+                {
+                    components.Dispose();
+                }
+                // Cleanup timers and cancellation tokens
+                cancellationTokenSource?.Cancel();
+                cancellationTokenSource?.Dispose();
+                filterTimer?.Dispose();
             }
             base.Dispose(disposing);
         }

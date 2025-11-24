@@ -7,9 +7,16 @@ namespace DormitoryManagementSystem.GUI.UserControls
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing)
             {
-                components.Dispose();
+                if (components != null)
+                {
+                    components.Dispose();
+                }
+                // Cleanup timers and cancellation tokens
+                cancellationTokenSource?.Cancel();
+                cancellationTokenSource?.Dispose();
+                applyTimer?.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -182,6 +189,8 @@ namespace DormitoryManagementSystem.GUI.UserControls
             Padding = new Padding(13, 15, 13, 15);
             Size = new Size(1744, 906);
             Load += ucStatistics_Load;
+            dtpDateFrom.ValueChanged += dtpDateFrom_ValueChanged;
+            dtpDateTo.ValueChanged += dtpDateTo_ValueChanged;
             pnlFilters.ResumeLayout(false);
             tlpCharts.ResumeLayout(false);
             groupRevenue.ResumeLayout(false);

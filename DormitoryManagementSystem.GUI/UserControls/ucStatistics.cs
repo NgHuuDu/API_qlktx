@@ -3,14 +3,20 @@ using DormitoryManagementSystem.GUI.Services;
 using DormitoryManagementSystem.GUI.Utils;
 using System;
 using System.Drawing;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
+using System.Linq;
 
 namespace DormitoryManagementSystem.GUI.UserControls
 {
     public partial class ucStatistics : UserControl
     {
         private Form? mainForm;
+        private bool isLoading = false;
+        private CancellationTokenSource? cancellationTokenSource;
+        private System.Threading.Timer? applyTimer;
 
         public ucStatistics()
         {
@@ -49,17 +55,68 @@ namespace DormitoryManagementSystem.GUI.UserControls
             seriesViolations.LegendText = "#VALX";
         }
 
-        private async void btnApply_Click(object sender, EventArgs e)
+        private async void dtpDateFrom_ValueChanged(object sender, EventArgs e)
         {
+            await LoadStatisticsDataWithDebounce();
+        }
+
+        private async void dtpDateTo_ValueChanged(object sender, EventArgs e)
+        {
+            await LoadStatisticsDataWithDebounce();
+        }
+
+        private async System.Threading.Tasks.Task LoadStatisticsDataWithDebounce()
+        {
+            if (isLoading) return;
+            
+            applyTimer?.Dispose();
+            applyTimer = new System.Threading.Timer(_ =>
+            {
+                if (this.InvokeRequired)
+                {
+                    this.Invoke(new Action(async () => 
+                    {
+                        await LoadStatisticsData();
+                    }));
+                }
+                else
+                {
+                    LoadStatisticsData();
+                }
+            }, null, 300, Timeout.Infinite);
+        }
+
+        private async System.Threading.Tasks.Task LoadStatisticsData()
+        {
+            if (isLoading) return;
+            
+            isLoading = true;
+            cancellationTokenSource?.Cancel();
+            cancellationTokenSource = new CancellationTokenSource();
+            var token = cancellationTokenSource.Token;
+            
             UiHelper.ShowLoading(this);
             try
             {
+                if (token.IsCancellationRequested) return;
+                
                 var data = await ApiService.GetStatisticsAsync(dtpDateFrom.Value, dtpDateTo.Value);
+                
+                if (token.IsCancellationRequested) return;
+                
                 if (data == null)
                 {
-                    UiHelper.ShowError(this.mainForm, "Không có dữ liệu thống kê cho khoảng thời gian này.");
+                    if (this.mainForm != null)
+                    {
+                        UiHelper.ShowError(this.mainForm, "Không có dữ liệu thống kê cho khoảng thời gian này.");
+                    }
                     return;
                 }
+
+                // Null checks trước khi access Series
+                if (chartRevenue?.Series["Doanh thu"] == null) return;
+                if (chartOccupancy?.Series["Tỷ lệ lấp đầy"] == null) return;
+                if (chartViolations?.Series["Vi phạm"] == null) return;
 
                 // 1. Vẽ biểu đồ Doanh thu
                 chartRevenue.Series["Doanh thu"].Points.Clear();
@@ -91,14 +148,23 @@ namespace DormitoryManagementSystem.GUI.UserControls
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // Ignore cancellation
+            }
             catch (Exception ex)
             {
-                UiHelper.ShowError(this.mainForm, $"Lỗi tải thống kê: {ex.Message}");
+                if (this.mainForm != null)
+                {
+                    UiHelper.ShowError(this.mainForm, $"Lỗi tải thống kê: {ex.Message}");
+                }
             }
             finally
             {
+                isLoading = false;
                 UiHelper.HideLoading(this);
             }
         }
+
     }
 }

@@ -3,14 +3,19 @@ using DormitoryManagementSystem.GUI.Services;
 using DormitoryManagementSystem.GUI.Utils;
 using System;
 using System.Drawing;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Linq;
 
 namespace DormitoryManagementSystem.GUI.UserControls
 {
     public partial class ucContractManagement : UserControl
     {
         private Form? mainForm;
+        private bool isLoading = false;
+        private CancellationTokenSource? cancellationTokenSource;
+        private System.Threading.Timer? filterTimer;
 
         public ucContractManagement()
         {
@@ -41,13 +46,24 @@ namespace DormitoryManagementSystem.GUI.UserControls
 
         private async Task LoadDataAsync()
         {
+            if (isLoading) return;
+            
+            isLoading = true;
+            cancellationTokenSource?.Cancel();
+            cancellationTokenSource = new CancellationTokenSource();
+            var token = cancellationTokenSource.Token;
+            
             UiHelper.ShowLoading(this);
             try
             {
-                string status = cmbFilterStatus.SelectedIndex > 0 ? cmbFilterStatus.SelectedItem.ToString() : "Tất cả";
+                if (token.IsCancellationRequested) return;
+                
+                string status = cmbFilterStatus.SelectedIndex > 0 ? cmbFilterStatus.SelectedItem?.ToString() : "Tất cả";
                 string search = txtSearch.Text;
 
-                var contracts = await ApiService.GetContractsAsync(status, search);
+                var contracts = await ApiService.GetContractsAsync(status ?? "Tất cả", search);
+
+                if (token.IsCancellationRequested) return;
 
                 dgvContracts.Rows.Clear();
                 if (contracts != null)
@@ -65,24 +81,59 @@ namespace DormitoryManagementSystem.GUI.UserControls
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // Ignore cancellation
+            }
             catch (Exception ex)
             {
-                UiHelper.ShowError(this.mainForm, $"Lỗi tải dữ liệu hợp đồng: {ex.Message}");
+                if (this.mainForm != null)
+                {
+                    UiHelper.ShowError(this.mainForm, $"Lỗi tải dữ liệu hợp đồng: {ex.Message}");
+                }
             }
             finally
             {
+                isLoading = false;
                 UiHelper.HideLoading(this);
             }
         }
 
         private async void btnFilter_Click(object sender, EventArgs e)
         {
-            await LoadDataAsync();
+            if (btnFilter != null)
+            {
+                btnFilter.Enabled = false;
+            }
+            
+            filterTimer?.Dispose();
+            filterTimer = new System.Threading.Timer(_ =>
+            {
+                if (this.InvokeRequired)
+                {
+                    this.Invoke(new Action(async () => 
+                    {
+                        await LoadDataAsync();
+                        if (btnFilter != null) btnFilter.Enabled = true;
+                    }));
+                }
+                else
+                {
+                    LoadDataAsync().ContinueWith(_ =>
+                    {
+                        if (btnFilter != null) btnFilter.Enabled = true;
+                    }, TaskScheduler.FromCurrentSynchronizationContext());
+                }
+            }, null, 300, Timeout.Infinite);
         }
 
         private void btnAddContract_Click(object sender, EventArgs e)
         {
-            UiHelper.ShowSuccess(this.mainForm, "Chức năng Thêm hợp đồng (chưa hoàn thiện)");
+            if (this.mainForm != null)
+            {
+                UiHelper.ShowSuccess(this.mainForm, "Chức năng Thêm hợp đồng (chưa hoàn thiện)");
+            }
         }
+
     }
 }
