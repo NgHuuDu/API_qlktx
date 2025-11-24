@@ -38,8 +38,6 @@ namespace DormitoryManagementSystem.GUI.Services
                 Timeout = TimeSpan.FromSeconds(30) // Set timeout 30 giây
             };
 
-            System.Diagnostics.Debug.WriteLine($"[HttpService] Initialized with BaseAddress: {client.BaseAddress}");
-
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));

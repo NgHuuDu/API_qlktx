@@ -22,7 +22,6 @@ namespace DormitoryManagementSystem.GUI.Forms
         {
             try
             {
-                UiHelper.ShowLoading(this);
                 var buildings = await ApiService.GetBuildingsAsync();
                 cmbBuilding.Items.Clear();
                 
@@ -30,7 +29,6 @@ namespace DormitoryManagementSystem.GUI.Forms
                 {
                     foreach (var building in buildings)
                     {
-                        // Hiển thị tên tòa và ID trong dropdown
                         cmbBuilding.Items.Add($"{building.BuildingName} ({building.BuildingID})");
                     }
                     if (cmbBuilding.Items.Count > 0)
@@ -38,7 +36,6 @@ namespace DormitoryManagementSystem.GUI.Forms
                 }
                 else
                 {
-                    // Fallback nếu không lấy được từ API
                     cmbBuilding.Items.Add("BLD_A");
                     cmbBuilding.Items.Add("BLD_B");
                     cmbBuilding.Items.Add("BLD_C");
@@ -50,17 +47,12 @@ namespace DormitoryManagementSystem.GUI.Forms
             catch (Exception ex)
             {
                 UiHelper.ShowError(this, $"Lỗi tải danh sách tòa: {ex.Message}");
-                // Fallback
                 cmbBuilding.Items.Add("BLD_A");
                 cmbBuilding.Items.Add("BLD_B");
                 cmbBuilding.Items.Add("BLD_C");
                 cmbBuilding.Items.Add("BLD_D");
                 if (cmbBuilding.Items.Count > 0)
                     cmbBuilding.SelectedIndex = 0;
-            }
-            finally
-            {
-                UiHelper.HideLoading(this);
             }
         }
 
@@ -75,10 +67,8 @@ namespace DormitoryManagementSystem.GUI.Forms
             if (!ValidateInput())
                 return;
 
-            UiHelper.ShowLoading(this);
             try
             {
-                // Extract BuildingID from dropdown (format: "BuildingName (BLD_X)")
                 string selectedBuilding = cmbBuilding.SelectedItem?.ToString() ?? string.Empty;
                 string buildingID = selectedBuilding;
                 if (selectedBuilding.Contains("(") && selectedBuilding.Contains(")"))
@@ -117,10 +107,6 @@ namespace DormitoryManagementSystem.GUI.Forms
             catch (Exception ex)
             {
                 UiHelper.ShowError(this, $"Lỗi: {ex.Message}");
-            }
-            finally
-            {
-                UiHelper.HideLoading(this);
             }
         }
 

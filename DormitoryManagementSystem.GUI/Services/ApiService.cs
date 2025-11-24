@@ -25,10 +25,6 @@ namespace DormitoryManagementSystem.GUI.Services
         {
             try
             {
-                // Log để debug
-                var baseUrl = HttpService.Client.BaseAddress?.ToString() ?? "unknown";
-                System.Diagnostics.Debug.WriteLine($"[ApiService] Attempting login to: {baseUrl}api/auth/login");
-                
                 var response = await HttpService.Client.PostAsJsonAsync("api/auth/login", request, JsonOptions);
                 if (!response.IsSuccessStatusCode)
                 {
@@ -41,7 +37,7 @@ namespace DormitoryManagementSystem.GUI.Services
                             // Try to parse as JSON error object
                             try
                             {
-                                var errorObj = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(errorContent, JsonOptions);
+                                var errorObj = JsonSerializer.Deserialize<Dictionary<string, object>>(errorContent, JsonOptions);
                                 if (errorObj != null && errorObj.ContainsKey("message"))
                                 {
                                     errorMessage = errorObj["message"]?.ToString() ?? errorMessage;
@@ -97,7 +93,6 @@ namespace DormitoryManagementSystem.GUI.Services
                 
                 var baseUrl = HttpService.Client.BaseAddress?.ToString() ?? "unknown";
                 detailedMessage += $" Vui lòng kiểm tra API đã chạy chưa và đảm bảo đúng địa chỉ ({baseUrl}).";
-                System.Diagnostics.Debug.WriteLine($"[ApiService] HttpRequestException: {detailedMessage}");
                 
                 return new LoginResponse
                 {
@@ -107,16 +102,14 @@ namespace DormitoryManagementSystem.GUI.Services
             }
             catch (System.Net.Sockets.SocketException ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ApiService] SocketException: {ex.Message}");
                 return new LoginResponse
                 {
                     IsSuccess = false,
                     Message = $"Không thể kết nối đến máy chủ. API có thể chưa chạy hoặc địa chỉ không đúng. Chi tiết: {ex.Message}"
                 };
             }
-            catch (System.Threading.Tasks.TaskCanceledException ex)
+            catch (TaskCanceledException ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ApiService] TaskCanceledException (Timeout): {ex.Message}");
                 return new LoginResponse
                 {
                     IsSuccess = false,
@@ -125,8 +118,6 @@ namespace DormitoryManagementSystem.GUI.Services
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ApiService] Exception: {ex.GetType().Name} - {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[ApiService] StackTrace: {ex.StackTrace}");
                 return new LoginResponse
                 {
                     IsSuccess = false,
@@ -400,7 +391,6 @@ namespace DormitoryManagementSystem.GUI.Services
                     return (true, null);
                 }
                 
-                // Extract error message from response
                 string errorMessage = "Thêm phòng thất bại";
                 try
                 {
@@ -440,7 +430,7 @@ namespace DormitoryManagementSystem.GUI.Services
             {
                 return (false, $"Không thể kết nối đến máy chủ. API có thể chưa chạy: {ex.Message}");
             }
-            catch (System.Threading.Tasks.TaskCanceledException)
+            catch (TaskCanceledException)
             {
                 return (false, "Kết nối bị timeout. Vui lòng thử lại sau.");
             }

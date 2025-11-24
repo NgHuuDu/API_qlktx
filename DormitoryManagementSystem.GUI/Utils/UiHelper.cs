@@ -14,16 +14,6 @@ namespace DormitoryManagementSystem.GUI.Utils
         {
             MessageBox.Show(parent, message, "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
-
-        public static void ShowLoading(Control parent)
-        {
-            // TODO: Implement loading indicator
-        }
-
-        public static void HideLoading(Control parent)
-        {
-            // TODO: Hide loading indicator
-        }
     }
 }
 

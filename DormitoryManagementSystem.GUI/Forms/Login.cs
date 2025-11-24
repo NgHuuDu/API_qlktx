@@ -15,10 +15,8 @@ namespace DormitoryManagementSystem.GUI.Forms
             this.FormClosing += Login_FormClosing;
         }
 
-        // Thêm sự kiện Click cho nút Đăng nhập
         private async void btnLogin_Click(object sender, EventArgs e)
         {
-            // Giả sử tên control là txtUsername và txtPassword
             string username = txtUsername.Text.Trim();
             string password = txtPassword.Text;
 
@@ -33,8 +31,6 @@ namespace DormitoryManagementSystem.GUI.Forms
                 Username = username,
                 Password = password
             };
-
-            UiHelper.ShowLoading(this);
 
             try
             {
@@ -60,7 +56,6 @@ namespace DormitoryManagementSystem.GUI.Forms
             }
             finally
             {
-                UiHelper.HideLoading(this);
             }
         }
 

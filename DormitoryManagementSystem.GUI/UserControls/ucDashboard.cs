@@ -229,13 +229,11 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
             
-            UiHelper.ShowLoading(this);
             try
             {
                 // Check if cancelled
                 if (token.IsCancellationRequested) return;
                 
-                // Load KPI data
                 var kpiData = await ApiService.GetDashboardKPIsAsync(
                     cmbBuilding.SelectedIndex > 0 ? cmbBuilding.SelectedItem?.ToString() : null,
                     GetDateRange()
@@ -248,22 +246,18 @@ namespace DormitoryManagementSystem.GUI.UserControls
                     UpdateKPICards(kpiData);
                 }
 
-                // Load pending contracts
                 await LoadPendingContracts();
                 
                 if (token.IsCancellationRequested) return;
 
-                // Load charts data
                 await LoadChartsData();
                 
                 if (token.IsCancellationRequested) return;
 
-                // Load alerts
                 await LoadAlerts();
                 
                 if (token.IsCancellationRequested) return;
 
-                // Load recent activity
                 await LoadRecentActivity();
             }
             catch (OperationCanceledException)
@@ -280,7 +274,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
             finally
             {
                 isLoading = false;
-                UiHelper.HideLoading(this);
             }
         }
 

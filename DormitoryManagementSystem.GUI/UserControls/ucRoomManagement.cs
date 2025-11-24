@@ -136,7 +136,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
             
-            UiHelper.ShowLoading(this);
             try
             {
                 if (token.IsCancellationRequested) return;
@@ -165,7 +164,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
             finally
             {
                 isLoading = false;
-                UiHelper.HideLoading(this);
             }
         }
 

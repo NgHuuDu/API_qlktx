@@ -51,7 +51,6 @@ namespace DormitoryManagementSystem.GUI.Forms
         /// </summary>
         private void LoadUserControl(UserControl uc)
         {
-            // Giả sử panel nội dung của bạn tên là pnlContent
             if (pnlContent == null) return;
 
             if (currentActiveControl?.GetType() == uc.GetType())

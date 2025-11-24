@@ -2,12 +2,10 @@
 using DormitoryManagementSystem.GUI.Services;
 using DormitoryManagementSystem.GUI.Utils;
 using System;
-using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
-using System.Linq;
 
 namespace DormitoryManagementSystem.GUI.UserControls
 {
@@ -34,20 +32,17 @@ namespace DormitoryManagementSystem.GUI.UserControls
 
         private void SetupCharts()
         {
-            // Cấu hình biểu đồ doanh thu (Line)
             chartRevenue.Series.Clear();
             var seriesRevenue = chartRevenue.Series.Add("Doanh thu");
             seriesRevenue.ChartType = SeriesChartType.Line;
             seriesRevenue.XValueType = ChartValueType.String;
             seriesRevenue.BorderWidth = 3;
 
-            // Cấu hình biểu đồ tỷ lệ (Bar)
             chartOccupancy.Series.Clear();
             var seriesOccupancy = chartOccupancy.Series.Add("Tỷ lệ lấp đầy");
             seriesOccupancy.ChartType = SeriesChartType.Bar;
             seriesOccupancy.XValueType = ChartValueType.String;
 
-            // Cấu hình biểu đồ vi phạm (Pie)
             chartViolations.Series.Clear();
             var seriesViolations = chartViolations.Series.Add("Vi phạm");
             seriesViolations.ChartType = SeriesChartType.Pie;
@@ -65,7 +60,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             await LoadStatisticsDataWithDebounce();
         }
 
-        private async System.Threading.Tasks.Task LoadStatisticsDataWithDebounce()
+        private async Task LoadStatisticsDataWithDebounce()
         {
             if (isLoading) return;
             
@@ -86,7 +81,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             }, null, 300, Timeout.Infinite);
         }
 
-        private async System.Threading.Tasks.Task LoadStatisticsData()
+        private async Task LoadStatisticsData()
         {
             if (isLoading) return;
             
@@ -95,7 +90,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
             
-            UiHelper.ShowLoading(this);
             try
             {
                 if (token.IsCancellationRequested) return;
@@ -113,7 +107,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
                     return;
                 }
 
-                // Null checks trước khi access Series
                 if (chartRevenue?.Series["Doanh thu"] == null) return;
                 if (chartOccupancy?.Series["Tỷ lệ lấp đầy"] == null) return;
                 if (chartViolations?.Series["Vi phạm"] == null) return;
@@ -128,7 +121,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
                     }
                 }
 
-                // 2. Vẽ biểu đồ Tỷ lệ lấp đầy
                 chartOccupancy.Series["Tỷ lệ lấp đầy"].Points.Clear();
                 if (data.OccupancyByBuilding != null)
                 {
@@ -138,7 +130,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
                     }
                 }
 
-                // 3. Vẽ biểu đồ Vi phạm
                 chartViolations.Series["Vi phạm"].Points.Clear();
                 if (data.ViolationsByType != null)
                 {
@@ -150,7 +141,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
             }
             catch (OperationCanceledException)
             {
-                // Ignore cancellation
             }
             catch (Exception ex)
             {
@@ -162,7 +152,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
             finally
             {
                 isLoading = false;
-                UiHelper.HideLoading(this);
             }
         }
 
