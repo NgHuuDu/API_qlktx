@@ -450,7 +450,7 @@ namespace DormitoryManagementSystem.GUI.Services
                 <= 2 => "Phòng đôi",
                 <= 4 => "Phòng 4",
                 <= 6 => "Phòng 6",
-                _ => $"Phòng {capacity} người"
+                _ => $"Phòng {capacity}"
             };
 
         private class RoomApiModel
