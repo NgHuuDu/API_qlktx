@@ -268,7 +268,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
 
             if (dgv.Columns[e.ColumnIndex].Name == "Detail")
             {
-                int paymentId = (int)dgv.Rows[e.RowIndex].Cells["Id"].Value;
+                string paymentId = dgv.Rows[e.RowIndex].Cells["Id"].Value?.ToString() ?? string.Empty;
                 if (this.mainForm != null)
                 {
                     UiHelper.ShowSuccess(this.mainForm, $"Xem chi tiết thanh toán ID: {paymentId}");

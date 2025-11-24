@@ -183,7 +183,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
                         rows[i] = new DataGridViewRow();
                         rows[i].CreateCells(dgvRooms,
                             room.RoomId,
-                            room.RoomNumber,
+                            room.RoomNumber.ToString(),
                             room.Building,
                             room.RoomType,
                             $"{room.CurrentOccupants}/{room.MaxOccupants}",
