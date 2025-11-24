@@ -23,7 +23,7 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ContractResponse>>> GetContracts(
+        public async Task<ActionResult<IEnumerable<ContractReadDTO>>> GetContracts(
             [FromQuery] string? status,
             [FromQuery] string? search)
         {
@@ -47,18 +47,15 @@ namespace DormitoryManagementSystem.API.Controllers
             }
 
             return Ok(contracts
-                .OrderByDescending(c => c.CreatedDate)
-                .Select(MapContract));
+                .OrderByDescending(c => c.CreatedDate));
         }
 
         [HttpGet("pending")]
-        public async Task<ActionResult<IEnumerable<PendingContractResponse>>> GetPendingContracts([FromQuery] string? search)
+        public async Task<ActionResult<IEnumerable<ContractReadDTO>>> GetPendingContracts([FromQuery] string? search)
         {
             var contracts = (await _contractBUS.GetAllContractsAsync())
                 .Where(c => IsPendingStatus(c.Status))
                 .ToList();
-            var rooms = (await _roomBUS.GetAllRoomsAsync())
-                .ToDictionary(r => r.RoomID, StringComparer.OrdinalIgnoreCase);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -71,8 +68,7 @@ namespace DormitoryManagementSystem.API.Controllers
             }
 
             return Ok(contracts
-                .OrderBy(c => c.CreatedDate)
-                .Select(c => MapPendingContract(c, rooms)));
+                .OrderBy(c => c.CreatedDate));
         }
 
         [HttpPost]
@@ -136,36 +132,6 @@ namespace DormitoryManagementSystem.API.Controllers
 
             await _contractBUS.UpdateContractAsync(contractId, updateDto);
             return true;
-        }
-
-        private static ContractResponse MapContract(ContractReadDTO dto) => new()
-        {
-            ContractId = dto.ContractID,
-            StudentId = dto.StudentID,
-            StudentName = dto.StudentName,
-            RoomNumber = dto.RoomNumber,
-            StartDate = dto.StartTime.ToDateTime(TimeOnly.MinValue),
-            EndDate = dto.EndTime.ToDateTime(TimeOnly.MinValue),
-            Status = dto.Status
-        };
-
-        private static PendingContractResponse MapPendingContract(
-            ContractReadDTO dto,
-            IReadOnlyDictionary<string, RoomReadDTO> rooms)
-        {
-            rooms.TryGetValue(dto.RoomID, out var room);
-
-            return new PendingContractResponse
-            {
-                ContractId = dto.ContractID,
-                StudentCode = dto.StudentID,
-                StudentName = dto.StudentName,
-                RoomNumber = dto.RoomNumber,
-                StartDate = dto.StartTime.ToDateTime(TimeOnly.MinValue),
-                EndDate = dto.EndTime.ToDateTime(TimeOnly.MinValue),
-                MonthlyFee = room?.Price ?? 0,
-                SubmittedAt = dto.CreatedDate
-            };
         }
 
         private static bool MatchesStatus(string status, string filter)

@@ -23,33 +23,32 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ViolationResponse>>> GetViolations(
+        public async Task<ActionResult<IEnumerable<ViolationReadDTO>>> GetViolations(
             [FromQuery] string? status,
             [FromQuery] string? search)
         {
-            var violations = await _violationBUS.GetAllViolationsAsync();
-            var rooms = (await _roomBUS.GetAllRoomsAsync())
-                .ToDictionary(r => r.RoomID, StringComparer.OrdinalIgnoreCase);
-
-            IEnumerable<ViolationReadDTO> query = violations;
+            var violations = (await _violationBUS.GetAllViolationsAsync()).ToList();
 
             if (!string.IsNullOrWhiteSpace(status) && !status.StartsWith("tất cả", StringComparison.OrdinalIgnoreCase))
             {
-                query = query.Where(v => MatchesStatus(v.Status, status));
+                violations = violations
+                    .Where(v => MatchesStatus(v.Status, status))
+                    .ToList();
             }
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                query = query.Where(v =>
-                    (v.StudentID ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                    (v.StudentName ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                    GetRoomNumber(v.RoomID, rooms).Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                    v.ViolationType.Contains(search, StringComparison.OrdinalIgnoreCase));
+                violations = violations
+                    .Where(v =>
+                        (v.StudentID ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                        (v.StudentName ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                        v.RoomID.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                        v.ViolationType.Contains(search, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
             }
 
-            return Ok(query
-                .OrderByDescending(v => v.ViolationDate)
-                .Select(v => MapViolation(v, rooms)));
+            return Ok(violations
+                .OrderByDescending(v => v.ViolationDate));
         }
 
         [HttpPost]
@@ -99,25 +98,6 @@ namespace DormitoryManagementSystem.API.Controllers
             });
         }
 
-        private static ViolationResponse MapViolation(
-            ViolationReadDTO dto,
-            IReadOnlyDictionary<string, RoomReadDTO> rooms) => new()
-        {
-            ViolationId = dto.ViolationID,
-            StudentId = dto.StudentID ?? string.Empty,
-            StudentName = dto.StudentName ?? dto.StudentID ?? string.Empty,
-            RoomNumber = GetRoomNumber(dto.RoomID, rooms),
-            ViolationType = dto.ViolationType,
-            ReportDate = dto.ViolationDate,
-            Status = dto.Status
-        };
-
-        private static string GetRoomNumber(string roomId, IReadOnlyDictionary<string, RoomReadDTO> rooms)
-        {
-            return rooms.TryGetValue(roomId, out var room)
-                ? room.RoomNumber.ToString()
-                : roomId;
-        }
 
         private static bool MatchesStatus(string status, string filter)
         {

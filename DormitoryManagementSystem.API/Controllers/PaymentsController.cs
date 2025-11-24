@@ -23,16 +23,16 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PaymentResponse>>> GetPayments(
+        public async Task<ActionResult<IEnumerable<PaymentReadDTO>>> GetPayments(
             [FromQuery] string? status,
             [FromQuery] string? search)
         {
-            var payments = await LoadPaymentsAsync();
+            var payments = (await _paymentBUS.GetAllPaymentsAsync()).ToList();
 
             if (!string.IsNullOrWhiteSpace(status) && !status.StartsWith("tất cả", StringComparison.OrdinalIgnoreCase))
             {
                 payments = payments
-                    .Where(p => MatchesStatus(p.Status, status))
+                    .Where(p => MatchesStatus(p.PaymentStatus, status))
                     .ToList();
             }
 
@@ -40,35 +40,33 @@ namespace DormitoryManagementSystem.API.Controllers
             {
                 payments = payments
                     .Where(p =>
-                        p.BillCode.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        p.StudentId.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        p.StudentName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        p.RoomNumber.Contains(search, StringComparison.OrdinalIgnoreCase))
+                        p.PaymentID.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                        p.ContractID.Contains(search, StringComparison.OrdinalIgnoreCase))
                     .ToList();
             }
 
             return Ok(payments
-                .OrderByDescending(p => p.Year)
-                .ThenByDescending(p => p.Month)
-                .ThenByDescending(p => p.PaymentDate ?? DateTime.MinValue));
+                .OrderByDescending(p => p.PaymentDate.Year)
+                .ThenByDescending(p => p.BillMonth)
+                .ThenByDescending(p => p.PaymentDate));
         }
 
         [HttpGet("kpis")]
         public async Task<ActionResult<PaymentKpiResponse>> GetPaymentKpis()
         {
-            var payments = await LoadPaymentsAsync();
+            var payments = (await _paymentBUS.GetAllPaymentsAsync()).ToList();
 
-            var collected = payments.Where(p => p.Status.Equals("Paid", StringComparison.OrdinalIgnoreCase));
-            var pending = payments.Where(p => p.Status.Equals("Unpaid", StringComparison.OrdinalIgnoreCase));
-            var overdue = payments.Where(p => IsOverdue(p.Status));
+            var collected = payments.Where(p => p.PaymentStatus.Equals("Paid", StringComparison.OrdinalIgnoreCase));
+            var pending = payments.Where(p => p.PaymentStatus.Equals("Unpaid", StringComparison.OrdinalIgnoreCase));
+            var overdue = payments.Where(p => IsOverdue(p.PaymentStatus));
 
             var response = new PaymentKpiResponse
             {
-                CollectedAmount = collected.Sum(p => p.TotalAmount),
+                CollectedAmount = collected.Sum(p => p.PaymentAmount),
                 CollectedCount = collected.Count(),
-                PendingAmount = pending.Sum(p => p.TotalAmount),
+                PendingAmount = pending.Sum(p => p.PaymentAmount),
                 PendingCount = pending.Count(),
-                OverdueAmount = overdue.Sum(p => p.TotalAmount),
+                OverdueAmount = overdue.Sum(p => p.PaymentAmount),
                 OverdueCount = overdue.Count()
             };
 
@@ -125,40 +123,6 @@ namespace DormitoryManagementSystem.API.Controllers
             await _paymentBUS.UpdatePaymentAsync(id, updateDto);
             return Ok();
         }
-
-        private async Task<List<PaymentResponse>> LoadPaymentsAsync()
-        {
-            // Chạy tuần tự để tránh concurrent access trên cùng DbContext instance
-            var payments = await _paymentBUS.GetAllPaymentsAsync();
-            var contracts = await _contractBUS.GetAllContractsAsync();
-
-            var contractLookup = contracts.ToDictionary(c => c.ContractID, c => c);
-
-            return payments
-                .Select(p =>
-                {
-                    contractLookup.TryGetValue(p.ContractID, out var contract);
-                    return MapPayment(p, contract);
-                })
-                .ToList();
-        }
-
-        private static PaymentResponse MapPayment(PaymentReadDTO payment, ContractReadDTO? contract) => new()
-        {
-            Id = payment.PaymentID,
-            BillCode = payment.PaymentID,
-            StudentId = contract?.StudentID ?? string.Empty,
-            StudentName = contract?.StudentName ?? contract?.StudentID ?? string.Empty,
-            RoomNumber = contract?.RoomNumber ?? string.Empty,
-            Month = payment.BillMonth,
-            Year = payment.PaymentDate.Year,
-            TotalAmount = payment.PaymentAmount,
-            PaidAmount = payment.PaidAmount,
-            PaymentDate = payment.PaymentStatus.Equals("Unpaid", StringComparison.OrdinalIgnoreCase)
-                ? null
-                : payment.PaymentDate,
-            Status = payment.PaymentStatus
-        };
 
         private static bool MatchesStatus(string status, string filter)
         {

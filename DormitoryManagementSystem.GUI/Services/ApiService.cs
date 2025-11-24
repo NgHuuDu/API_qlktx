@@ -182,18 +182,57 @@ namespace DormitoryManagementSystem.GUI.Services
                 ("status", NormalizeFilter(status)),
                 ("search", string.IsNullOrWhiteSpace(search) ? null : search));
 
-            var contracts = await HttpService.Client.GetFromJsonAsync<List<ContractResponse>>(
+            var contracts = await HttpService.Client.GetFromJsonAsync<List<ContractReadDTO>>(
                 $"api/contracts{query}", JsonOptions);
 
-            return contracts ?? new List<ContractResponse>();
+            return contracts?.Select(MapContract).ToList() ?? new List<ContractResponse>();
+        }
+
+        private static ContractResponse MapContract(ContractReadDTO dto)
+        {
+            return new ContractResponse
+            {
+                ContractId = dto.ContractID,
+                StudentId = dto.StudentID,
+                StudentName = dto.StudentName,
+                RoomNumber = dto.RoomNumber,
+                StartDate = dto.StartTime.ToDateTime(TimeOnly.MinValue),
+                EndDate = dto.EndTime.ToDateTime(TimeOnly.MinValue),
+                Status = dto.Status
+            };
         }
 
         public static async Task<List<PendingContractResponse>> GetPendingContractsAsync(string search)
         {
             var query = BuildQuery(("search", string.IsNullOrWhiteSpace(search) ? null : search));
-            var contracts = await HttpService.Client.GetFromJsonAsync<List<PendingContractResponse>>(
+            var contracts = await HttpService.Client.GetFromJsonAsync<List<ContractReadDTO>>(
                 $"api/contracts/pending{query}", JsonOptions);
-            return contracts ?? new List<PendingContractResponse>();
+
+            if (contracts == null) return new List<PendingContractResponse>();
+
+            // Load rooms để map MonthlyFee
+            var roomsResponse = await HttpService.Client.GetFromJsonAsync<List<RoomReadDTO>>(
+                "api/room", JsonOptions);
+            var roomLookup = roomsResponse?.ToDictionary(r => r.RoomID, r => r.Price, StringComparer.OrdinalIgnoreCase)
+                ?? new Dictionary<string, decimal>();
+
+            return contracts.Select(c => MapPendingContract(c, roomLookup)).ToList();
+        }
+
+        private static PendingContractResponse MapPendingContract(ContractReadDTO dto, Dictionary<string, decimal> roomLookup)
+        {
+            roomLookup.TryGetValue(dto.RoomID, out var monthlyFee);
+            return new PendingContractResponse
+            {
+                ContractId = dto.ContractID,
+                StudentCode = dto.StudentID,
+                StudentName = dto.StudentName,
+                RoomNumber = dto.RoomNumber,
+                StartDate = dto.StartTime.ToDateTime(TimeOnly.MinValue),
+                EndDate = dto.EndTime.ToDateTime(TimeOnly.MinValue),
+                MonthlyFee = monthlyFee,
+                SubmittedAt = dto.CreatedDate
+            };
         }
 
         public static async Task<bool> ApproveContractAsync(string contractId)
@@ -216,10 +255,37 @@ namespace DormitoryManagementSystem.GUI.Services
                 ("status", NormalizeFilter(status)),
                 ("search", string.IsNullOrWhiteSpace(search) ? null : search));
 
-            var payments = await HttpService.Client.GetFromJsonAsync<List<PaymentResponse>>(
+            var payments = await HttpService.Client.GetFromJsonAsync<List<PaymentReadDTO>>(
                 $"api/payments{query}", JsonOptions);
 
-            return payments ?? new List<PaymentResponse>();
+            if (payments == null) return new List<PaymentResponse>();
+
+            // Load contracts để map thông tin student và room
+            var contractsResponse = await HttpService.Client.GetFromJsonAsync<List<ContractReadDTO>>(
+                "api/contracts", JsonOptions);
+            var contractLookup = contractsResponse?.ToDictionary(c => c.ContractID, StringComparer.OrdinalIgnoreCase) 
+                ?? new Dictionary<string, ContractReadDTO>();
+
+            return payments.Select(p => MapPayment(p, contractLookup)).ToList();
+        }
+
+        private static PaymentResponse MapPayment(PaymentReadDTO payment, Dictionary<string, ContractReadDTO> contractLookup)
+        {
+            contractLookup.TryGetValue(payment.ContractID, out var contract);
+            return new PaymentResponse
+            {
+                Id = payment.PaymentID,
+                BillCode = payment.PaymentID,
+                StudentId = contract?.StudentID ?? string.Empty,
+                StudentName = contract?.StudentName ?? string.Empty,
+                RoomNumber = contract?.RoomNumber ?? string.Empty,
+                Month = payment.BillMonth,
+                Year = payment.PaymentDate.Year,
+                TotalAmount = payment.PaymentAmount,
+                PaidAmount = payment.PaidAmount,
+                PaymentDate = payment.PaymentStatus.Equals("Paid", StringComparison.OrdinalIgnoreCase) ? payment.PaymentDate : null,
+                Status = payment.PaymentStatus.Equals("Paid", StringComparison.OrdinalIgnoreCase) ? "Đã thanh toán" : "Chờ thanh toán"
+            };
         }
 
         public static async Task<PaymentKpiResponse> GetPaymentKPIsAsync()
@@ -241,10 +307,33 @@ namespace DormitoryManagementSystem.GUI.Services
                 ("status", NormalizeFilter(status)),
                 ("search", string.IsNullOrWhiteSpace(search) ? null : search));
 
-            var violations = await HttpService.Client.GetFromJsonAsync<List<ViolationResponse>>(
+            var violations = await HttpService.Client.GetFromJsonAsync<List<ViolationReadDTO>>(
                 $"api/violations{query}", JsonOptions);
 
-            return violations ?? new List<ViolationResponse>();
+            if (violations == null) return new List<ViolationResponse>();
+
+            // Load rooms để map room number
+            var roomsResponse = await HttpService.Client.GetFromJsonAsync<List<RoomReadDTO>>(
+                "api/room", JsonOptions);
+            var roomLookup = roomsResponse?.ToDictionary(r => r.RoomID, r => r.RoomNumber.ToString(), StringComparer.OrdinalIgnoreCase)
+                ?? new Dictionary<string, string>();
+
+            return violations.Select(v => MapViolation(v, roomLookup)).ToList();
+        }
+
+        private static ViolationResponse MapViolation(ViolationReadDTO dto, Dictionary<string, string> roomLookup)
+        {
+            roomLookup.TryGetValue(dto.RoomID, out var roomNumber);
+            return new ViolationResponse
+            {
+                ViolationId = dto.ViolationID,
+                StudentId = dto.StudentID ?? string.Empty,
+                StudentName = dto.StudentName ?? dto.StudentID ?? string.Empty,
+                RoomNumber = roomNumber ?? dto.RoomID,
+                ViolationType = dto.ViolationType,
+                ReportDate = dto.ViolationDate,
+                Status = dto.Status
+            };
         }
 
         public static async Task<ViolationKpiResponse> GetViolationKPIsAsync()
