@@ -52,6 +52,34 @@ namespace DormitoryManagementSystem.API.Controllers
                 .Select(v => MapViolation(v, rooms)));
         }
 
+        [HttpPost]
+        public async Task<IActionResult> CreateViolation([FromBody] ViolationCreateDTO dto)
+        {
+            if (dto == null)
+                return BadRequest(new { message = "Violation data is required" });
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var violationId = await _violationBUS.AddViolationAsync(dto);
+                return CreatedAtAction(nameof(GetViolations), new { id = violationId }, new { id = violationId, message = "Violation created successfully" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error creating violation: {ex.Message}" });
+            }
+        }
+
         [HttpGet("kpis")]
         public async Task<ActionResult<ViolationKpiResponse>> GetViolationKpis()
         {

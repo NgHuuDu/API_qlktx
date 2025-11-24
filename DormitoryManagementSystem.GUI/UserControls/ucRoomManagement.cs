@@ -20,7 +20,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
 
         private void ucRoomManagement_Layout(object? sender, LayoutEventArgs e)
         {
-            if (this.Width > 0 && this.Height > 0)
+            if (Width > 0 && Height > 0)
             {
                 ArrangeKPICards();
             }
@@ -28,7 +28,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
 
         private void ucRoomManagement_Resize(object? sender, EventArgs e)
         {
-            if (this.Width > 0 && this.Height > 0)
+            if (Width > 0 && Height > 0)
             {
                 ArrangeKPICards();
             }
@@ -105,13 +105,13 @@ namespace DormitoryManagementSystem.GUI.UserControls
         {
             this.mainForm = this.FindForm();
             SetupGridColumns();
-            await LoadDataAsync();
-            await UpdateKPICards();
+            await RefreshDataAsync();
         }
 
         private void SetupGridColumns()
         {
             dgvRooms.Columns.Clear();
+            dgvRooms.Columns.Add("RoomId", "Mã phòng");
             dgvRooms.Columns.Add("RoomNumber", "Số phòng");
             dgvRooms.Columns.Add("Building", "Tòa");
             dgvRooms.Columns.Add("RoomType", "Loại phòng");
@@ -128,27 +128,13 @@ namespace DormitoryManagementSystem.GUI.UserControls
             UiHelper.ShowLoading(this);
             try
             {
-                string building = cmbFilterBuilding.SelectedIndex > 0 ? cmbFilterBuilding.SelectedItem.ToString() : "Tất cả";
-                string status = cmbFilterStatus.SelectedIndex > 0 ? cmbFilterStatus.SelectedItem.ToString() : "Tất cả";
-                string search = txtSearch.Text;
+                string building = GetSelectedFilterValue(cmbFilterBuilding);
+                string status = GetSelectedFilterValue(cmbFilterStatus);
+                string search = txtSearch.Text?.Trim() ?? string.Empty;
 
                 var rooms = await ApiService.GetRoomsAsync(building, status, search);
 
-                dgvRooms.Rows.Clear();
-                if (rooms != null)
-                {
-                    foreach (var room in rooms)
-                    {
-                        dgvRooms.Rows.Add(
-                            room.RoomNumber,
-                            room.Building,
-                            room.RoomType,
-                            $"{room.CurrentOccupants}/{room.MaxOccupants}",
-                            room.Status,
-                            room.Price
-                        );
-                    }
-                }
+                UpdateDataGridView(rooms);
             }
             catch (Exception ex)
             {
@@ -160,10 +146,49 @@ namespace DormitoryManagementSystem.GUI.UserControls
             }
         }
 
+        private void UpdateDataGridView(List<RoomResponse>? rooms)
+        {
+            dgvRooms.SuspendLayout();
+            try
+            {
+                dgvRooms.Rows.Clear();
+                
+                if (rooms != null && rooms.Count > 0)
+                {
+                    var rows = new DataGridViewRow[rooms.Count];
+                    for (int i = 0; i < rooms.Count; i++)
+                    {
+                        var room = rooms[i];
+                        rows[i] = new DataGridViewRow();
+                        rows[i].CreateCells(dgvRooms,
+                            room.RoomId,
+                            room.RoomNumber,
+                            room.Building,
+                            room.RoomType,
+                            $"{room.CurrentOccupants}/{room.MaxOccupants}",
+                            room.Status,
+                            room.Price
+                        );
+                    }
+                    dgvRooms.Rows.AddRange(rows);
+                }
+            }
+            finally
+            {
+                dgvRooms.ResumeLayout(true);
+            }
+        }
+
+        private static string GetSelectedFilterValue(ComboBox comboBox)
+        {
+            return comboBox.SelectedIndex > 0 && comboBox.SelectedItem != null
+                ? comboBox.SelectedItem.ToString() ?? "Tất cả"
+                : "Tất cả";
+        }
+
         private async void btnFilter_Click(object sender, EventArgs e)
         {
-            await LoadDataAsync();
-            await UpdateKPICards();
+            await RefreshDataAsync();
         }
 
         private async Task UpdateKPICards()
@@ -172,16 +197,22 @@ namespace DormitoryManagementSystem.GUI.UserControls
             {
                 var kpiData = await ApiService.GetBuildingKPIsAsync();
 
-                if (kpiData?.Buildings != null)
+                if (kpiData?.Buildings == null || kpiData.Buildings.Count == 0)
+                    return;
+
+                var buildingCards = new[]
                 {
-                    if (kpiData.Buildings.Count > 0)
-                        UpdateBuildingCard(cardA1, lblA1Building, lblA1Gender, lblA1Floors, lblA1Occupancy, prgA1, kpiData.Buildings[0]);
-                    if (kpiData.Buildings.Count > 1)
-                        UpdateBuildingCard(cardA2, lblA2Building, lblA2Gender, lblA2Floors, lblA2Occupancy, prgA2, kpiData.Buildings[1]);
-                    if (kpiData.Buildings.Count > 2)
-                        UpdateBuildingCard(cardB1, lblB1Building, lblB1Gender, lblB1Floors, lblB1Occupancy, prgB1, kpiData.Buildings[2]);
-                    if (kpiData.Buildings.Count > 3)
-                        UpdateBuildingCard(cardB2, lblB2Building, lblB2Gender, lblB2Floors, lblB2Occupancy, prgB2, kpiData.Buildings[3]);
+                    (cardA1, lblA1Building, lblA1Gender, lblA1Floors, lblA1Occupancy, prgA1),
+                    (cardA2, lblA2Building, lblA2Gender, lblA2Floors, lblA2Occupancy, prgA2),
+                    (cardB1, lblB1Building, lblB1Gender, lblB1Floors, lblB1Occupancy, prgB1),
+                    (cardB2, lblB2Building, lblB2Gender, lblB2Floors, lblB2Occupancy, prgB2)
+                };
+
+                var buildings = kpiData.Buildings;
+                for (int i = 0; i < Math.Min(buildingCards.Length, buildings.Count); i++)
+                {
+                    var (card, lblBuilding, lblGender, lblFloors, lblOccupancy, prg) = buildingCards[i];
+                    UpdateBuildingCard(card, lblBuilding, lblGender, lblFloors, lblOccupancy, prg, buildings[i]);
                 }
             }
             catch (Exception ex)
@@ -202,9 +233,19 @@ namespace DormitoryManagementSystem.GUI.UserControls
             prg.Style = ProgressBarStyle.Continuous;
         }
 
-        private void btnAddRoom_Click(object sender, EventArgs e)
+        private async void btnAddRoom_Click(object sender, EventArgs e)
         {
-            UiHelper.ShowSuccess(this.mainForm, "Chức năng Thêm phòng (chưa hoàn thiện)");
+            using var form = new Forms.frmAddRoom();
+            if (form.ShowDialog() == DialogResult.OK)
+            {
+                await RefreshDataAsync();
+            }
+        }
+
+        private async Task RefreshDataAsync()
+        {
+            await LoadDataAsync();
+            await UpdateKPICards();
         }
     }
 }

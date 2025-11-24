@@ -120,7 +120,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cmbFilterStatus.Margin = new Padding(4, 5, 4, 5);
             cmbFilterStatus.Name = "cmbFilterStatus";
             cmbFilterStatus.Size = new Size(199, 44);
-            cmbFilterStatus.TabIndex = 2;
+            cmbFilterStatus.TabIndex = 1;
             // 
             // cmbFilterBuilding
             // 

@@ -108,14 +108,14 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlHeader.Margin = new Padding(4, 5, 4, 5);
             pnlHeader.Name = "pnlHeader";
             pnlHeader.Padding = new Padding(27, 23, 27, 23);
-            pnlHeader.Size = new Size(1467, 92);
+            pnlHeader.Size = new Size(1285, 92);
             pnlHeader.TabIndex = 0;
             // 
             // btnRefresh
             // 
             btnRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnRefresh.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold);
-            btnRefresh.Location = new Point(1276, 24);
+            btnRefresh.Location = new Point(1094, 24);
             btnRefresh.Margin = new Padding(4, 5, 4, 5);
             btnRefresh.Name = "btnRefresh";
             btnRefresh.Size = new Size(143, 46);
@@ -131,7 +131,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cmbTimeRange.Font = new Font("Microsoft Sans Serif", 13.2000008F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbTimeRange.FormattingEnabled = true;
             cmbTimeRange.Items.AddRange(new object[] { "Hôm nay", "Tuần này", "Tháng này", "3 tháng", "6 tháng", "Năm nay" });
-            cmbTimeRange.Location = new Point(1051, 28);
+            cmbTimeRange.Location = new Point(869, 28);
             cmbTimeRange.Margin = new Padding(4, 5, 4, 5);
             cmbTimeRange.Name = "cmbTimeRange";
             cmbTimeRange.Size = new Size(185, 38);
@@ -145,7 +145,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cmbBuilding.Font = new Font("Microsoft Sans Serif", 13.2000008F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbBuilding.FormattingEnabled = true;
             cmbBuilding.Items.AddRange(new object[] { "Tất cả tòa", "Tòa A1", "Tòa A2", "Tòa B1", "Tòa B2" });
-            cmbBuilding.Location = new Point(858, 27);
+            cmbBuilding.Location = new Point(676, 27);
             cmbBuilding.Margin = new Padding(4, 5, 4, 5);
             cmbBuilding.Name = "cmbBuilding";
             cmbBuilding.Size = new Size(185, 38);
@@ -177,7 +177,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlKPICards.Margin = new Padding(4, 5, 4, 5);
             pnlKPICards.Name = "pnlKPICards";
             pnlKPICards.Padding = new Padding(20, 20, 20, 15);
-            pnlKPICards.Size = new Size(1467, 235);
+            pnlKPICards.Size = new Size(1285, 235);
             pnlKPICards.TabIndex = 1;
             // 
             // cardViolations
@@ -187,7 +187,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cardViolations.BorderStyle = BorderStyle.FixedSingle;
             cardViolations.Controls.Add(lblViolationsValue);
             cardViolations.Controls.Add(lblViolationsTitle);
-            cardViolations.Location = new Point(1146, 58);
+            cardViolations.Location = new Point(1055, 58);
             cardViolations.Margin = new Padding(5);
             cardViolations.Name = "cardViolations";
             cardViolations.Padding = new Padding(15);
@@ -227,7 +227,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cardRevenue.BorderStyle = BorderStyle.FixedSingle;
             cardRevenue.Controls.Add(lblRevenueValue);
             cardRevenue.Controls.Add(lblRevenueTitle);
-            cardRevenue.Location = new Point(936, 58);
+            cardRevenue.Location = new Point(845, 58);
             cardRevenue.Margin = new Padding(5);
             cardRevenue.Name = "cardRevenue";
             cardRevenue.Padding = new Padding(15);
@@ -268,7 +268,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cardPending.Controls.Add(btnReviewNow);
             cardPending.Controls.Add(lblPendingValue);
             cardPending.Controls.Add(lblPendingTitle);
-            cardPending.Location = new Point(726, 58);
+            cardPending.Location = new Point(635, 58);
             cardPending.Margin = new Padding(5);
             cardPending.Name = "cardPending";
             cardPending.Padding = new Padding(15);
@@ -321,7 +321,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cardOccupied.BorderStyle = BorderStyle.FixedSingle;
             cardOccupied.Controls.Add(lblOccupiedValue);
             cardOccupied.Controls.Add(lblOccupiedTitle);
-            cardOccupied.Location = new Point(516, 58);
+            cardOccupied.Location = new Point(425, 58);
             cardOccupied.Margin = new Padding(5);
             cardOccupied.Name = "cardOccupied";
             cardOccupied.Padding = new Padding(15);
@@ -361,7 +361,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cardAvailable.BorderStyle = BorderStyle.FixedSingle;
             cardAvailable.Controls.Add(lblAvailableValue);
             cardAvailable.Controls.Add(lblAvailableTitle);
-            cardAvailable.Location = new Point(306, 58);
+            cardAvailable.Location = new Point(215, 58);
             cardAvailable.Margin = new Padding(5);
             cardAvailable.Name = "cardAvailable";
             cardAvailable.Padding = new Padding(15);
@@ -401,7 +401,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cardTotalRooms.BorderStyle = BorderStyle.FixedSingle;
             cardTotalRooms.Controls.Add(lblTotalRoomsValue);
             cardTotalRooms.Controls.Add(lblTotalRoomsTitle);
-            cardTotalRooms.Location = new Point(96, 58);
+            cardTotalRooms.Location = new Point(5, 58);
             cardTotalRooms.Margin = new Padding(5);
             cardTotalRooms.Name = "cardTotalRooms";
             cardTotalRooms.Padding = new Padding(15);
@@ -444,7 +444,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlCharts.Margin = new Padding(4, 5, 4, 5);
             pnlCharts.Name = "pnlCharts";
             pnlCharts.Padding = new Padding(27, 15, 27, 15);
-            pnlCharts.Size = new Size(1467, 507);
+            pnlCharts.Size = new Size(1285, 507);
             pnlCharts.TabIndex = 2;
             // 
             // chartTrend
@@ -454,7 +454,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             chartTrend.ChartAreas.Add(chartArea1);
             legend1.Name = "Legend1";
             chartTrend.Legends.Add(legend1);
-            chartTrend.Location = new Point(1045, 76);
+            chartTrend.Location = new Point(954, 76);
             chartTrend.Margin = new Padding(5);
             chartTrend.Name = "chartTrend";
             series1.ChartArea = "ChartArea1";
@@ -473,7 +473,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             chartOccupancyByBuilding.ChartAreas.Add(chartArea2);
             legend2.Name = "Legend1";
             chartOccupancyByBuilding.Legends.Add(legend2);
-            chartOccupancyByBuilding.Location = new Point(499, 76);
+            chartOccupancyByBuilding.Location = new Point(408, 76);
             chartOccupancyByBuilding.Margin = new Padding(5);
             chartOccupancyByBuilding.Name = "chartOccupancyByBuilding";
             series2.ChartArea = "ChartArea1";
@@ -492,7 +492,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             chartOccupancyPie.ChartAreas.Add(chartArea3);
             legend3.Name = "Legend1";
             chartOccupancyPie.Legends.Add(legend3);
-            chartOccupancyPie.Location = new Point(44, 76);
+            chartOccupancyPie.Location = new Point(-47, 76);
             chartOccupancyPie.Margin = new Padding(5);
             chartOccupancyPie.Name = "chartOccupancyPie";
             series3.ChartArea = "ChartArea1";
@@ -515,7 +515,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlPendingContracts.Margin = new Padding(4, 5, 4, 5);
             pnlPendingContracts.Name = "pnlPendingContracts";
             pnlPendingContracts.Padding = new Padding(20, 23, 20, 23);
-            pnlPendingContracts.Size = new Size(1467, 460);
+            pnlPendingContracts.Size = new Size(1285, 460);
             pnlPendingContracts.TabIndex = 3;
             // 
             // dgvPendingContracts
@@ -532,7 +532,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             dgvPendingContracts.ReadOnly = true;
             dgvPendingContracts.RowHeadersWidth = 51;
             dgvPendingContracts.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvPendingContracts.Size = new Size(1425, 358);
+            dgvPendingContracts.Size = new Size(1243, 358);
             dgvPendingContracts.TabIndex = 0;
             dgvPendingContracts.CellContentClick += dgvPendingContracts_CellContentClick;
             // 
@@ -545,14 +545,14 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlSearchContracts.Location = new Point(20, 23);
             pnlSearchContracts.Margin = new Padding(4, 5, 4, 5);
             pnlSearchContracts.Name = "pnlSearchContracts";
-            pnlSearchContracts.Size = new Size(1425, 54);
+            pnlSearchContracts.Size = new Size(1243, 54);
             pnlSearchContracts.TabIndex = 2;
             // 
             // btnSearchContracts
             // 
             btnSearchContracts.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnSearchContracts.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold);
-            btnSearchContracts.Location = new Point(1344, 7);
+            btnSearchContracts.Location = new Point(1162, 7);
             btnSearchContracts.Margin = new Padding(4, 5, 4, 5);
             btnSearchContracts.Name = "btnSearchContracts";
             btnSearchContracts.Size = new Size(77, 42);
@@ -580,7 +580,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             txtSearchContracts.Margin = new Padding(4, 5, 4, 5);
             txtSearchContracts.Name = "txtSearchContracts";
             txtSearchContracts.PlaceholderText = "Tìm kiếm theo mã SV hoặc số phòng...";
-            txtSearchContracts.Size = new Size(228, 30);
+            txtSearchContracts.Size = new Size(46, 30);
             txtSearchContracts.TabIndex = 0;
             // 
             // pnlBottom
@@ -594,7 +594,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlBottom.Margin = new Padding(4, 5, 4, 5);
             pnlBottom.Name = "pnlBottom";
             pnlBottom.Padding = new Padding(27, 15, 27, 31);
-            pnlBottom.Size = new Size(1467, 385);
+            pnlBottom.Size = new Size(1285, 385);
             pnlBottom.TabIndex = 4;
             // 
             // pnlRecentActivity
@@ -608,7 +608,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlRecentActivity.Margin = new Padding(4, 5, 4, 5);
             pnlRecentActivity.Name = "pnlRecentActivity";
             pnlRecentActivity.Padding = new Padding(20, 23, 20, 23);
-            pnlRecentActivity.Size = new Size(681, 339);
+            pnlRecentActivity.Size = new Size(499, 339);
             pnlRecentActivity.TabIndex = 2;
             // 
             // lstRecentActivity
@@ -621,7 +621,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lstRecentActivity.Location = new Point(20, 23);
             lstRecentActivity.Margin = new Padding(4, 5, 4, 5);
             lstRecentActivity.Name = "lstRecentActivity";
-            lstRecentActivity.Size = new Size(639, 291);
+            lstRecentActivity.Size = new Size(457, 291);
             lstRecentActivity.TabIndex = 1;
             // 
             // lblRecentActivityTitle
@@ -774,7 +774,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             Controls.Add(pnlHeader);
             Margin = new Padding(4, 5, 4, 5);
             Name = "ucDashboard";
-            Size = new Size(1467, 1072);
+            Size = new Size(1285, 1072);
             Load += ucDashboard_Load;
             pnlHeader.ResumeLayout(false);
             pnlHeader.PerformLayout();

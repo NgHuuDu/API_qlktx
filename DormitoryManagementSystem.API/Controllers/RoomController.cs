@@ -57,6 +57,84 @@ namespace DormitoryManagementSystem.API.Controllers
             if (room == null) return NotFound();
             return Ok(room);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateRoom([FromBody] RoomCreateDTO dto)
+        {
+            if (dto == null)
+                return BadRequest(new { message = "Room data is required" });
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var roomId = await _roomBUS.AddRoomAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = roomId }, new { id = roomId, message = "Room created successfully" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error creating room: {ex.Message}" });
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateRoom(string id, [FromBody] RoomUpdateDTO dto)
+        {
+            if (dto == null)
+                return BadRequest(new { message = "Room data is required" });
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                await _roomBUS.UpdateRoomAsync(id, dto);
+                return Ok(new { message = "Room updated successfully" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error updating room: {ex.Message}" });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteRoom(string id)
+        {
+            try
+            {
+                await _roomBUS.DeleteRoomAsync(id);
+                return Ok(new { message = "Room deleted successfully" });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error deleting room: {ex.Message}" });
+            }
+        }
     }
 }
 

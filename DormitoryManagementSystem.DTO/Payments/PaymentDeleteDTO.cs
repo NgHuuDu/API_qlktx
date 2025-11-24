@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DormitoryManagementSystem.DTO.Paymenrs
+namespace DormitoryManagementSystem.DTO.Payments
 {
     public class PaymentDeleteDTO
     {

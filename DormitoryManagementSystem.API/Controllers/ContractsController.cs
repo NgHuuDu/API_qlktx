@@ -75,6 +75,34 @@ namespace DormitoryManagementSystem.API.Controllers
                 .Select(c => MapPendingContract(c, rooms)));
         }
 
+        [HttpPost]
+        public async Task<IActionResult> CreateContract([FromBody] ContractCreateDTO dto)
+        {
+            if (dto == null)
+                return BadRequest(new { message = "Contract data is required" });
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var contractId = await _contractBUS.AddContractAsync(dto);
+                return CreatedAtAction(nameof(GetContracts), new { id = contractId }, new { id = contractId, message = "Contract created successfully" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error creating contract: {ex.Message}" });
+            }
+        }
+
         [HttpPost("{id}/approve")]
         public async Task<IActionResult> ApproveContract(string id)
         {

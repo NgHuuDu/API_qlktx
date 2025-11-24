@@ -75,6 +75,34 @@ namespace DormitoryManagementSystem.API.Controllers
             return Ok(response);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> CreatePayment([FromBody] PaymentCreateDTO dto)
+        {
+            if (dto == null)
+                return BadRequest(new { message = "Payment data is required" });
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var paymentId = await _paymentBUS.AddPaymentAsync(dto);
+                return CreatedAtAction(nameof(GetPayments), new { id = paymentId }, new { id = paymentId, message = "Payment created successfully" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error creating payment: {ex.Message}" });
+            }
+        }
+
         [HttpPost("{id}/confirm")]
         public async Task<IActionResult> ConfirmPayment(string id)
         {

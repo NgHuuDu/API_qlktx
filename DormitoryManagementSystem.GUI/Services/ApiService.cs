@@ -1,4 +1,9 @@
 using DormitoryManagementSystem.API.Models;
+using DormitoryManagementSystem.DTO.Buildings;
+using DormitoryManagementSystem.DTO.Contracts;
+using DormitoryManagementSystem.DTO.Payments;
+using DormitoryManagementSystem.DTO.Rooms;
+using DormitoryManagementSystem.DTO.Violations;
 using DormitoryManagementSystem.GUI.Utils;
 using System;
 using System.Collections.Generic;
@@ -158,6 +163,19 @@ namespace DormitoryManagementSystem.GUI.Services
                 ?? new BuildingKpiResponse();
         }
 
+        public static async Task<List<BuildingReadDTO>> GetBuildingsAsync()
+        {
+            try
+            {
+                var buildings = await HttpService.Client.GetFromJsonAsync<List<BuildingReadDTO>>("api/buildings", JsonOptions);
+                return buildings ?? new List<BuildingReadDTO>();
+            }
+            catch
+            {
+                return new List<BuildingReadDTO>();
+            }
+        }
+
         public static async Task<List<ContractResponse>> GetContractsAsync(string status, string search)
         {
             var query = BuildQuery(
@@ -280,6 +298,106 @@ namespace DormitoryManagementSystem.GUI.Services
             var activities = await HttpService.Client.GetFromJsonAsync<List<ActivityResponse>>(
                 $"api/dashboard/activities{query}", JsonOptions);
             return activities ?? new List<ActivityResponse>();
+        }
+
+        // Create methods
+        public static async Task<(bool Success, string? ErrorMessage)> CreateRoomAsync(RoomCreateDTO dto)
+        {
+            try
+            {
+                var response = await HttpService.Client.PostAsJsonAsync("api/room", dto, JsonOptions);
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, null);
+                }
+                
+                // Extract error message from response
+                string errorMessage = "Thêm phòng thất bại";
+                try
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    if (!string.IsNullOrWhiteSpace(errorContent))
+                    {
+                        try
+                        {
+                            var errorObj = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(errorContent, JsonOptions);
+                            if (errorObj != null && errorObj.ContainsKey("message"))
+                            {
+                                errorMessage = errorObj["message"]?.ToString() ?? errorMessage;
+                            }
+                            else
+                            {
+                                errorMessage = errorContent.Trim('"');
+                            }
+                        }
+                        catch
+                        {
+                            errorMessage = errorContent.Trim('"');
+                        }
+                    }
+                }
+                catch
+                {
+                    errorMessage = $"Lỗi: {response.StatusCode}";
+                }
+                
+                return (false, errorMessage);
+            }
+            catch (System.Net.Http.HttpRequestException ex)
+            {
+                return (false, $"Không thể kết nối đến máy chủ: {ex.Message}");
+            }
+            catch (System.Net.Sockets.SocketException ex)
+            {
+                return (false, $"Không thể kết nối đến máy chủ. API có thể chưa chạy: {ex.Message}");
+            }
+            catch (System.Threading.Tasks.TaskCanceledException)
+            {
+                return (false, "Kết nối bị timeout. Vui lòng thử lại sau.");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Lỗi: {ex.Message}");
+            }
+        }
+
+        public static async Task<bool> CreatePaymentAsync(PaymentCreateDTO dto)
+        {
+            try
+            {
+                var response = await HttpService.Client.PostAsJsonAsync("api/payments", dto, JsonOptions);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static async Task<bool> CreateViolationAsync(ViolationCreateDTO dto)
+        {
+            try
+            {
+                var response = await HttpService.Client.PostAsJsonAsync("api/violations", dto, JsonOptions);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static async Task<bool> CreateContractAsync(ContractCreateDTO dto)
+        {
+            try
+            {
+                var response = await HttpService.Client.PostAsJsonAsync("api/contracts", dto, JsonOptions);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static string NormalizeFilter(string? value)
