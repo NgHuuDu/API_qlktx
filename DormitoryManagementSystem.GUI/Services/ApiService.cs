@@ -151,8 +151,8 @@ namespace DormitoryManagementSystem.GUI.Services
             var response = await HttpService.Client.GetAsync($"api/room{query}");
             response.EnsureSuccessStatusCode();
 
-            var rooms = await response.Content.ReadFromJsonAsync<List<RoomApiModel>>(JsonOptions)
-                ?? new List<RoomApiModel>();
+            var rooms = await response.Content.ReadFromJsonAsync<List<RoomReadDTO>>(JsonOptions)
+                ?? new List<RoomReadDTO>();
 
             return rooms.Select(MapRoom).ToList();
         }
@@ -428,7 +428,7 @@ namespace DormitoryManagementSystem.GUI.Services
             return parts.Count == 0 ? string.Empty : $"?{string.Join("&", parts)}";
         }
 
-        private static RoomResponse MapRoom(RoomApiModel room)
+        private static RoomResponse MapRoom(RoomReadDTO room)
         {
             return new RoomResponse
             {
@@ -452,17 +452,6 @@ namespace DormitoryManagementSystem.GUI.Services
                 <= 6 => "Phòng 6",
                 _ => $"Phòng {capacity}"
             };
-
-        private class RoomApiModel
-        {
-            public string RoomID { get; set; } = string.Empty;
-            public int RoomNumber { get; set; }
-            public string BuildingID { get; set; } = string.Empty;
-            public int Capacity { get; set; }
-            public int CurrentOccupancy { get; set; }
-            public decimal Price { get; set; }
-            public string Status { get; set; } = string.Empty;
-        }
     }
 }
 
