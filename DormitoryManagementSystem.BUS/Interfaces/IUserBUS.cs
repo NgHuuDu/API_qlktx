@@ -1,4 +1,5 @@
 ﻿using DormitoryManagementSystem.DTO.Users;
+using DormitoryManagementSystem.Entity;
 
 namespace DormitoryManagementSystem.BUS.Interfaces
 {
@@ -9,11 +10,11 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         Task<UserReadDTO?> GetUserByIDAsync(string id);
 
         // Hàm này dùng cho Admin tìm kiếm User để quản lý
-        Task<UserReadDTO?> GetUserByUsernameAsync(string username);
+        Task<User?> GetUserByUsernameAsync(string username);
 
         // Hàm xử lý nghiệp vụ Đăng nhập
         // Input: LoginDTO, Output: UserReadDTO (hoặc trả về string Token sau này)
-        Task<UserReadDTO?> LoginAsync(UserLoginDTO dto);
+        Task<LoginResponseDTO?> LoginAsync(UserLoginDTO dto);
 
         // Đăng ký/Tạo User mới
         Task<string> AddUserAsync(UserCreateDTO dto);

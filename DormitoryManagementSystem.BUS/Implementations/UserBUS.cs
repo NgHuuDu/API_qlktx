@@ -1,8 +1,13 @@
-﻿using AutoMapper;
+﻿using System.Security.Claims;
+using System.Text;
+using AutoMapper;
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.Users;
 using DormitoryManagementSystem.Entity;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Configuration;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace DormitoryManagementSystem.BUS.Implementations
 {
@@ -10,11 +15,13 @@ namespace DormitoryManagementSystem.BUS.Implementations
     {
         private readonly IUserDAO _userDAO;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration; // Inject thêm cái này để lấy Secret Key
 
-        public UserBUS(IUserDAO userDAO, IMapper mapper)
+        public UserBUS(IUserDAO userDAO, IMapper mapper, IConfiguration configuration)
         {
             _userDAO = userDAO;
             _mapper = mapper;
+            _configuration = configuration;
         }
 
         public async Task<IEnumerable<UserReadDTO>> GetAllUsersAsync()
@@ -36,11 +43,11 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             var user = await _userDAO.GetUserByIDAsync(id);
             if (user == null) return null;
-
-            return _mapper.Map<UserReadDTO>(user);
+          
+           return _mapper.Map<UserReadDTO>(user);
         }
 
-        public async Task<UserReadDTO?> GetUserByUsernameAsync(string username)
+        public async Task<User?> GetUserByUsernameAsync(string username)
         {
             if (string.IsNullOrWhiteSpace(username))
                 throw new ArgumentException("Username cannot be empty");
@@ -48,16 +55,20 @@ namespace DormitoryManagementSystem.BUS.Implementations
             var user = await _userDAO.GetUserByUsernameAsync(username);
             if (user == null) return null;
 
-            return _mapper.Map<UserReadDTO>(user);
+            return user;
         }
 
-        public async Task<UserReadDTO?> LoginAsync(UserLoginDTO dto)
+        public async Task<LoginResponseDTO?> LoginAsync(UserLoginDTO dto)
         {
             User? user = await _userDAO.GetUserByUsernameAsync(dto.UserName);
             if (user == null) return null;
 
             if (user.IsActive == false) 
                 throw new UnauthorizedAccessException("Account is disabled/deleted.");
+
+            // Nếu login tab Sinh viên mà user là Admin -> Chặn
+            if (user.Role != dto.Role) return null;
+
 
             bool isPasswordValid = false;
             bool isPlainTextPassword = !IsBCryptHash(user.Password);
@@ -95,8 +106,16 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             if (!isPasswordValid) return null;
 
+            string token = GenerateJwtToken(user);
+
             // 3. Đăng nhập thành công -> Trả về thông tin User (không kèm Password)
-            return _mapper.Map<UserReadDTO>(user);
+            return new LoginResponseDTO
+            {
+                Token = token,
+                UserID = user.Userid,
+                UserName = user.Username,
+                Role = user.Role
+            };
         }
 
         private bool IsBCryptHash(string hash)
@@ -109,6 +128,45 @@ namespace DormitoryManagementSystem.BUS.Implementations
                    hash.StartsWith("$2b$") || 
                    hash.StartsWith("$2x$") || 
                    hash.StartsWith("$2y$");
+        }
+
+        private string GenerateJwtToken(User user)
+        {
+            // 1. Lấy Key ra và kiểm tra null ngay lập tức
+            var secretKey = _configuration["Jwt:Key"];
+
+            // Nếu quên cấu hình trong appsettings.json -> Báo lỗi ngay để biết đường sửa
+            if (string.IsNullOrEmpty(secretKey))
+            {
+                throw new InvalidOperationException("Chưa cấu hình 'Jwt:Key' trong file appsettings.json");
+            }
+
+            // 2. Lấy Issuer và Audience (Dùng toán tử ?? "" để nếu null thì lấy chuỗi rỗng, tránh lỗi đỏ)
+            var issuer = _configuration["Jwt:Issuer"] ?? "";
+            var audience = _configuration["Jwt:Audience"] ?? "";
+
+            // 3. Bây giờ biến 'secretKey' chắc chắn không null, ném vào GetBytes vô tư
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new List<Claim>
+    {
+        new Claim("UserID", user.Userid),
+        new Claim(ClaimTypes.Name, user.Username),
+        new Claim(ClaimTypes.Role, user.Role),
+        // Dùng toán tử ?? "" để tránh lỗi nếu Studentid bị null
+        new Claim("StudentID", user.Student?.Studentid ?? "")   
+        };
+
+            var token = new JwtSecurityToken(
+                issuer: issuer,      // Đã xử lý null ở trên
+                audience: audience,  // Đã xử lý null ở trên
+                claims: claims,
+                expires: DateTime.Now.AddHours(2),
+                signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         public async Task<string> AddUserAsync(UserCreateDTO dto)

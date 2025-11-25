@@ -11,5 +11,6 @@
         public DateTime ViolationDate { get; set; }
         public decimal PenaltyFee { get; set; }
         public string Status { get; set; } = string.Empty;
+
     }
 }

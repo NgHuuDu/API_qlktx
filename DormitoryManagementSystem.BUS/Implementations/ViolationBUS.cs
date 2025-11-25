@@ -47,11 +47,20 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
         public async Task<IEnumerable<ViolationReadDTO>> GetViolationsByStudentIDAsync(string studentId)
         {
-            if (string.IsNullOrWhiteSpace(studentId))
-                throw new ArgumentException("Student ID cannot be empty");
+            var violations = await _violationDAO.GetViolationsByStudentIDAsync(studentId);
 
-            IEnumerable<Violation> violations = await _violationDAO.GetViolationsByStudentIDAsync(studentId);
-            return _mapper.Map<IEnumerable<ViolationReadDTO>>(violations);
+            
+            var result = violations.Select(v => new ViolationReadDTO
+            {
+                ViolationID = v.Violationid,
+                ViolationType = v.Violationtype,
+                ViolationDate = (DateTime)v.Violationdate,
+                Status = v.Status, 
+                PenaltyFee = v.Penaltyfee ?? 0, 
+                RoomID = v.Roomid
+            });
+
+            return result;
         }
 
         public async Task<IEnumerable<ViolationReadDTO>> GetViolationsByRoomIDAsync(string roomId)

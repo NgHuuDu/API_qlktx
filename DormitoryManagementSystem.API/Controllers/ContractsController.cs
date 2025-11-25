@@ -1,157 +1,64 @@
-using DormitoryManagementSystem.API.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DTO.Contracts;
-using DormitoryManagementSystem.DTO.Rooms;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace DormitoryManagementSystem.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ContractsController : ControllerBase
+    public class ContractController : ControllerBase
     {
         private readonly IContractBUS _contractBUS;
-        private readonly IRoomBUS _roomBUS;
 
-        public ContractsController(IContractBUS contractBUS, IRoomBUS roomBUS)
+        public ContractController(IContractBUS contractBUS)
         {
             _contractBUS = contractBUS;
-            _roomBUS = roomBUS;
         }
 
+     
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ContractReadDTO>>> GetContracts(
-            [FromQuery] string? status,
-            [FromQuery] string? search)
+        [Authorize(Roles = "Admin")] 
+        public async Task<IActionResult> GetAllContracts()
         {
-            var contracts = (await _contractBUS.GetAllContractsAsync()).ToList();
-
-            if (!string.IsNullOrWhiteSpace(status) && !status.StartsWith("tất cả", StringComparison.OrdinalIgnoreCase))
-            {
-                contracts = contracts
-                    .Where(c => MatchesStatus(c.Status, status))
-                    .ToList();
-            }
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                contracts = contracts
-                    .Where(c =>
-                        c.StudentID.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        c.StudentName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        c.RoomNumber.Contains(search, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-            }
-
-            return Ok(contracts
-                .OrderByDescending(c => c.CreatedDate));
-        }
-
-        [HttpGet("pending")]
-        public async Task<ActionResult<IEnumerable<ContractReadDTO>>> GetPendingContracts([FromQuery] string? search)
-        {
-            var contracts = (await _contractBUS.GetAllContractsAsync())
-                .Where(c => IsPendingStatus(c.Status))
-                .ToList();
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                contracts = contracts
-                    .Where(c =>
-                        c.StudentID.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        c.StudentName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        c.RoomNumber.Contains(search, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-            }
-
-            return Ok(contracts
-                .OrderBy(c => c.CreatedDate));
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateContract([FromBody] ContractCreateDTO dto)
-        {
-            if (dto == null)
-                return BadRequest(new { message = "Contract data is required" });
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             try
             {
-                var contractId = await _contractBUS.AddContractAsync(dto);
-                return CreatedAtAction(nameof(GetContracts), new { id = contractId }, new { id = contractId, message = "Contract created successfully" });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
+                var contracts = await _contractBUS.GetAllContractsAsync();
+                return Ok(contracts); // Trả về danh sách JSON (200 OK)
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = $"Error creating contract: {ex.Message}" });
+                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
             }
         }
 
-        [HttpPost("{id}/approve")]
-        public async Task<IActionResult> ApproveContract(string id)
+        // API: Lấy chi tiết 1 hợp đồng (Khi bấm vào dòng trong bảng)
+        // GET: api/contract/{id}
+        [HttpGet]
+        //[Authorize]
+        public async Task<IActionResult> GetContractByStudentID()
         {
-            var success = await UpdateContractStatus(id, "Active");
-            return success ? Ok() : NotFound();
+            //var studentId = User.FindFirst("StudentID")?.Value;
+            var studentId = "STU001";
+            if (string.IsNullOrEmpty(studentId))
+                return Unauthorized(new { message = "Không tìm thấy thông tin sinh viên." });
+
+            var contract = await _contractBUS.GetContractsByStudentIDAsync(studentId);
+            if (contract == null) return NotFound(new { message = "Không tìm thấy hợp đồng." });
+            return Ok(contract);
         }
 
-        [HttpPost("{id}/reject")]
-        public async Task<IActionResult> RejectContract(string id)
+        [HttpGet("student/{studentID}")] // URL sẽ là: api/contract/student/STU001
+        //[Authorize(Roles = "Admin")] // <--- QUAN TRỌNG: Chỉ sếp mới được soi
+        public async Task<IActionResult> GetContractsByStudentId(string studentID)
         {
-            var success = await UpdateContractStatus(id, "Terminated");
-            return success ? Ok() : NotFound();
+            // Admin được quyền truyền ID bất kỳ vào để xem
+            var contracts = await _contractBUS.GetContractsByStudentIDAsync(studentID);
+
+            if (contracts == null || !contracts.Any())
+                return NotFound(new { message = "Sinh viên này chưa có hợp đồng nào." });
+
+            return Ok(contracts);
         }
-
-        private async Task<bool> UpdateContractStatus(string contractId, string newStatus)
-        {
-            if (string.IsNullOrWhiteSpace(contractId))
-                return false;
-
-            var contract = await _contractBUS.GetContractByIDAsync(contractId);
-            if (contract == null)
-                return false;
-
-            var updateDto = new ContractUpdateDTO
-            {
-                RoomID = contract.RoomID,
-                StartTime = contract.StartTime,
-                EndTime = contract.EndTime,
-                Status = newStatus
-            };
-
-            await _contractBUS.UpdateContractAsync(contractId, updateDto);
-            return true;
-        }
-
-        private static bool MatchesStatus(string status, string filter)
-        {
-            if (filter.Equals("còn hạn", StringComparison.OrdinalIgnoreCase))
-                return status.Equals("Active", StringComparison.OrdinalIgnoreCase);
-
-            if (filter.Equals("hết hạn", StringComparison.OrdinalIgnoreCase))
-                return status.Equals("Expired", StringComparison.OrdinalIgnoreCase) ||
-                       status.Equals("Terminated", StringComparison.OrdinalIgnoreCase);
-
-            if (filter.Equals("chờ duyệt", StringComparison.OrdinalIgnoreCase))
-                return IsPendingStatus(status);
-
-            return status.Equals(filter, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool IsPendingStatus(string status) =>
-            status.Equals("Pending", StringComparison.OrdinalIgnoreCase) ||
-            status.Equals("AwaitingApproval", StringComparison.OrdinalIgnoreCase);
     }
 }
-
