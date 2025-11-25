@@ -141,66 +141,62 @@ namespace DormitoryManagementSystem.BUS.Implementations
             await _userDAO.DeleteUserAsync(student.Userid);
         }
 
+
+
+
+        //Student
+        //Mới thêm hàm lấy profile sinh viên
         public async Task<StudentProfileDTO?> GetStudentProfileAsync(string studentId)
         {
-            // 1. Lấy thông tin Sinh viên
             var student = await _studentDAO.GetStudentByIDAsync(studentId);
             if (student == null) return null;
 
-            // 2. Lấy Hợp đồng đang hoạt động của sinh viên này
             var activeContract = await _contractDAO.GetActiveContractByStudentIDAsync(studentId);
+            
+            
 
-            // 3. Map thông tin cơ bản sang DTO
             var profile = new StudentProfileDTO
             {
                 StudentID = student.Studentid,
                 FullName = student.Fullname,
                 Major = student.Major ?? "N/A",
-                // Format ngày sinh sang chuỗi dd/MM/yyyy cho đẹp giống ảnh
+
                 DateOfBirth = student.Dateofbirth.HasValue ? student.Dateofbirth.Value.ToString("dd/MM/yyyy") : "N/A",
                 PhoneNumber = student.Phonenumber,
                 Gender = student.Gender,
                 Email = student.Email,
-                CCCD = student.Idcard, // (Lưu ý kiểm tra tên cột trong Entity là Idcard hay Cccd)
+                CCCD = student.Idcard, 
                 Address = student.Address
             };
 
-            // 4. Xử lý logic Phòng & Tiền (Nếu có hợp đồng)
             if (activeContract != null)
             {
-                // 4a. Điền thông tin phòng (Giả sử DAO Contract đã Include Room và Building)
                 if (activeContract.Room != null)
                 {
-                    profile.RoomName = activeContract.Room.Roomnumber.ToString(); // Hoặc $"Phòng {activeContract.Room.Roomnumber}"
+                    profile.RoomName = activeContract.Room.Roomnumber.ToString();
                     profile.BuildingName = activeContract.Room.Building != null
                                            ? activeContract.Room.Building.Buildingname
                                            : "Unknown";
                 }
                 profile.ContractStatus = activeContract.Status;
 
-                // 4b. TÍNH TOÁN CÔNG NỢ (Logic chuyển đổi trạng thái)
-                // Lấy danh sách tất cả hóa đơn của hợp đồng này
                 var payments = await _paymentDAO.GetPaymentsByContractIDAsync(activeContract.Contractid);
 
-                // Tính Tổng Nợ: Cộng tiền các hóa đơn có trạng thái 'Unpaid' hoặc 'Late'
                 decimal totalDebt = payments
                                     .Where(p => p.Paymentstatus == "Unpaid" || p.Paymentstatus == "Late")
                                     .Sum(p => p.Paymentamount);
 
                 profile.TotalDebt = totalDebt;
 
-                // Giả sử "Tiền cần thanh toán" trong ảnh chính là tổng nợ hiện tại
                 profile.AmountToPay = totalDebt;
 
-                // 4c. GÁN CHỮ HIỂN THỊ (Logic theo yêu cầu)
                 if (totalDebt > 0)
                 {
-                    profile.IsDebt = true; // Có nợ -> Màu đỏ
+                    profile.IsDebt = true; 
                     profile.PaymentStatusDisplay = "Chưa thanh toán";
                 }
                 else
                 {
-                    // Kiểm tra xem có hóa đơn nào không (để tránh trường hợp mới vào chưa có bill nào)
                     bool hasBills = payments.Any();
                     if (hasBills)
                     {
@@ -216,7 +212,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             }
             else
             {
-                // Trường hợp chưa có hợp đồng
                 profile.PaymentStatusDisplay = "Chưa đăng ký phòng";
             }
 

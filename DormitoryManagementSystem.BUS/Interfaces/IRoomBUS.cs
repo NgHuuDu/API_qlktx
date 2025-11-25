@@ -11,5 +11,18 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         Task<string> AddRoomAsync(RoomCreateDTO dto);
         Task UpdateRoomAsync(string id, RoomUpdateDTO dto);
         Task DeleteRoomAsync(string id);
+
+        //Mới thêm - Student    
+        Task<IEnumerable<RoomReadDTO>> SearchRoomsAsync(
+                    string? buildingId,
+                    int? roomNumber,
+                    int? capacity,
+                    decimal? minPrice,
+                    decimal? maxPrice,
+                    bool? allowCooking,   
+                    bool? airConditioner);
+
+        Task<IEnumerable<RoomCardDTO>> GetAllRoomsCardStudentAsync();
+
     }
 }

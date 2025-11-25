@@ -15,22 +15,22 @@ namespace DormitoryManagementSystem.API.Controllers
             _violationBUS = violationBUS;
         }
 
-        // API 1: Lấy danh sách vi phạm của CHÍNH MÌNH (Dành cho Sinh viên)
+
+        //Student
+        // API : Lấy danh sách vi phạm của chính mình
         [HttpGet("my-violations")]
-        //[Authorize(Roles = "Student")] // Chỉ sinh viên được gọi
+        //[Authorize(Roles = "Student")] // tắt cái này để test
         public async Task<IActionResult> GetMyViolations()
         {
             try
             {
-                // 1. Lấy ID từ Token
-                var studentId = User.FindFirst("StudentID")?.Value;
-
+                // var studentId = User.FindFirst("StudentID")?.Value;
+                var studentId = "STU003"; // Dùng để test tạm thời, nhớ xóa khi có Token
 
                 if (string.IsNullOrEmpty(studentId))
                     return Unauthorized(new { message = "Không tìm thấy thông tin sinh viên." });
 
-                // 2. Gọi BUS
-                var violations = await _violationBUS.GetViolationsByStudentIDAsync(studentId);
+                var violations = await _violationBUS.GetViolationsByStudentID(studentId);
 
                 return Ok(violations);
             }
@@ -40,13 +40,5 @@ namespace DormitoryManagementSystem.API.Controllers
             }
         }
 
-        // API 2: Lấy vi phạm của sinh viên bất kỳ (Dành cho Admin quản lý)
-        [HttpGet("student/{studentId}")]
-        //  [Authorize(Roles = "Admin")] // Chỉ Admin được gọi
-        public async Task<IActionResult> GetStudentViolations(string studentId)
-        {
-            var violations = await _violationBUS.GetViolationsByStudentIDAsync(studentId);
-            return Ok(violations);
-        }
     }
 }

@@ -96,5 +96,21 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             await _newsDAO.DeleteNewsAsync(id);
         }
+
+        // Mới thêm - Lấy danh sách tóm tắt tin tức (chỉ gồm Newsid, Title, Publisheddate)
+        public async Task<IEnumerable<NewsSummaryDTO>> GetNewsSummariesAsync()
+        {
+            var newsList = await _newsDAO.GetNewsSummariesAsync();
+            var result = newsList.Select(n => new NewsSummaryDTO
+            {
+                NewsID = n.Newsid, // Gán từng trường một
+                Title = n.Title,
+
+                // Xử lý Null (Vì trong Entity là DateTime?, còn DTO thường là DateTime)
+                PublishedDate = n.Publisheddate ?? DateTime.MinValue
+            });
+
+            return result;
+        }
     }
 }

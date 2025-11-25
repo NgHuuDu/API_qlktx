@@ -1,13 +1,13 @@
-﻿using System.Security.Claims;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using AutoMapper;
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.Users;
 using DormitoryManagementSystem.Entity;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Configuration;
-using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
 
 namespace DormitoryManagementSystem.BUS.Implementations
 {
@@ -130,6 +130,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
                    hash.StartsWith("$2y$");
         }
 
+        //Generate JWT Token
         private string GenerateJwtToken(User user)
         {
             // 1. Lấy Key ra và kiểm tra null ngay lập tức
@@ -221,6 +222,56 @@ namespace DormitoryManagementSystem.BUS.Implementations
                 throw new KeyNotFoundException($"User with ID {id} not found.");
 
             await _userDAO.DeleteUserAsync(id);
+        }
+
+
+        public async Task ChangePasswordAsync(string userId, ChangePasswordDTO dto)
+        {
+            // 1. Tìm user trong DB
+            var user = await _userDAO.GetUserByIDAsync(userId);
+            if (user == null)
+                throw new KeyNotFoundException("Không tìm thấy thông tin người dùng.");
+
+            // 2. Kiểm tra mật khẩu cũ (Logic tương thích ngược)
+            bool isOldPassCorrect = false;
+
+            // Tận dụng hàm IsBCryptHash (đã viết ở phần Login) để kiểm tra format mật khẩu trong DB
+            bool isPlainText = !IsBCryptHash(user.Password);
+
+            if (isPlainText)
+            {
+                // Trường hợp A: DB đang lưu plain text (ví dụ: "123456")
+                isOldPassCorrect = user.Password == dto.OldPassword;
+            }
+            else
+            {
+                // Trường hợp B: DB đã lưu hash (BCrypt)
+                try
+                {
+                    isOldPassCorrect = BCrypt.Net.BCrypt.Verify(dto.OldPassword, user.Password);
+                }
+                catch
+                {
+                    isOldPassCorrect = false;
+                }
+            }
+
+            if (!isOldPassCorrect)
+            {
+                throw new ArgumentException("Mật khẩu hiện tại không chính xác.");
+            }
+
+            // 3. Kiểm tra trùng (Optional: Không cho đổi trùng mật khẩu cũ để tăng bảo mật)
+            if (dto.OldPassword == dto.NewPassword)
+            {
+                throw new ArgumentException("Mật khẩu mới không được trùng với mật khẩu cũ.");
+            }
+
+            // 4. Mã hóa (Hash) mật khẩu mới và Lưu
+            user.Password = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+
+            // Gọi DAO để update (Lưu ý: UserDAO cần có hàm UpdateUserAsync dùng Factory Context)
+            await _userDAO.UpdateUserAsync(user);
         }
     }
 }

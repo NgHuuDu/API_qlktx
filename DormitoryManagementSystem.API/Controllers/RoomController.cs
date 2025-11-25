@@ -1,140 +1,71 @@
-using DormitoryManagementSystem.BUS.Interfaces;
+﻿using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DTO.Rooms;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace DormitoryManagementSystem.API.Controllers
+[Route("api/[controller]")]
+[ApiController]
+public class RoomController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class RoomController : ControllerBase
+    private readonly IRoomBUS _roomBUS;
+
+    public RoomController(IRoomBUS roomBUS)
     {
-        private readonly IRoomBUS _roomBUS;
+        _roomBUS = roomBUS;
+    }
 
-        public RoomController(IRoomBUS roomBUS)
+    //Student
+    // API: Lấy danh sách phòng CÒN TRỐNG (Cho sinh viên đăng ký) với hiện ở datagrid á // 
+    // GET: api/room/available
+    [HttpGet("available")]
+    //[Authorize(Roles = "Student")]// Tắt cái này mới test được, mới lên khi chạy chính thức
+    public async Task<IActionResult> GetAvailableRoomsCardStudent()
+    {
+        try
         {
-            _roomBUS = roomBUS;
-        }
+            var rooms = await _roomBUS.GetAllRoomsCardStudentAsync();
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll(
-            [FromQuery] string? building,
-            [FromQuery] string? status,
-            [FromQuery] string? search)
-        {
-            var rooms = (await _roomBUS.GetAllRoomsAsync()).ToList();
-
-            if (!string.IsNullOrWhiteSpace(building))
+            if (rooms == null || !rooms.Any())
             {
-                rooms = rooms
-                    .Where(r => r.BuildingID.Contains(building, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-            }
-
-            if (!string.IsNullOrWhiteSpace(status))
-            {
-                rooms = rooms.Where(r => r.Status.Contains(status, StringComparison.OrdinalIgnoreCase)).ToList();
-            }
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                rooms = rooms
-                    .Where(r =>
-                        r.RoomNumber.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        r.BuildingID.Contains(search, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
+                // Trả về danh sách rỗng chứ không lỗi 404, để FE hiện bảng trống
+                return Ok(new List<RoomCardDTO>());
             }
 
             return Ok(rooms);
         }
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(string id)
+        catch (Exception ex)
         {
-            var room = await _roomBUS.GetRoomByIDAsync(id);
-            if (room == null) return NotFound();
-            return Ok(room);
+            return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
         }
+    }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateRoom([FromBody] RoomCreateDTO dto)
+    //Student 
+    // Duyệt phòng ở FE Student, cái trang có hiện thị phòng chi tiết á
+    [HttpGet("search")]
+    // [Authorize(Roles = "Student")] // Tắt cái này mới test được, mới lên khi chạy chính thức
+    public async Task<IActionResult> SearchRooms(
+    [FromQuery] string? buildingId,
+    [FromQuery] int? roomNumber,
+    [FromQuery] int? capacity,
+    [FromQuery] decimal? minPrice,
+    [FromQuery] decimal? maxPrice,
+    [FromQuery] bool? allowCooking,    
+    [FromQuery] bool? airConditioner)  
+    {
+        try
         {
-            if (dto == null)
-                return BadRequest(new { message = "Room data is required" });
+            var rooms = await _roomBUS.SearchRoomsAsync(
+                buildingId, roomNumber, capacity, minPrice, maxPrice, allowCooking, airConditioner);
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (rooms == null || !rooms.Any())
+            {
+                return Ok(new List<RoomReadDTO>());
+            }
 
-            try
-            {
-                var roomId = await _roomBUS.AddRoomAsync(dto);
-                return CreatedAtAction(nameof(GetById), new { id = roomId }, new { id = roomId, message = "Room created successfully" });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = $"Error creating room: {ex.Message}" });
-            }
+            return Ok(rooms);
         }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRoom(string id, [FromBody] RoomUpdateDTO dto)
+        catch (Exception ex)
         {
-            if (dto == null)
-                return BadRequest(new { message = "Room data is required" });
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            try
-            {
-                await _roomBUS.UpdateRoomAsync(id, dto);
-                return Ok(new { message = "Room updated successfully" });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = $"Error updating room: {ex.Message}" });
-            }
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRoom(string id)
-        {
-            try
-            {
-                await _roomBUS.DeleteRoomAsync(id);
-                return Ok(new { message = "Room deleted successfully" });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = $"Error deleting room: {ex.Message}" });
-            }
+            return StatusCode(500, new { message = ex.Message });
         }
     }
 }
-

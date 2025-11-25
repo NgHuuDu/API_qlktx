@@ -124,5 +124,49 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             await _roomDAO.DeleteRoomAsync(id);
         }
+
+
+        //student
+        //Mới
+        public async Task<IEnumerable<RoomReadDTO>> SearchRoomsAsync(
+            string? buildingId,
+            int? roomNumber,
+            int? capacity,
+            decimal? minPrice,
+            decimal? maxPrice,
+            bool? allowCooking,   
+            bool? airConditioner)  
+        {
+            var rooms = await _roomDAO.GetRoomsByFilterAsync(
+                buildingId, roomNumber, capacity, minPrice, maxPrice, allowCooking, airConditioner);
+
+            return _mapper.Map<IEnumerable<RoomReadDTO>>(rooms);
+        }
+
+
+        public async Task<IEnumerable<RoomCardDTO>> GetAllRoomsCardStudentAsync()
+        {
+            // Gọi DAO với tham số null hết -> Lấy tất cả phòng Active & Còn chỗ
+            var rooms = await _roomDAO.GetAllRoomsAsync();
+
+            var result = rooms.Select(r => new RoomCardDTO
+            {
+                RoomID = r.Roomid,
+                RoomNumber = r.Roomnumber,
+
+                // Xử lý lấy tên tòa nhà từ bảng cha (Building)
+                // Dùng dấu ? (Null conditional) và ?? (Null coalescing) để tránh lỗi nếu Building bị null
+                BuildingName = r.Building != null ? r.Building.Buildingname : "Unknown",
+
+                Capacity = r.Capacity,
+
+                // Xử lý int? (nullable) sang int
+                CurrentOccupancy = r.Currentoccupancy ?? 0,
+
+                Status = r.Status
+            });
+
+            return result;
+        }
     }
 }

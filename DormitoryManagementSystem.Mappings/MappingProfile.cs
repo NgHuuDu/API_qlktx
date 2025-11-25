@@ -121,6 +121,7 @@ namespace DormitoryManagementSystem.Mappings
             CreateMap<NewsCreateDTO, News>();
             CreateMap<NewsUpdateDTO, News>()
                 .ForMember(dest => dest.Newsid, opt => opt.Ignore());
+
         }
     }
 }

@@ -128,5 +128,41 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             await _paymentDAO.RemovePaymentAsync(id);
         }
+
+
+        public async Task<IEnumerable<PaymentReadDTO>> GetPendingBillsByStudentAsync(string studentId)
+        {
+            // Tìm hợp đồng Active của SV
+            var contract = await _contractDAO.GetActiveContractByStudentIDAsync(studentId);
+            if (contract == null) return new List<PaymentReadDTO>(); // Chưa có hợp đồng -> Không có hóa đơn
+
+            // Lấy tất cả payments
+            var allPayments = await _paymentDAO.GetPaymentsByContractIDAsync(contract.Contractid);
+
+            // Lọc: Lấy những cái CHƯA TRẢ (Unpaid, Late)
+            var pendingBills = allPayments
+                .Where(p => p.Paymentstatus == "Unpaid" || p.Paymentstatus == "Late")
+                .OrderBy(p => p.Billmonth); // Sắp xếp theo tháng
+
+            return _mapper.Map<IEnumerable<PaymentReadDTO>>(pendingBills);
+        }
+
+        public async Task<IEnumerable<PaymentReadDTO>> GetPaymentHistoryByStudentAsync(string studentId)
+        {
+            // Tìm hợp đồng Active
+            // (Hoặc bạn có thể sửa DAO để lấy tất cả hợp đồng nếu muốn xem lịch sử cũ hơn)
+            var contract = await _contractDAO.GetActiveContractByStudentIDAsync(studentId);
+            if (contract == null) return new List<PaymentReadDTO>();
+
+            //  Lấy tất cả payments
+            var allPayments = await _paymentDAO.GetPaymentsByContractIDAsync(contract.Contractid);
+
+            // Lọc: Lấy những cái ĐÃ TRẢ (Paid)
+            var history = allPayments
+                .Where(p => p.Paymentstatus == "Paid")
+                .OrderByDescending(p => p.Paymentdate); // Mới nhất lên đầu
+
+            return _mapper.Map<IEnumerable<PaymentReadDTO>>(history);
+        }
     }
 }

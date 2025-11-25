@@ -23,5 +23,8 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         Task UpdateUserAsync(string id, UserUpdateDTO dto);
 
         Task DeleteUserAsync(string id);
+
+        //Mới thêm -Hàm đổi mật khẩu
+        Task ChangePasswordAsync(string userId, ChangePasswordDTO dto);
     }
 }

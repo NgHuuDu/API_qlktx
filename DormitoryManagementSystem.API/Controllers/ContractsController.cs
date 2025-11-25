@@ -15,16 +15,57 @@ namespace DormitoryManagementSystem.API.Controllers
         {
             _contractBUS = contractBUS;
         }
+        
 
-     
-        [HttpGet]
-        [Authorize(Roles = "Admin")] 
-        public async Task<IActionResult> GetAllContracts()
+
+
+        //Student
+        // API: Sinh viên xem hợp đồng CỦA CHÍNH MÌNH
+        // URL: GET /api/Contract/my-contracts  
+        [HttpGet("my-contracts")]
+        // [Authorize(Roles = "Student")] // Nhớ bật lại khi có Token
+        public async Task<IActionResult> GetMyContracts()
         {
             try
             {
-                var contracts = await _contractBUS.GetAllContractsAsync();
-                return Ok(contracts); // Trả về danh sách JSON (200 OK)
+                var studentId = "STU002"; // Test hardcode
+
+                if (string.IsNullOrEmpty(studentId))
+                    return Unauthorized(new { message = "Không tìm thấy thông tin sinh viên." });
+
+                var contracts = await _contractBUS.GetContractFullDetailAsync(studentId);
+
+                if (contracts == null) contracts = null;
+
+                return Ok(contracts);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        //Student
+        // API: Sinh viên gửi đơn đăng ký
+        // POST: api/contract/register
+        [HttpPost("register")]
+        //[Authorize(Roles = "Student")] 
+        public async Task<IActionResult> RegisterContract([FromBody] ContractRegisterDTO dto)
+        {
+            try
+            {
+               // var studentId = User.FindFirst("StudentID")?.Value;
+                 var studentId = "STU001"; //test
+                if (string.IsNullOrEmpty(studentId))
+                    return Unauthorized(new { message = "Không xác định được sinh viên." });
+
+                var contractId = await _contractBUS.RegisterContractAsync(studentId, dto);
+
+                return Ok(new { message = "Gửi đơn đăng ký thành công!", contractId = contractId });
+            }
+            catch (InvalidOperationException ex) // Lỗi phòng đầy,...
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -32,33 +73,7 @@ namespace DormitoryManagementSystem.API.Controllers
             }
         }
 
-        // API: Lấy chi tiết 1 hợp đồng (Khi bấm vào dòng trong bảng)
-        // GET: api/contract/{id}
-        [HttpGet]
-        //[Authorize]
-        public async Task<IActionResult> GetContractByStudentID()
-        {
-            //var studentId = User.FindFirst("StudentID")?.Value;
-            var studentId = "STU001";
-            if (string.IsNullOrEmpty(studentId))
-                return Unauthorized(new { message = "Không tìm thấy thông tin sinh viên." });
 
-            var contract = await _contractBUS.GetContractsByStudentIDAsync(studentId);
-            if (contract == null) return NotFound(new { message = "Không tìm thấy hợp đồng." });
-            return Ok(contract);
-        }
 
-        [HttpGet("student/{studentID}")] // URL sẽ là: api/contract/student/STU001
-        //[Authorize(Roles = "Admin")] // <--- QUAN TRỌNG: Chỉ sếp mới được soi
-        public async Task<IActionResult> GetContractsByStudentId(string studentID)
-        {
-            // Admin được quyền truyền ID bất kỳ vào để xem
-            var contracts = await _contractBUS.GetContractsByStudentIDAsync(studentID);
-
-            if (contracts == null || !contracts.Any())
-                return NotFound(new { message = "Sinh viên này chưa có hợp đồng nào." });
-
-            return Ok(contracts);
-        }
     }
 }

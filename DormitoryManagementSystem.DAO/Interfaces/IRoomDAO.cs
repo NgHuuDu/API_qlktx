@@ -12,5 +12,15 @@ namespace DormitoryManagementSystem.DAO.Interfaces
         Task AddRoomAsync(Room room);
         Task UpdateRoomAsync(Room room);
         Task DeleteRoomAsync(string id);
+
+        //Mới thêm  
+        Task<IEnumerable<Room>> GetRoomsByFilterAsync(
+             string? buildingId,
+             int? roomNumber,
+             int? capacity,
+             decimal? minPrice,
+             decimal? maxPrice,
+             bool? allowCooking,     // <--- Mới thêm
+             bool? airConditioner);
     }
 }

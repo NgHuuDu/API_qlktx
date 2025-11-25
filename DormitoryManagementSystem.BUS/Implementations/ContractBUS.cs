@@ -214,5 +214,84 @@ namespace DormitoryManagementSystem.BUS.Implementations
             // Soft delete via DAO (sets status to Terminated)
             await _contractDAO.DeleteContractAsync(id);
         }
+
+        //Student
+        // Lấy chi tiết hợp đồng đầy đủ bao gồm thông tin sinh viên và phòng
+        // Của thằng học sinh đó
+        public async Task<ContractDetailDTO?> GetContractFullDetailAsync(string studentId)
+        {
+            var contract = await _contractDAO.GetContractDetailAsync(studentId);
+
+            if (contract == null) return null; 
+
+            return new ContractDetailDTO
+            {
+                // Hợp đồng
+                ContractID = contract.Contractid,
+                StartTime = contract.Starttime.ToDateTime(TimeOnly.MinValue),
+                EndTime = contract.Endtime.ToDateTime(TimeOnly.MinValue),
+                Status = contract.Status,
+                CreatedDate = contract.Createddate ?? DateTime.MinValue,
+
+                // Sinh viên (Lấy từ contract.Student)
+                StudentID = contract.Studentid,
+                StudentName = contract.Student?.Fullname ?? "N/A",
+                Gender = contract.Student?.Gender ?? "N/A",
+                Major = contract.Student?.Major ?? "N/A",
+                PhoneNumber = contract.Student?.Phonenumber ?? "N/A",
+                Email = contract.Student?.Email ?? "N/A",
+                CCCD = contract.Student?.Idcard ?? "N/A",
+                Address = contract.Student?.Address ?? "N/A",
+
+                // Phòng (Lấy từ contract.Room)
+                RoomID = contract.Roomid,
+                // Check null kỹ để tránh lỗi
+                RoomNumber = contract.Room?.Roomnumber ?? 0,
+                Price = contract.Room?.Price ?? 0,
+                BuildingName = contract.Room?.Building?.Buildingname ?? "Unknown Building"
+            };
+        }
+
+
+        public async Task<string> RegisterContractAsync(string studentId, ContractRegisterDTO dto)
+        {
+            if (dto.EndTime <= dto.StartTime)
+                throw new ArgumentException("Ngày kết thúc phải sau ngày bắt đầu.");
+
+            //Kiểm tra Sinh viên (Có đang ở đâu không?)
+            var activeContract = await _contractDAO.GetActiveContractByStudentIDAsync(studentId);
+            if (activeContract != null)
+                throw new InvalidOperationException("Bạn hiện đang có hợp đồng hiệu lực, không thể đăng ký mới.");
+
+            //Kiểm tra Phòng (Có còn trống không?)
+            var room = await _roomDAO.GetRoomByIDAsync(dto.RoomID);
+            if (room == null) throw new KeyNotFoundException("Phòng không tồn tại.");
+
+            if (room.Status != "Active")
+                throw new InvalidOperationException("Phòng này đang bảo trì.");
+
+            if (room.Currentoccupancy >= room.Capacity)
+                throw new InvalidOperationException("Phòng này đã đầy.");
+
+            // Tạo Entity Hợp đồng Mới
+            var newContract = new Contract
+            {
+                // Tự sinh mã HĐ: VD: CTR_20241125_123456
+                Contractid = $"CTR_{DateTime.Now:yyyyMMdd}_{new Random().Next(1000, 9999)}",
+                Studentid = studentId,
+                Roomid = dto.RoomID,
+                Starttime = DateOnly.FromDateTime(dto.StartTime), 
+                Endtime = DateOnly.FromDateTime(dto.EndTime),
+                Status = "Pending", // QUAN TRỌNG: Trạng thái Chờ duyệt
+                Createddate = DateTime.Now
+            };
+
+            await _contractDAO.AddContractAsync(newContract);
+
+            // Lưu ý: Chưa tăng CurrentOccupancy của phòng vội. 
+            // Khi nào Admin bấm "Duyệt" (Approve API) thì mới tăng số người.
+
+            return newContract.Contractid;
+        }
     }
 }

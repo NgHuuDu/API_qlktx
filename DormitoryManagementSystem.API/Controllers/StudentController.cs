@@ -16,14 +16,17 @@ namespace DormitoryManagementSystem.API.Controllers
             _studentBUS = studentBUS;
         }
 
+
+        //Student 
+        // API : lấy thông tin sinh viên
         [HttpGet("profile")]
-        [Authorize(Roles = "Student")]
+        //[Authorize(Roles = "Student")]// tắt này để test
         public async Task<IActionResult> GetMyProfile()
         {
             try
             {
-                var studentId = User.FindFirst("StudentID")?.Value;
-
+                //var studentId = User.FindFirst("StudentID")?.Value;
+                var studentId = "STU003"; // Dùng để test tạm thời, nhớ xóa khi có Token
                 if (string.IsNullOrEmpty(studentId))
                 {
                     return Unauthorized(new { message = "Token không hợp lệ: Không tìm thấy StudentID." });

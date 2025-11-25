@@ -1,145 +1,63 @@
-using DormitoryManagementSystem.API.Models;
 using DormitoryManagementSystem.BUS.Interfaces;
-using DormitoryManagementSystem.DTO.Contracts;
-using DormitoryManagementSystem.DTO.Payments;
+using DormitoryManagementSystem.Entity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace DormitoryManagementSystem.API.Controllers
+[Route("api/[controller]")]
+[ApiController]
+public class PaymentController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class PaymentsController : ControllerBase
+    private readonly IPaymentBUS _paymentBUS;
+
+    public PaymentController(IPaymentBUS paymentBUS)
     {
-        private readonly IPaymentBUS _paymentBUS;
-        private readonly IContractBUS _contractBUS;
+        _paymentBUS = paymentBUS;
+    }
 
-        public PaymentsController(IPaymentBUS paymentBUS, IContractBUS contractBUS)
+
+    //Student
+    //API: Lấy danh sách CẦN THANH TOÁN (cho bảng trên)
+    // GET: api/payment/student/pending
+    [HttpGet("student/pending")]
+    //[Authorize(Roles = "Student")]// tắt cái này đi mới test được 
+    public async Task<IActionResult> GetMyPendingBills()
+    {
+        try
         {
-            _paymentBUS = paymentBUS;
-            _contractBUS = contractBUS;
-        }
+            //var studentId = User.FindFirst("StudentID")?.Value; // Lấy từ Token
+            var studentId = "STU001"; // Dùng này để test
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<PaymentReadDTO>>> GetPayments(
-            [FromQuery] string? status,
-            [FromQuery] string? search)
+            if (string.IsNullOrEmpty(studentId)) return Unauthorized();
+
+            var bills = await _paymentBUS.GetPendingBillsByStudentAsync(studentId);
+            return Ok(bills);
+        }
+        catch (Exception ex)
         {
-            var payments = (await _paymentBUS.GetAllPaymentsAsync()).ToList();
-
-            if (!string.IsNullOrWhiteSpace(status) && !status.StartsWith("tất cả", StringComparison.OrdinalIgnoreCase))
-            {
-                payments = payments
-                    .Where(p => MatchesStatus(p.PaymentStatus, status))
-                    .ToList();
-            }
-
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                payments = payments
-                    .Where(p =>
-                        p.PaymentID.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                        p.ContractID.Contains(search, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-            }
-
-            return Ok(payments
-                .OrderByDescending(p => p.PaymentDate.Year)
-                .ThenByDescending(p => p.BillMonth)
-                .ThenByDescending(p => p.PaymentDate));
+            return StatusCode(500, new { message = ex.Message });
         }
+    }
 
-        [HttpGet("kpis")]
-        public async Task<ActionResult<PaymentKpiResponse>> GetPaymentKpis()
+    //Student
+    //  API: Lấy LỊCH SỬ THANH TOÁN (Cho bảng bên dưới)
+    // GET: api/payment/student/history
+    [HttpGet("student/history")]
+    //[Authorize(Roles = "Student")] // Tắt này mới test được
+    public async Task<IActionResult> GetMyPaymentHistory()
+    {
+        try
         {
-            var payments = (await _paymentBUS.GetAllPaymentsAsync()).ToList();
+            //var studentId = User.FindFirst("StudentID")?.Value; // tắt cái này đi mới test được
+            var studentId = "STU001"; 
 
-            var collected = payments.Where(p => p.PaymentStatus.Equals("Paid", StringComparison.OrdinalIgnoreCase));
-            var pending = payments.Where(p => p.PaymentStatus.Equals("Unpaid", StringComparison.OrdinalIgnoreCase));
-            var overdue = payments.Where(p => IsOverdue(p.PaymentStatus));
+            if (string.IsNullOrEmpty(studentId)) return Unauthorized();
 
-            var response = new PaymentKpiResponse
-            {
-                CollectedAmount = collected.Sum(p => p.PaymentAmount),
-                CollectedCount = collected.Count(),
-                PendingAmount = pending.Sum(p => p.PaymentAmount),
-                PendingCount = pending.Count(),
-                OverdueAmount = overdue.Sum(p => p.PaymentAmount),
-                OverdueCount = overdue.Count()
-            };
-
-            return Ok(response);
+            var history = await _paymentBUS.GetPaymentHistoryByStudentAsync(studentId);
+            return Ok(history);
         }
-
-        [HttpPost]
-        public async Task<IActionResult> CreatePayment([FromBody] PaymentCreateDTO dto)
+        catch (Exception ex)
         {
-            if (dto == null)
-                return BadRequest(new { message = "Payment data is required" });
-
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            try
-            {
-                var paymentId = await _paymentBUS.AddPaymentAsync(dto);
-                return CreatedAtAction(nameof(GetPayments), new { id = paymentId }, new { id = paymentId, message = "Payment created successfully" });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = $"Error creating payment: {ex.Message}" });
-            }
+            return StatusCode(500, new { message = ex.Message });
         }
-
-        [HttpPost("{id}/confirm")]
-        public async Task<IActionResult> ConfirmPayment(string id)
-        {
-            if (string.IsNullOrWhiteSpace(id))
-                return BadRequest("Invalid payment id");
-
-            var payment = await _paymentBUS.GetPaymentByIDAsync(id);
-            if (payment == null)
-                return NotFound();
-
-            var updateDto = new PaymentUpdateDTO
-            {
-                PaidAmount = payment.PaymentAmount,
-                PaymentMethod = string.IsNullOrWhiteSpace(payment.PaymentMethod) ? "Cash" : payment.PaymentMethod,
-                PaymentStatus = "Paid",
-                PaymentDate = DateTime.Now,
-                Description = "Confirmed via API"
-            };
-
-            await _paymentBUS.UpdatePaymentAsync(id, updateDto);
-            return Ok();
-        }
-
-        private static bool MatchesStatus(string status, string filter)
-        {
-            if (filter.Equals("đã thanh toán", StringComparison.OrdinalIgnoreCase))
-                return status.Equals("Paid", StringComparison.OrdinalIgnoreCase);
-
-            if (filter.Equals("chờ thanh toán", StringComparison.OrdinalIgnoreCase))
-                return status.Equals("Unpaid", StringComparison.OrdinalIgnoreCase);
-
-            if (filter.Equals("quá hạn", StringComparison.OrdinalIgnoreCase))
-                return IsOverdue(status);
-
-            return status.Equals(filter, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool IsOverdue(string status) =>
-            status.Equals("Late", StringComparison.OrdinalIgnoreCase);
     }
 }
-

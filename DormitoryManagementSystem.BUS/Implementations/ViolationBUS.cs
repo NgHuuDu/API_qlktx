@@ -49,18 +49,8 @@ namespace DormitoryManagementSystem.BUS.Implementations
         {
             var violations = await _violationDAO.GetViolationsByStudentIDAsync(studentId);
 
-            
-            var result = violations.Select(v => new ViolationReadDTO
-            {
-                ViolationID = v.Violationid,
-                ViolationType = v.Violationtype,
-                ViolationDate = (DateTime)v.Violationdate,
-                Status = v.Status, 
-                PenaltyFee = v.Penaltyfee ?? 0, 
-                RoomID = v.Roomid
-            });
+             return _mapper.Map<IEnumerable<ViolationReadDTO>>(violations);
 
-            return result;
         }
 
         public async Task<IEnumerable<ViolationReadDTO>> GetViolationsByRoomIDAsync(string roomId)
@@ -159,6 +149,31 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             // Perform Hard Delete (As decided for Violations table)
             await _violationDAO.DeleteViolationAsync(id);
+        }
+
+
+
+
+
+
+        //Student
+        //Mới trong bản student 
+        public async Task<IEnumerable<ViolationListDTO>> GetViolationsByStudentID(string studentId)
+        {
+            var violations = await _violationDAO.GetViolationsByStudentIDAsync(studentId);
+
+
+            var result = violations.Select(v => new ViolationListDTO
+            {
+
+                ViolationID = v.Violationid,
+                StudentID = v.Studentid,
+                Status = v.Status,
+                StartTime = (DateTime)v.Violationdate,
+                RoomID = v.Roomid
+            });
+
+            return result;
         }
     }
 }

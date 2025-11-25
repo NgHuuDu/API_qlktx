@@ -2,6 +2,7 @@
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.Entity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace DormitoryManagementSystem.DAO.Implementations
 {
@@ -67,6 +68,22 @@ namespace DormitoryManagementSystem.DAO.Implementations
                                            .Where(contract => contract.Studentid == studentID)
                                            .Where(contract => contract.Status == "Active")
                                            .FirstOrDefaultAsync();
+        }
+
+
+        //Mới thêm - Lấy chi tiết hợp đồng bao gồm thông tin Sinh viên, Phòng và Tòa nhà
+        // Cho thằng SINH VIÊN xem hợp đồng của nó
+        public async Task<Contract?> GetContractDetailAsync(string studentId)
+        {
+
+            return await _context.Contracts
+                .AsNoTracking()
+                .Include(c => c.Student)               // Lấy thông tin Sinh viên
+                .Include(c => c.Room)                  // Lấy thông tin Phòng
+                    .ThenInclude(r => r.Building)      // Lấy thông tin Tòa nhà
+                .Where(c => c.Studentid == studentId)  // Lọc theo SV
+                .Where(c => c.Status == "Active")      // 👈 CHỈ LẤY ACTIVE
+                .FirstOrDefaultAsync();
         }
     }
 }

@@ -10,5 +10,9 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         Task<string> AddNewsAsync(NewsCreateDTO dto);
         Task UpdateNewsAsync(string id, NewsUpdateDTO dto);
         Task DeleteNewsAsync(string id);
+
+        // Mới thêm - lấy tóm tắt tin tức - trong trang chủ sinh viên
+        Task<IEnumerable<NewsSummaryDTO>> GetNewsSummariesAsync();
+        
     }
 }
