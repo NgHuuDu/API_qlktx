@@ -73,8 +73,8 @@ namespace DormitoryManagementSystem.DAO.Implementations
               int? capacity,
               decimal? minPrice,
               decimal? maxPrice,
-              bool? allowCooking,     // <--- Mới thêm
-              bool? airConditioner)   // <--- Mới thêm
+              bool? allowCooking,     
+              bool? airConditioner)  
         {
 
             var query = _context.Rooms
@@ -143,7 +143,25 @@ namespace DormitoryManagementSystem.DAO.Implementations
                 .ToListAsync();
         }
 
+        public async Task<Room?> GetRoomDetailByIDAsync(string id)
+        {
 
+            return await _context.Rooms
+                .AsNoTracking() 
+                .Include(r => r.Building)
+                .FirstOrDefaultAsync(r => r.Roomid == id);
+        }
+
+        public async Task<IEnumerable<int>> GetDistinctCapacitiesAsync()
+        {
+
+            return await _context.Rooms
+                .AsNoTracking()
+                .Select(r => r.Capacity)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
+        }
 
     }
 }

@@ -99,5 +99,17 @@ namespace DormitoryManagementSystem.BUS.Implementations
             //SOFT DELETE BUILDING
             await _dao.DeleteBuildingAsync(id);
         }
+
+        // Mới thêm - Lấy danh sách phòng
+        public async Task<IEnumerable<BuildingLookupDTO>> GetBuildingLookupAsync()
+        {
+            var buildings = await _dao.GetAllBuildingAsync();
+
+            return buildings.Select(b => new BuildingLookupDTO
+            {
+                BuildingID = b.Buildingid,
+                BuildingName = b.Buildingname
+            });
+        }
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DormitoryManagementSystem.DTO.Violations
 {
-    public class ViolationListDTO
+    public class ViolationGridDTO
     {
         public string ViolationID { get; set; } = string.Empty;
         public int RoomNumber { get; set; }

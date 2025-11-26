@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 
 namespace DormitoryManagementSystem.DTO.Rooms
 {
-    public class RoomCardDTO
+    public class RoomGridDTO
     {
         public string RoomID { get; set; } = string.Empty;
         public int RoomNumber { get; set; }
         public string BuildingName { get; set; } = string.Empty;
 
-        // Gửi số nguyên, để FE tự tính toán màu sắc hoặc thanh tiến trình
         public int Capacity { get; set; }
         public int CurrentOccupancy { get; set; }
 

@@ -40,5 +40,29 @@ namespace DormitoryManagementSystem.API.Controllers
             }
         }
 
+
+
+        [HttpGet("search-by/{status}")]
+        public async Task<IActionResult> GetMyViolationByStatus(string status) // <--- THÊM VÀO ĐÂY
+        {
+            try
+            {                
+                // var studentId = User.FindFirst("StudentID")?.Value;
+                var studentId = "STU003"; // Hardcode test
+
+                if (string.IsNullOrEmpty(studentId))
+                    return Unauthorized(new { message = "Không tìm thấy thông tin sinh viên." });
+
+                // Gọi BUS
+                var violations = await _violationBUS.GetMyViolationsByStatus(studentId, status);
+
+                return Ok(violations);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
+            }
+        }
+
     }
 }

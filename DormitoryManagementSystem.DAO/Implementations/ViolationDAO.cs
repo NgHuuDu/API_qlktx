@@ -82,5 +82,18 @@ namespace DormitoryManagementSystem.DAO.Implementations
                 .OrderByDescending(v => v.Violationdate) 
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Violation>> GetMyViolationsByStatus(string studentId,string status)
+        {
+            
+
+            return await _context.Violations
+             .AsNoTracking()
+             .Include(v => v.Room)
+              .Where(v => v.Studentid == studentId)
+              .Where(v => v.Status == status)
+             .OrderByDescending(v => v.Violationdate)
+             .ToListAsync();
+        }
     }
 }

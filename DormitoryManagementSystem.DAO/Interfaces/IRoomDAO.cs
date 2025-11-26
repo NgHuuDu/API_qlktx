@@ -27,6 +27,7 @@ namespace DormitoryManagementSystem.DAO.Interfaces
 
         // Hiện thị phòng gồm building
         Task<IEnumerable<Room>> GetAllRoomsWithBuildingAsync();
-
+        Task<Room?> GetRoomDetailByIDAsync(string id);
+        Task<IEnumerable<int>> GetDistinctCapacitiesAsync();
     }
 }

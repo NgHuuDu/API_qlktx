@@ -181,6 +181,35 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             return result;
         }
+
+        public async Task<IEnumerable<ViolationListDTO>> GetMyViolationsByStatus(string studentId,string status)
+        {
+            if (string.IsNullOrWhiteSpace(status))
+                throw new ArgumentException("Status cannot be empty");
+
+            IEnumerable<Violation> violations = await _violationDAO.GetMyViolationsByStatus(studentId,status);
+
+            var result = violations.Select(v => new ViolationListDTO
+            {
+                ViolationID = v.Violationid,
+
+
+                RoomNumber = v.Room.Roomnumber,
+
+                Status = v.Status ?? "Unknown",
+
+                StartTime = v.Violationdate ?? DateTime.MinValue,
+
+                ViolationType = v.Violationtype ?? "General",
+
+                PenaltyFee = v.Penaltyfee ?? 0
+            });
+
+            return result;
+
+        }
+
+
     }
 }
 

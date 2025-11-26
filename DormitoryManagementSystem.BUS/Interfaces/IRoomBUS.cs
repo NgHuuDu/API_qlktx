@@ -1,4 +1,5 @@
 ﻿using DormitoryManagementSystem.DTO.Rooms;
+using DormitoryManagementSystem.Entity;
 
 namespace DormitoryManagementSystem.BUS.Interfaces
 {
@@ -13,16 +14,30 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         Task DeleteRoomAsync(string id);
 
         //Mới thêm - Student    
-        Task<IEnumerable<RoomReadDTO>> SearchRoomsAsync(
-                    string? buildingId,
-                    int? roomNumber,
-                    int? capacity,
-                    decimal? minPrice,
-                    decimal? maxPrice,
-                    bool? allowCooking,   
-                    bool? airConditioner);
+        Task<IEnumerable<RoomDetailDTO>> SearchRoomInCardAsync(
+                    string? buildingName,
+            int? roomNumber,
+            int? capacity,
+            decimal? minPrice,
+            decimal? maxPrice,
+            bool? allowCooking,
+            bool? airConditioner);
+        
+        Task<IEnumerable<RoomGridDTO>> SearchRoomInGridAsync(
+             string? buildingId,
+             int? roomNumber,
+             int? capacity,
+             decimal? minPrice,
+             decimal? maxPrice
+         );
+        Task<IEnumerable<RoomGridDTO>> GetAllActiveRoomsForGridAsync();
+        Task<IEnumerable<RoomDetailDTO>> GetAllActiveRoomsForCardAsync();
 
-        Task<IEnumerable<RoomCardDTO>> GetAllRoomsCardStudentAsync();
+        Task<RoomDetailDTO?> GetRoomDetailByIDAsync(string id);
+
+        Task<IEnumerable<int>> GetRoomCapacitiesAsync();
+
+        IEnumerable<RoomPriceDTO> GetPriceRanges();
 
     }
 }

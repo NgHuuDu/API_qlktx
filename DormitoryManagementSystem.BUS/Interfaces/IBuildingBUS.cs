@@ -10,5 +10,7 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         Task<string> AddBuildingAsync(BuildingCreateDTO dto);
         Task UpdateBuildingAsync(string id, BuildingUpdateDTO dto);
         Task DeleteBuildingAsync(string id);
+        Task<IEnumerable<BuildingLookupDTO>> GetBuildingLookupAsync();
+
     }
 }
