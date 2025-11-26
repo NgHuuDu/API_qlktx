@@ -15,5 +15,7 @@ namespace DormitoryManagementSystem.DAO.Interfaces
 
         // Mới lấy danh sách chưa thanh toán của sinh viên đó
         Task<IEnumerable<Payment>> GetUnpaidPaymentsByContractIDAsync(string contractId);
+        Task<IEnumerable<Payment>> GetPaymentsByStudentAndStatusAsync(string studentId, string status);
+
     }
 }

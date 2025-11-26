@@ -77,5 +77,35 @@ namespace DormitoryManagementSystem.DAO.Implementations
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Payment>> GetPaymentsByStudentAndStatusAsync(string studentId, string status)
+        {
+
+            var query = _context.Payments
+                .AsNoTracking()
+                .Include(p => p.Contract)
+                .Where(p => p.Contract.Studentid == studentId) 
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(status) && status.ToLower() != "all")
+            {
+                if (status == "Pending" || status == "Unpaid")
+                {
+                    query = query.Where(p => p.Paymentstatus == "Unpaid" || p.Paymentstatus == "Late");
+                }
+                else if (status == "Paid")
+                {
+                    query = query.Where(p => p.Paymentstatus == "Paid");
+                }
+                else
+                {
+                    query = query.Where(p => p.Paymentstatus == status);
+                }
+            }
+
+            return await query.OrderByDescending(p => p.Billmonth)
+                              .ThenByDescending(p => p.Paymentdate)
+                              .ToListAsync();
+        }
+
     }
 }

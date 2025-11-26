@@ -60,4 +60,29 @@ public class PaymentController : ControllerBase
             return StatusCode(500, new { message = ex.Message });
         }
     }
+
+
+    [HttpGet("student/filter/{status}")]
+    // [Authorize(Roles = "Student")]
+    public async Task<IActionResult> GetMyPaymentsByStatus(string status)
+    {
+        try
+        {
+            // 1. Lấy ID từ Token
+            // var studentId = User.FindFirst("StudentID")?.Value;
+            var studentId = "STU001"; // Hardcode test
+
+            if (string.IsNullOrEmpty(studentId))
+                return Unauthorized(new { message = "Không tìm thấy thông tin sinh viên." });
+
+            // 2. Gọi BUS
+            var result = await _paymentBUS.GetMyPaymentsByStatusAsync(studentId, status);
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
+    }
 }

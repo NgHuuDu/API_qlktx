@@ -175,5 +175,14 @@ namespace DormitoryManagementSystem.BUS.Implementations
             return result;
 
         }
+
+
+        public async Task<IEnumerable<PaymentReadDTO>> GetMyPaymentsByStatusAsync(string studentId, string status)
+        {
+            // Gọi DAO
+            var payments = await _paymentDAO.GetPaymentsByStudentAndStatusAsync(studentId, status);
+
+            return _mapper.Map<IEnumerable<PaymentReadDTO>>(payments);
+        }
     }
 }
