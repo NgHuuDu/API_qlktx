@@ -12,7 +12,7 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         Task UpdatePaymentAsync(string id, PaymentUpdateDTO dto);
         Task DeletePaymentAsync(string id);
         //Mới add thêm
-        Task<IEnumerable<PaymentReadDTO>> GetPendingBillsByStudentAsync(string studentId);
-        Task<IEnumerable<PaymentReadDTO>> GetPaymentHistoryByStudentAsync(string studentId);
+        Task<IEnumerable<PaymentListDTO>> GetPendingBillsByStudentAsync(string studentId);
+        Task<IEnumerable<PaymentListDTO>> GetPaymentHistoryByStudentAsync(string studentId);
     }
 }

@@ -9,12 +9,11 @@ namespace DormitoryManagementSystem.DTO.Violations
     public class ViolationListDTO
     {
         public string ViolationID { get; set; } = string.Empty;
-        public string StudentID { get; set; } = string.Empty;
-        public string RoomID { get; set; } = string.Empty;
-
-        // Dùng DateTime để tránh lỗi tương thích, lên FE format sau
-        public DateTime StartTime { get; set; }
-
-        public string Status { get; set; } = string.Empty;
+        public int RoomNumber { get; set; }
+        public string Status { get; set; } = string.Empty;  
+        public DateTime StartTime { get; set; }              
+        public string ViolationType { get; set; } = string.Empty;
+        public decimal PenaltyFee { get; set; }
     }
 }
+

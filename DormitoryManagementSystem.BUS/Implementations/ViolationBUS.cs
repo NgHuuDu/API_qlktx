@@ -158,22 +158,29 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
         //Student
         //Mới trong bản student 
-        public async Task<IEnumerable<ViolationListDTO>> GetViolationsByStudentID(string studentId)
+        // Lấy danh sách vi phạm của học sinh đó
+        public async Task<IEnumerable<ViolationListDTO>> GetMyViolations(string studentId)
         {
-            var violations = await _violationDAO.GetViolationsByStudentIDAsync(studentId);
-
+            var violations = await _violationDAO.GetMyViolations(studentId);
 
             var result = violations.Select(v => new ViolationListDTO
             {
-
                 ViolationID = v.Violationid,
-                StudentID = v.Studentid,
-                Status = v.Status,
-                StartTime = (DateTime)v.Violationdate,
-                RoomID = v.Roomid
+
+                
+                RoomNumber= v.Room.Roomnumber,
+
+                Status = v.Status ?? "Unknown",
+
+                StartTime = v.Violationdate ?? DateTime.MinValue,
+
+                ViolationType = v.Violationtype ?? "General",
+
+                PenaltyFee = v.Penaltyfee ?? 0
             });
 
             return result;
         }
     }
 }
+

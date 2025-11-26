@@ -30,7 +30,7 @@ namespace DormitoryManagementSystem.API.Controllers
                 if (string.IsNullOrEmpty(studentId))
                     return Unauthorized(new { message = "Không tìm thấy thông tin sinh viên." });
 
-                var violations = await _violationBUS.GetViolationsByStudentID(studentId);
+                var violations = await _violationBUS.GetMyViolations(studentId);
 
                 return Ok(violations);
             }

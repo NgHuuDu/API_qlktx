@@ -130,39 +130,51 @@ namespace DormitoryManagementSystem.BUS.Implementations
         }
 
 
-        public async Task<IEnumerable<PaymentReadDTO>> GetPendingBillsByStudentAsync(string studentId)
+        public async Task<IEnumerable<PaymentListDTO>> GetPendingBillsByStudentAsync(string studentId)
         {
             // Tìm hợp đồng Active của SV
             var contract = await _contractDAO.GetActiveContractByStudentIDAsync(studentId);
-            if (contract == null) return new List<PaymentReadDTO>(); // Chưa có hợp đồng -> Không có hóa đơn
+            if (contract == null) return new List<PaymentListDTO>(); // Chưa có hợp đồng -> Không có hóa đơn
 
-            // Lấy tất cả payments
-            var allPayments = await _paymentDAO.GetPaymentsByContractIDAsync(contract.Contractid);
+            var unpaidPayments = await _paymentDAO.GetUnpaidPaymentsByContractIDAsync(contract.Contractid);
 
-            // Lọc: Lấy những cái CHƯA TRẢ (Unpaid, Late)
-            var pendingBills = allPayments
-                .Where(p => p.Paymentstatus == "Unpaid" || p.Paymentstatus == "Late")
-                .OrderBy(p => p.Billmonth); // Sắp xếp theo tháng
 
-            return _mapper.Map<IEnumerable<PaymentReadDTO>>(pendingBills);
+
+            var result = unpaidPayments.Select(p => new PaymentListDTO
+            {
+                PaymentID = p.Paymentid,
+                BillMonth = p.Billmonth,
+                PaymentAmount = p.Paymentamount,
+                PaymentStatus = p.Paymentstatus ?? "Unpaid",
+                Description = p.Description ?? "",
+                PaymentDate = p.Paymentdate
+            });
+
+            return result;
         }
 
-        public async Task<IEnumerable<PaymentReadDTO>> GetPaymentHistoryByStudentAsync(string studentId)
+        public async Task<IEnumerable<PaymentListDTO>> GetPaymentHistoryByStudentAsync(string studentId)
         {
             // Tìm hợp đồng Active
             // (Hoặc bạn có thể sửa DAO để lấy tất cả hợp đồng nếu muốn xem lịch sử cũ hơn)
             var contract = await _contractDAO.GetActiveContractByStudentIDAsync(studentId);
-            if (contract == null) return new List<PaymentReadDTO>();
+            if (contract == null) return new List<PaymentListDTO>();
 
             //  Lấy tất cả payments
             var allPayments = await _paymentDAO.GetPaymentsByContractIDAsync(contract.Contractid);
 
-            // Lọc: Lấy những cái ĐÃ TRẢ (Paid)
-            var history = allPayments
-                .Where(p => p.Paymentstatus == "Paid")
-                .OrderByDescending(p => p.Paymentdate); // Mới nhất lên đầu
+            var result = allPayments.Select(p => new PaymentListDTO
+            {
+                PaymentID = p.Paymentid,
+                BillMonth = p.Billmonth,
+                PaymentAmount = p.Paymentamount,
+                PaymentStatus = p.Paymentstatus ?? "Unpaid",
+                Description = p.Description ?? "",
+                PaymentDate = p.Paymentdate
+            });
 
-            return _mapper.Map<IEnumerable<PaymentReadDTO>>(history);
+            return result;
+
         }
     }
 }

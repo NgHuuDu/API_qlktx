@@ -151,7 +151,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
             var student = await _studentDAO.GetStudentByIDAsync(studentId);
             if (student == null) return null;
 
-            var activeContract = await _contractDAO.GetActiveContractByStudentIDAsync(studentId);
+            var activeContract = await _contractDAO.GetContractDetailAsync(studentId);
             
             
 

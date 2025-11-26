@@ -13,7 +13,7 @@ namespace DormitoryManagementSystem.DTO.Contracts
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public string Status { get; set; } = string.Empty; // Active/Expired
-        public DateTime CreatedDate { get; set; }
+        //public DateTime CreatedDate { get; set; }
 
         //Thông tin sinh viên
         public string StudentID { get; set; } = string.Empty;
@@ -29,6 +29,6 @@ namespace DormitoryManagementSystem.DTO.Contracts
         public string RoomID { get; set; } = string.Empty;
         public int RoomNumber { get; set; }
         public string BuildingName { get; set; } = string.Empty;
-        public decimal Price { get; set; }
+        //public decimal Price { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.Entity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace DormitoryManagementSystem.DAO.Implementations
 {
@@ -65,6 +66,21 @@ namespace DormitoryManagementSystem.DAO.Implementations
 
             _context.Violations.Remove(v);
             await _context.SaveChangesAsync();
+        }
+
+
+
+        // Mới
+        // Hiện thông tin đây đủ của Violation, bao gồm cả tên phòng
+        public async Task<IEnumerable<Violation>> GetMyViolations(string studentId)
+        {
+
+            return await _context.Violations
+                .AsNoTracking()
+                .Include(v => v.Room)
+                .Where(v => v.Studentid == studentId)
+                .OrderByDescending(v => v.Violationdate) 
+                .ToListAsync();
         }
     }
 }

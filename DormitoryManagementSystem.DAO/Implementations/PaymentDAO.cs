@@ -3,6 +3,7 @@ using DormitoryManagementSystem.DAO.Context;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.Entity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace DormitoryManagementSystem.DAO.Implementations
 {
@@ -61,6 +62,20 @@ namespace DormitoryManagementSystem.DAO.Implementations
 
             await _context.SaveChangesAsync();
         }
-        
+
+
+
+        // Mới lấy danh sách chưa thanh toán của sinh viên đó
+        public async Task<IEnumerable<Payment>> GetUnpaidPaymentsByContractIDAsync(string contractId)
+        {
+
+            return await _context.Payments
+                .AsNoTracking()
+                .Where(p => p.Contractid == contractId)
+                .Where(p => p.Paymentstatus == "Unpaid" || p.Paymentstatus == "Late")
+                .OrderBy(p => p.Billmonth) 
+                .ToListAsync();
+        }
+
     }
 }

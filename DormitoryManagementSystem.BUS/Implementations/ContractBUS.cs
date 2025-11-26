@@ -231,7 +231,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
                 StartTime = contract.Starttime.ToDateTime(TimeOnly.MinValue),
                 EndTime = contract.Endtime.ToDateTime(TimeOnly.MinValue),
                 Status = contract.Status,
-                CreatedDate = contract.Createddate ?? DateTime.MinValue,
+                //CreatedDate = contract.Createddate ?? DateTime.MinValue,
 
                 // Sinh viên (Lấy từ contract.Student)
                 StudentID = contract.Studentid,
@@ -247,7 +247,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
                 RoomID = contract.Roomid,
                 // Check null kỹ để tránh lỗi
                 RoomNumber = contract.Room?.Roomnumber ?? 0,
-                Price = contract.Room?.Price ?? 0,
+                //Price = contract.Room?.Price ?? 0,
                 BuildingName = contract.Room?.Building?.Buildingname ?? "Unknown Building"
             };
         }

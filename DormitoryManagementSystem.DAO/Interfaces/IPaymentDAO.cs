@@ -11,5 +11,9 @@ namespace DormitoryManagementSystem.DAO.Interfaces
         public Task AddPaymentAsync(Payment payment);
         public Task UpdatePaymentAsync(Payment payment);
         public Task RemovePaymentAsync(string id);
+
+
+        // Mới lấy danh sách chưa thanh toán của sinh viên đó
+        Task<IEnumerable<Payment>> GetUnpaidPaymentsByContractIDAsync(string contractId);
     }
 }

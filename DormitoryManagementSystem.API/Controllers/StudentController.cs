@@ -26,7 +26,7 @@ namespace DormitoryManagementSystem.API.Controllers
             try
             {
                 //var studentId = User.FindFirst("StudentID")?.Value;
-                var studentId = "STU003"; // Dùng để test tạm thời, nhớ xóa khi có Token
+                var studentId = "STU004"; // Dùng để test tạm thời, nhớ xóa khi có Token
                 if (string.IsNullOrEmpty(studentId))
                 {
                     return Unauthorized(new { message = "Token không hợp lệ: Không tìm thấy StudentID." });
