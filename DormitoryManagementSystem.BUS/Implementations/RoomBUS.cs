@@ -147,7 +147,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
         public async Task<IEnumerable<RoomCardDTO>> GetAllRoomsCardStudentAsync()
         {
             // Gọi DAO với tham số null hết -> Lấy tất cả phòng Active & Còn chỗ
-            var rooms = await _roomDAO.GetAllRoomsAsync();
+            var rooms = await _roomDAO.GetAllRoomsWithBuildingAsync();
 
             var result = rooms.Select(r => new RoomCardDTO
             {

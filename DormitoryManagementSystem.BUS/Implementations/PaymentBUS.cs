@@ -156,7 +156,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
         public async Task<IEnumerable<PaymentListDTO>> GetPaymentHistoryByStudentAsync(string studentId)
         {
             // Tìm hợp đồng Active
-            // (Hoặc bạn có thể sửa DAO để lấy tất cả hợp đồng nếu muốn xem lịch sử cũ hơn)
             var contract = await _contractDAO.GetActiveContractByStudentIDAsync(studentId);
             if (contract == null) return new List<PaymentListDTO>();
 
