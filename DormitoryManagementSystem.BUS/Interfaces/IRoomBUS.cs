@@ -38,8 +38,7 @@ namespace DormitoryManagementSystem.BUS.Interfaces
              decimal? minPrice,
              decimal? maxPrice
          );
-        Task<IEnumerable<RoomGridDTO>> GetAllActiveRoomsForGridAsync();
-        Task<IEnumerable<RoomDetailDTO>> GetAllActiveRoomsForCardAsync();
+      
 
         Task<RoomDetailDTO?> GetRoomDetailByIDAsync(string id);
 

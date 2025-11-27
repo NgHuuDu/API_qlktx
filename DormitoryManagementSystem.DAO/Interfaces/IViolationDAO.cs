@@ -14,9 +14,11 @@ namespace DormitoryManagementSystem.DAO.Interfaces
         public Task DeleteViolationAsync(string id);
 
         // Mới 
-        // Lấy vi phạm theo mã sinh viên có bao gồm phòng
-        public Task<IEnumerable<Violation>> GetMyViolations(string studentId);
-        public Task<IEnumerable<Violation>> GetMyViolationsByStatus(string studentId, string status);
+        // Lấy vi phạm theo mã sinh viên 
+        public Task<IEnumerable<Violation>> GetViolationsWithFilterAsync(string? status, string? studentId);
 
+
+
+        public Task<IEnumerable<Violation>> GetViolationsForAdminAsync(string? searchKeyword, string? status, string? roomId);
     }
 }

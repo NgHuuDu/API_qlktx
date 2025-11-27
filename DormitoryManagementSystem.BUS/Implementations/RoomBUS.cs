@@ -186,46 +186,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
         }
 
 
-        public async Task<IEnumerable<RoomGridDTO>> GetAllActiveRoomsForGridAsync()
-        {
-            var rooms = await _roomDAO.GetAllRoomsWithBuildingAsync();
-
-            var result = rooms.Select(r => new RoomGridDTO
-            {
-                RoomID = r.Roomid,
-                RoomNumber = r.Roomnumber,
-
-           
-                BuildingName = r.Building != null ? r.Building.Buildingname : "Unknown",
-
-                Capacity = r.Capacity,
-                CurrentOccupancy = r.Currentoccupancy ?? 0,
-
-                Status = r.Status
-            });
-
-            return result;
-        }
-
-        public async Task<IEnumerable<RoomDetailDTO>> GetAllActiveRoomsForCardAsync()
-        {
-            var rooms = await _roomDAO.GetAllRoomsWithBuildingAsync();
-
-            var result = rooms.Select(room => new RoomDetailDTO
-            {
-                RoomID = room.Roomid,
-                RoomNumber = room.Roomnumber,
-                BuildingName = room.Building.Buildingname,
-                Capacity = room.Capacity,
-                CurrentOccupancy = room.Currentoccupancy ?? 0,
-                Price = room.Price,
-                Status = room.Status ?? "Unknown",
-                AllowCooking = room.Allowcooking ?? false,
-                AirConditioner = room.Airconditioner ?? false
-            });
-
-            return result;
-        }
+      
 
         public async Task<RoomDetailDTO?> GetRoomDetailByIDAsync(string id)
         {

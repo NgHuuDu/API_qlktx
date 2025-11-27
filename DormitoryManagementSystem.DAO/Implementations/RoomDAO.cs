@@ -131,18 +131,7 @@ namespace DormitoryManagementSystem.DAO.Implementations
                 .ToListAsync();
         }
 
-        // Mới thêm - Lấy tất cả phòng kèm tên tòa nhà
-        public async Task<IEnumerable<Room>> GetAllRoomsWithBuildingAsync()
-        {
-
-            return await _context.Rooms
-                .AsNoTracking()
-                .Include(r => r.Building) 
-                .Where(r => r.Status == "Active") 
-                .OrderBy(r => r.Buildingid)
-                .ThenBy(r => r.Roomnumber)
-                .ToListAsync();
-        }
+    
 
         // Mới thêm - Lấy chi tiết phòng bao gồm thông tin tòa nhà
         public async Task<Room?> GetRoomDetailByIDAsync(string id)

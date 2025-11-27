@@ -159,35 +159,10 @@ namespace DormitoryManagementSystem.BUS.Implementations
         //Student
         //Mới trong bản student 
         // Lấy danh sách vi phạm của học sinh đó
-        public async Task<IEnumerable<ViolationGridDTO>> GetMyViolations(string studentId)
+
+        public async Task<IEnumerable<ViolationGridDTO>> GetViolationsWithFilterAsync(string? status, string? studentId)
         {
-            var violations = await _violationDAO.GetMyViolations(studentId);
-
-            var result = violations.Select(v => new ViolationGridDTO
-            {
-                ViolationID = v.Violationid,
-
-                
-                RoomNumber= v.Room.Roomnumber,
-
-                Status = v.Status ?? "Unknown",
-
-                StartTime = v.Violationdate ?? DateTime.MinValue,
-
-                ViolationType = v.Violationtype ?? "General",
-
-                PenaltyFee = v.Penaltyfee ?? 0
-            });
-
-            return result;
-        }
-
-        public async Task<IEnumerable<ViolationGridDTO>> GetMyViolationsByStatus(string studentId,string status)
-        {
-            if (string.IsNullOrWhiteSpace(status))
-                throw new ArgumentException("Status cannot be empty");
-
-            IEnumerable<Violation> violations = await _violationDAO.GetMyViolationsByStatus(studentId,status);
+            var violations = await _violationDAO.GetViolationsWithFilterAsync(status, studentId);
 
             var result = violations.Select(v => new ViolationGridDTO
             {
@@ -206,7 +181,30 @@ namespace DormitoryManagementSystem.BUS.Implementations
             });
 
             return result;
+        }
 
+
+
+        //Admin
+        // Mới trong bản admin
+        // Lấy danh sách vi phạm với các bộ lọc nâng cao
+
+        public async Task<IEnumerable<ViolationAdminDTO>> GetViolationsForAdminAsync(
+    string? search, string? status, string? roomId)
+        {
+            var violations = await _violationDAO.GetViolationsForAdminAsync(search, status, roomId);
+
+            return violations.Select(v => new ViolationAdminDTO
+            {
+                ViolationID = v.Violationid,
+                StudentID = v.Studentid,
+                StudentName = v.Student?.Fullname ?? "Unknown",
+                RoomID = v.Roomid,
+                ViolationType = v.Violationtype,
+                ViolationDate = v.Violationdate ?? DateTime.Now,
+                PenaltyFee = v.Penaltyfee ?? 0,
+                Status = v.Status
+            });
         }
 
 

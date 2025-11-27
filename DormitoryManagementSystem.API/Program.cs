@@ -49,6 +49,7 @@ builder.Services.AddScoped<INewsDAO, NewsDAO>();
 builder.Services.AddScoped<IPaymentDAO, PaymentDAO>();
 builder.Services.AddScoped<IViolationDAO, ViolationDAO>();
 builder.Services.AddScoped<IAdminDAO, AdminDAO>();
+builder.Services.AddScoped<IStatisticsDAO, StatisticsDAO>();
 
 // BUSs
 builder.Services.AddScoped<IUserBUS, UserBUS>();
@@ -60,6 +61,7 @@ builder.Services.AddScoped<INewsBUS, NewsBUS>();
 builder.Services.AddScoped<IPaymentBUS, PaymentBUS>();
 builder.Services.AddScoped<IViolationBUS, ViolationBUS>();
 builder.Services.AddScoped<IAdminBUS, AdminBUS>();
+builder.Services.AddScoped<IStatisticsBUS, StatisticsBUS>();
 
 var app = builder.Build();
 

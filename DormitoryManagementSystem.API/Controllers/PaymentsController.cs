@@ -1,4 +1,5 @@
 using DormitoryManagementSystem.BUS.Interfaces;
+using DormitoryManagementSystem.DTO.Payments;
 using DormitoryManagementSystem.Entity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,74 +16,111 @@ public class PaymentController : ControllerBase
     }
 
 
-    //Student
-    //API: Lấy danh sách CẦN THANH TOÁN (cho bảng trên)
-    // GET: api/payment/student/pending
-    [HttpGet("student/pending")]
-    //[Authorize(Roles = "Student")]// tắt cái này đi mới test được 
-    public async Task<IActionResult> GetMyPendingBills()
+    // ---------------------------------------------------------
+    // KHU VỰC API CHO STUDENT
+    // ---------------------------------------------------------
+
+
+
+    // API: Lấy danh sách thanh toán của sinh viên (Có thể lọc theo trạng thái)
+    [HttpGet("student/filter")]
+    public async Task<IActionResult> GetMyPayments([FromQuery] string? status)
+    {
+        //var studentId = User.FindFirst("StudentID")?.Value; // Lấy từ Token
+        var studentId = "STU001"; // Dùng này để test
+        var list = await _paymentBUS.GetPaymentsByStudentAndStatusAsync(studentId, status);
+
+        return Ok(list);
+    }
+
+    
+
+
+
+    // ---------------------------------------------------------
+    // KHU VỰC API CHO ADMIN
+    // ---------------------------------------------------------
+
+    // Lấy danh sách & Lọc
+    // GET: api/payment/admin/list?month=11&status=Unpaid&search=Nguyen
+    [HttpGet("admin/list & search")]
+   // [Authorize(Roles = "Admin,Manager")]
+    public async Task<IActionResult> GetAdminPaymentList(
+        [FromQuery] int? month,
+        [FromQuery] string? status,
+        [FromQuery] string? building,
+        [FromQuery] string? search) // Gồm StudentName, StudentID
+    {
+        var list = await _paymentBUS.GetPaymentsForAdminAsync(month, status, building, search);
+        return Ok(list);
+    }
+
+    //  Tạo hóa đơn mới
+    [HttpPost("admin/Create")]
+    //[Authorize(Roles = "Admin,Manager")]
+    public async Task<IActionResult> CreateBill([FromBody] PaymentCreateDTO dto)
     {
         try
         {
-            //var studentId = User.FindFirst("StudentID")?.Value; // Lấy từ Token
-            var studentId = "STU001"; // Dùng này để test
+            var id = await _paymentBUS.AddPaymentAsync(dto);
+            return Ok(new { id });
+        }
+        catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
+    }
 
-            if (string.IsNullOrEmpty(studentId)) return Unauthorized();
+    // PUT: api/payment/{id}/confirm
+    [HttpPut("admin/{id}/confirm")]
+    //[Authorize(Roles = "Admin,Manager")]
+    public async Task<IActionResult> ConfirmPayment(string id, [FromBody] PaymentConfirmDTO dto)
+    {
+        try
+        {
+            // Validate dữ liệu (Check Cash/Bank Transfer)
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var bills = await _paymentBUS.GetPendingBillsByStudentAsync(studentId);
-            return Ok(bills);
+            await _paymentBUS.ConfirmPaymentAsync(id, dto);
+
+            return Ok(new { message = "Ghi nhận thanh toán thành công!" });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = ex.Message });
+            return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
         }
     }
 
-    //Student
-    //  API: Lấy LỊCH SỬ THANH TOÁN (Cho bảng bên dưới)
-    // GET: api/payment/student/history
-    [HttpGet("student/history")]
-    //[Authorize(Roles = "Student")] // Tắt này mới test được
-    public async Task<IActionResult> GetMyPaymentHistory()
+    //Xóa hóa đơn (Nếu tạo sai)
+    [HttpDelete("admin/{id}")]
+   // [Authorize(Roles = "Admin,Manager")]
+    public async Task<IActionResult> DeleteBill(string id)
     {
-        try
-        {
-            //var studentId = User.FindFirst("StudentID")?.Value; // tắt cái này đi mới test được
-            var studentId = "STU001"; 
-
-            if (string.IsNullOrEmpty(studentId)) return Unauthorized();
-
-            var history = await _paymentBUS.GetPaymentHistoryByStudentAsync(studentId);
-            return Ok(history);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = ex.Message });
-        }
+        await _paymentBUS.DeletePaymentAsync(id);
+        return Ok(new { message = "Đã xóa hóa đơn" });
     }
 
 
-    [HttpGet("student/filter/{status}")]
-    // [Authorize(Roles = "Student")]
-    public async Task<IActionResult> GetMyPaymentsByStatus(string status)
+
+    //  Lấy thống kê thanh toán (Cho Payment Admin)
+    // GET: api/payment/stats
+    [HttpGet("admin/stats")]
+    // [Authorize(Roles = "Admin,Manager")] 
+    public async Task<IActionResult> GetPaymentStats()
     {
         try
         {
-            // 1. Lấy ID từ Token
-            // var studentId = User.FindFirst("StudentID")?.Value;
-            var studentId = "STU001"; // Hardcode test
-
-            if (string.IsNullOrEmpty(studentId))
-                return Unauthorized(new { message = "Không tìm thấy thông tin sinh viên." });
-
-            // 2. Gọi BUS
-            var result = await _paymentBUS.GetMyPaymentsByStatusAsync(studentId, status);
-
-            return Ok(result);
+            var stats = await _paymentBUS.GetPaymentStatisticsAsync();
+            return Ok(stats);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = ex.Message });
+            return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
         }
     }
 }

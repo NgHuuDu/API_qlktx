@@ -25,8 +25,6 @@ namespace DormitoryManagementSystem.DAO.Interfaces
              bool? allowCooking,    
              bool? airConditioner);
 
-        // Hiện thị phòng gồm building
-        Task<IEnumerable<Room>> GetAllRoomsWithBuildingAsync();
         Task<Room?> GetRoomDetailByIDAsync(string id);
         Task<IEnumerable<int>> GetDistinctCapacitiesAsync();
     }

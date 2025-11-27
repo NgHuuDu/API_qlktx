@@ -133,61 +133,97 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
 
         //Student
-        // Lấy các hóa đơn chưa thanh toán của SV dựa trên hợp đồng Active
-        public async Task<IEnumerable<PaymentListDTO>> GetPendingBillsByStudentAsync(string studentId)
+        // Lấy các hóa đơn  của SV dựa trên trạng thái 
+        public async Task<IEnumerable<PaymentListDTO>> GetPaymentsByStudentAndStatusAsync(string studentId, string? status)
         {
-            var contract = await _contractDAO.GetActiveContractByStudentIDAsync(studentId);
-            if (contract == null) return new List<PaymentListDTO>();
-
-            var unpaidPayments = await _paymentDAO.GetUnpaidPaymentsByContractIDAsync(contract.Contractid);
-
-
-
-            var result = unpaidPayments.Select(p => new PaymentListDTO
-            {
-                PaymentID = p.Paymentid,
-                BillMonth = p.Billmonth,
-                PaymentAmount = p.Paymentamount,
-                PaymentStatus = p.Paymentstatus ?? "Unpaid",
-                Description = p.Description ?? "",
-                PaymentDate = p.Paymentdate
-            });
-
-            return result;
-        }
-
-
-        //student
-        // Lấy lịch sử thanh toán của SV dựa trên hợp đồng Active
-        public async Task<IEnumerable<PaymentListDTO>> GetPaymentHistoryByStudentAsync(string studentId)
-        {
-            var contract = await _contractDAO.GetActiveContractByStudentIDAsync(studentId);
-            if (contract == null) return new List<PaymentListDTO>();
-
-            var allPayments = await _paymentDAO.GetPaymentsByContractIDAsync(contract.Contractid);
-
-            var result = allPayments.Select(p => new PaymentListDTO
-            {
-                PaymentID = p.Paymentid,
-                BillMonth = p.Billmonth,
-                PaymentAmount = p.Paymentamount,
-                PaymentStatus = p.Paymentstatus ?? "Unpaid",
-                Description = p.Description ?? "",
-                PaymentDate = p.Paymentdate
-            });
-
-            return result;
-
-        }
-
-        // Student
-        // Lấy các hóa đơn của SV dựa trên trạng thái
-        public async Task<IEnumerable<PaymentReadDTO>> GetMyPaymentsByStatusAsync(string studentId, string status)
-        {
-            // Gọi DAO
+          
             var payments = await _paymentDAO.GetPaymentsByStudentAndStatusAsync(studentId, status);
 
-            return _mapper.Map<IEnumerable<PaymentReadDTO>>(payments);
+           
+            var result = payments.Select(p => new PaymentListDTO
+            {
+                PaymentID = p.Paymentid,
+
+                BillMonth = p.Billmonth,
+
+                PaymentAmount = p.Paymentamount,
+
+                PaymentStatus = p.Paymentstatus ?? "Unknown",
+
+                Description = p.Description ?? "",
+
+                PaymentDate = p.Paymentdate
+            });
+
+            return result;
+        }
+        // Admin
+        // Lấy các hóa đơn với bộ lọc cho Admin
+        public async Task<IEnumerable<PaymentAdminDTO>> GetPaymentsForAdminAsync(
+        int? month, string? status, string? building, string? search)
+            {
+            var payments = await _paymentDAO.GetPaymentsForAdminAsync(month, status, building, search);
+
+            return payments.Select(p => new PaymentAdminDTO
+            {
+                PaymentID = p.Paymentid,
+                ContractID = p.Contractid,
+
+                StudentID = p.Contract.Studentid,
+                StudentName = p.Contract.Student?.Fullname ?? "Unknown",
+                RoomName = p.Contract.Room?.Roomnumber.ToString() ?? "N/A",
+
+                BillMonth = p.Billmonth,
+                PaymentAmount = p.Paymentamount,
+                PaymentStatus = p.Paymentstatus ?? "Unpaid",
+                PaymentDate = p.Paymentdate,
+                PaymentMethod = p.Paymentmethod
+            });
+        }
+
+
+        // Xác nhận thanh toán
+        public async Task ConfirmPaymentAsync(string id, PaymentConfirmDTO dto)
+        {
+            // 1. Tìm hóa đơn
+            var payment = await _paymentDAO.GetPaymentByIDAsync(id);
+            if (payment == null)
+                throw new KeyNotFoundException($"Không tìm thấy hóa đơn {id}");
+
+            if (payment.Paymentstatus == "Paid")
+                throw new InvalidOperationException("Hóa đơn này đã thanh toán rồi.");
+
+            // 2. Cập nhật thông tin QUAN TRỌNG
+            payment.Paymentstatus = "Paid";
+            payment.Paymentdate = DateTime.Now; // Ngày giờ thực tế admin bấm nút
+
+            // 3. Cập nhật Phương thức (Cash/Bank Transfer) lấy từ DTO
+            payment.Paymentmethod = dto.PaymentMethod;
+
+            // 4. Xử lý Ghi chú (Lưu mã giao dịch)
+            // Nếu có Note thì nối thêm vào Description cũ (hoặc ghi đè tùy bạn)
+            if (!string.IsNullOrEmpty(dto.Note))
+            {
+                // Ví dụ: "Tiền điện T9 (Mã CK: 123456789)"
+                payment.Description = string.IsNullOrEmpty(payment.Description)
+                    ? dto.Note
+                    : $"{payment.Description} | Note: {dto.Note}";
+            }
+
+            // 5. Tự động set Full tiền (vì xác nhận là đã trả hết)
+            if (payment.Paidamount < payment.Paymentamount)
+            {
+                payment.Paidamount = payment.Paymentamount;
+            }
+
+            // 6. Lưu xuống DB
+            await _paymentDAO.UpdatePaymentAsync(payment);
+        }
+
+        // Thống kê thanh toán
+        public async Task<PaymentStatsDTO> GetPaymentStatisticsAsync()
+        {
+            return await _paymentDAO.GetPaymentStatisticsAsync();
         }
     }
 }

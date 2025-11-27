@@ -13,52 +13,11 @@ public class RoomController : ControllerBase
         _roomBUS = roomBUS;
     }
 
-    //Student
-    // API: Lấy danh sách phòng CÒN TRỐNG (Cho sinh viên đăng ký) với hiện ở datagrid á // 
-    // GET: api/room/available
-    [HttpGet("student/available-grid")]
-    //[Authorize(Roles = "Student")]// Tắt cái này mới test được, mới lên khi chạy chính thức
-    public async Task<IActionResult> GetAllActiveRoomsStudentInDataGrid()
-    {
-        try
-        {
-            var rooms = await _roomBUS.GetAllActiveRoomsForGridAsync();
 
-            if (rooms == null || !rooms.Any())
-            {
-                // Trả về danh sách rỗng chứ không lỗi 404, để FE hiện bảng trống
-                return Ok(new List<RoomGridDTO>());
-            }
 
-            return Ok(rooms);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
-        }
-    }
-
-    [HttpGet("student/available-card")]
-    //[Authorize(Roles = "Student")]// Tắt cái này mới test được, mới lên khi chạy chính thức
-    public async Task<IActionResult> GetAllActiveRoomsStudentInCard()
-    {
-        try
-        {
-            var rooms = await _roomBUS.GetAllActiveRoomsForCardAsync();
-
-            if (rooms == null || !rooms.Any())
-            {
-                // Trả về danh sách rỗng chứ không lỗi 404, để FE hiện bảng trống
-                return Ok(new List<RoomDetailDTO>());
-            }
-
-            return Ok(rooms);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
-        }
-    }
+    // ---------------------------------------------------------
+    // KHU VỰC API CHO STUDENT
+    // ---------------------------------------------------------
 
 
     [HttpGet("student/Room/{RoomID}")]
@@ -114,6 +73,9 @@ public class RoomController : ControllerBase
         }
     }
 
+
+    // Duyệt phòng ở FE Student, cái trang có hiện thị lưới á
+
     [HttpGet("student/SearchInGrid")]
     // [Authorize(Roles = "Student")] // Tắt cái này mới test được, mới lên khi chạy chính thức
     public async Task<IActionResult> SearchRoomInGrid(
@@ -143,6 +105,20 @@ public class RoomController : ControllerBase
             return StatusCode(500, new { message = ex.Message });
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+    // ---------------------------------------------------------
+    // KHU VỰC API CHUNG CHO ADMIN VÀ STUDENT
+    // ---------------------------------------------------------
 
 
     [HttpGet("Load/CapacitiesInComboBox")]

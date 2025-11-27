@@ -76,28 +76,63 @@ namespace DormitoryManagementSystem.DAO.Implementations
 
         // Mới
         // Hiện thông tin đây đủ của Violation, bao gồm cả tên phòng
-        public async Task<IEnumerable<Violation>> GetMyViolations(string studentId)
+        public async Task<IEnumerable<Violation>> GetViolationsWithFilterAsync(string? status, string? studentId)
         {
 
-            return await _context.Violations
+            var query = _context.Violations
                 .AsNoTracking()
-                .Include(v => v.Room)
-                .Where(v => v.Studentid == studentId)
-                .OrderByDescending(v => v.Violationdate) 
-                .ToListAsync();
-        }
-        // Mới
-        public async Task<IEnumerable<Violation>> GetMyViolationsByStatus(string studentId,string status)
-        {
-            
+                .Include(v => v.Student) 
+                .Include(v => v.Room)    
+                .AsQueryable();
 
-            return await _context.Violations
-             .AsNoTracking()
-             .Include(v => v.Room)
-              .Where(v => v.Studentid == studentId)
-              .Where(v => v.Status == status)
-             .OrderByDescending(v => v.Violationdate)
-             .ToListAsync();
+            if (!string.IsNullOrEmpty(status) && status != "All")
+            {
+                query = query.Where(v => v.Status == status);
+            }
+
+            if (!string.IsNullOrEmpty(studentId))
+            {
+                query = query.Where(v => v.Studentid == studentId);
+            }
+
+            query = query.OrderByDescending(v => v.Violationdate);
+
+            return await query.ToListAsync();
+        }
+
+
+        // Admin
+        // Hiện thông tin đầy đủ của Violation, bao gồm cả tên phòng và tên sinh viên
+        public async Task<IEnumerable<Violation>> GetViolationsForAdminAsync(
+            string? searchKeyword,
+            string? status,
+            string? roomId)
+        {
+
+            var query = _context.Violations
+                .AsNoTracking()
+                .Include(v => v.Student) 
+                .Include(v => v.Room)    
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchKeyword))
+            {
+                string key = searchKeyword.ToLower().Trim();
+                query = query.Where(v => v.Student.Fullname.ToLower().Contains(key)
+                                      || v.Studentid.ToLower().Contains(key));
+            }
+
+            if (!string.IsNullOrEmpty(status) && status != "All")
+            {
+                query = query.Where(v => v.Status == status);
+            }
+
+            if (!string.IsNullOrEmpty(roomId) && roomId != "All")
+            {
+                query = query.Where(v => v.Roomid == roomId);
+            }
+
+            return await query.OrderByDescending(v => v.Violationdate).ToListAsync();
         }
     }
 }

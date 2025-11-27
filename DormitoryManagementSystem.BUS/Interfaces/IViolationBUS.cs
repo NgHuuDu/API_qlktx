@@ -16,11 +16,13 @@ namespace DormitoryManagementSystem.BUS.Interfaces
 
 
 
-
+        //Student
         //Mới thêm cho bản sinh viên thấy violation của mình
-        Task<IEnumerable<ViolationGridDTO>> GetMyViolations(string studentId);
-        Task<IEnumerable<ViolationGridDTO>> GetMyViolationsByStatus(string studentId, string status);
+        Task<IEnumerable<ViolationGridDTO>> GetViolationsWithFilterAsync(string? status, string? studentId);
 
 
+        //Admin
+        //Dùng để lọc và tìm kiếm vi phạm cho admin
+        Task<IEnumerable<ViolationAdminDTO>> GetViolationsForAdminAsync(string? search, string? status, string? roomId);
     }
 }

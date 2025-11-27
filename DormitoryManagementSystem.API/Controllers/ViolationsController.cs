@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using DormitoryManagementSystem.BUS.Interfaces;
+using DormitoryManagementSystem.DTO.Violations;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DormitoryManagementSystem.API.Controllers
 {
@@ -16,21 +17,26 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
 
-        //Student
-        // API : Lấy danh sách vi phạm của chính mình
-        [HttpGet("student/my-violations")]
-        //[Authorize(Roles = "Student")] // tắt cái này để test
-        public async Task<IActionResult> GetMyViolations()
+        [HttpGet("student/Search/my-violations")]
+        // [Authorize(Roles = "Student")]
+        public async Task<IActionResult> GetMyViolations([FromQuery] string? status)
         {
             try
             {
                 // var studentId = User.FindFirst("StudentID")?.Value;
-                var studentId = "STU003"; // Dùng để test tạm thời, nhớ xóa khi có Token
+                var studentId = "STU003"; // Hardcode test
 
                 if (string.IsNullOrEmpty(studentId))
                     return Unauthorized(new { message = "Không tìm thấy thông tin sinh viên." });
 
-                var violations = await _violationBUS.GetMyViolations(studentId);
+                // Logic xử lý tham số lọc
+                if (string.IsNullOrEmpty(status) || status.ToLower() == "all")
+                {
+                    status = null; // Gán về null để BUS/DAO hiểu là "Lấy hết"
+                }
+
+            
+                var violations = await _violationBUS.GetViolationsWithFilterAsync(status, studentId);
 
                 return Ok(violations);
             }
@@ -42,27 +48,64 @@ namespace DormitoryManagementSystem.API.Controllers
 
 
 
-        [HttpGet("student/my-violations/search-by/{status}")]
-        //[Authorize(Roles = "Student")] // tắt cái này để test
-        public async Task<IActionResult> GetMyViolationByStatus(string status) 
+
+
+        // ---------------------------------------------------------
+        // KHU VỰC API CHO ADMIN
+        // ---------------------------------------------------------
+
+
+
+
+        //  Lấy danh sách vi phạm (Có lọc)
+        [HttpGet("admin/list")]
+        //[Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> GetAdminList(
+            [FromQuery] string? search,
+            [FromQuery] string? status,
+            [FromQuery] string? roomId)
+        {
+            var list = await _violationBUS.GetViolationsForAdminAsync(search, status, roomId);
+            return Ok(list);
+        }
+
+        // Thêm vi phạm mới 
+        // POST: api/violation
+        [HttpPost("admin")]
+       // [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> CreateViolation([FromBody] ViolationCreateDTO dto)
         {
             try
-            {                
-                // var studentId = User.FindFirst("StudentID")?.Value;
-                var studentId = "STU003"; // Hardcode test
-
-                if (string.IsNullOrEmpty(studentId))
-                    return Unauthorized(new { message = "Không tìm thấy thông tin sinh viên." });
-
-                // Gọi BUS
-                var violations = await _violationBUS.GetMyViolationsByStatus(studentId, status);
-
-                return Ok(violations);
-            }
-            catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Lỗi server: " + ex.Message });
+                var userId = User.FindFirst("UserID")?.Value;
+                if (!string.IsNullOrEmpty(userId)) dto.ReportedByUserID = userId;
+
+                var id = await _violationBUS.AddViolationAsync(dto);
+                return Ok(new { message = "Tạo vi phạm thành công", id });
             }
+            catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
+        // Cập nhật vi phạm
+        [HttpPut("admin/{id}")]
+       // [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> UpdateViolation(string id, [FromBody] ViolationUpdateDTO dto)
+        {
+            try
+            {
+                await _violationBUS.UpdateViolationAsync(id, dto);
+                return Ok(new { message = "Cập nhật thành công" });
+            }
+            catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
+        }
+
+        //  Xóa vi phạm
+        [HttpDelete("admin/{id}")]
+       // [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> DeleteViolation(string id)
+        {
+            await _violationBUS.DeleteViolationAsync(id);
+            return Ok(new { message = "Xóa thành công" });
         }
 
     }
