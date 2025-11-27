@@ -13,7 +13,7 @@ public class NewsController : ControllerBase
     }
 
     // Dùng để hiển thị danh sách tin tức (chỉ có tiêu đề, ảnh đại diện, ngày đăng) -> trong trang chủ á
-    [HttpGet]
+    [HttpGet("SummaryNews")]
     public async Task<IActionResult> GetNewsList()
     {
         try
@@ -38,7 +38,7 @@ public class NewsController : ControllerBase
             if (news == null)
                 return NotFound(new { message = "Tin tức không tồn tại" });
 
-            return Ok(news); // JSON trả về: Full Content
+            return Ok(news); 
         }
         catch (Exception ex)
         {

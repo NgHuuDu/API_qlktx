@@ -18,8 +18,8 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         // PUT: api/user/change-password
-        [HttpPut("change-password")]
-        //[Authorize] //tắt đi để test, nào chạy chính thì hãy mở
+        [HttpPut("student/change-password")]
+        //[Authorize(Roles = "Student")] // tắt cái này để test
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO dto)
         {
             try

@@ -55,6 +55,9 @@ namespace DormitoryManagementSystem.DAO.Implementations
             await _context.SaveChangesAsync();
         }
 
+
+
+
         public async Task<IEnumerable<Contract>> GetContractsByStudentIDAsync(string studentID)
         {
             return await _context.Contracts.AsNoTracking()
@@ -71,6 +74,10 @@ namespace DormitoryManagementSystem.DAO.Implementations
         }
 
 
+
+
+
+
         //Mới thêm - Lấy chi tiết hợp đồng bao gồm thông tin Sinh viên, Phòng và Tòa nhà
         // Cho thằng SINH VIÊN xem hợp đồng của nó
         public async Task<Contract?> GetContractDetailAsync(string studentId)
@@ -78,11 +85,11 @@ namespace DormitoryManagementSystem.DAO.Implementations
 
             return await _context.Contracts
                 .AsNoTracking()
-                .Include(c => c.Student)               // Lấy thông tin Sinh viên
-                .Include(c => c.Room)                  // Lấy thông tin Phòng
-                    .ThenInclude(r => r.Building)      // Lấy thông tin Tòa nhà
-                .Where(c => c.Studentid == studentId)  // Lọc theo SV
-                .Where(c => c.Status == "Active")      // 👈 CHỈ LẤY ACTIVE
+                .Include(c => c.Student)              
+                .Include(c => c.Room)                  
+                    .ThenInclude(r => r.Building)      
+                .Where(c => c.Studentid == studentId)  
+                .Where(c => c.Status == "Active")     
                 .FirstOrDefaultAsync();
         }
     }

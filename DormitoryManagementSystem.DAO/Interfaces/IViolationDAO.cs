@@ -16,7 +16,7 @@ namespace DormitoryManagementSystem.DAO.Interfaces
         // Mới 
         // Lấy vi phạm theo mã sinh viên có bao gồm phòng
         public Task<IEnumerable<Violation>> GetMyViolations(string studentId);
-        Task<IEnumerable<Violation>> GetMyViolationsByStatus(string studentId, string status);
+        public Task<IEnumerable<Violation>> GetMyViolationsByStatus(string studentId, string status);
 
     }
 }

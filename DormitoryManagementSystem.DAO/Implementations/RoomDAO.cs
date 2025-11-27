@@ -66,6 +66,8 @@ namespace DormitoryManagementSystem.DAO.Implementations
             await _context.SaveChangesAsync();
         }
 
+
+
         // Mới thêm - Lọc phòng Student
         public async Task<IEnumerable<Room>> GetRoomsByFilterAsync(
               string? buildingId,
@@ -84,25 +86,25 @@ namespace DormitoryManagementSystem.DAO.Implementations
                 .Where(r => r.Currentoccupancy < r.Capacity)
                 .AsQueryable();
 
-            // 2. Lọc theo Tòa nhà
+            // Lọc theo Tòa nhà
             if (!string.IsNullOrEmpty(buildingId) && buildingId != "All")
             {
                 query = query.Where(r => r.Buildingid == buildingId);
             }
 
-            // 3. Lọc theo Số phòng (Tên phòng)
+            // Lọc theo Số phòng 
             if (roomNumber.HasValue)
             {
                 query = query.Where(r => r.Roomnumber == roomNumber.Value);
             }
 
-            // 4. Lọc theo Sức chứa
+            //Lọc theo Sức chứa
             if (capacity.HasValue && capacity > 0)
             {
                 query = query.Where(r => r.Capacity == capacity.Value);
             }
 
-            // 5. Lọc theo Giá (Khoảng giá)
+            //  Lọc theo Giá (Khoảng giá)
             if (minPrice.HasValue)
             {
                 query = query.Where(r => r.Price >= minPrice.Value);
@@ -111,14 +113,13 @@ namespace DormitoryManagementSystem.DAO.Implementations
             {
                 query = query.Where(r => r.Price <= maxPrice.Value);
             }
-            // 6. Lọc theo Cho phép nấu ăn
+            //  Lọc theo Cho phép nấu ăn
             if (allowCooking.HasValue)
             {
-                // Lưu ý: Trong DB có thể lưu là true/false hoặc 1/0 tùy cấu hình, EF tự lo
                 query = query.Where(r => r.Allowcooking == allowCooking.Value);
             }
 
-            // 7. Lọc theo Máy lạnh
+            //  Lọc theo Máy lạnh
             if (airConditioner.HasValue)
             {
                 query = query.Where(r => r.Airconditioner == airConditioner.Value);
@@ -143,6 +144,7 @@ namespace DormitoryManagementSystem.DAO.Implementations
                 .ToListAsync();
         }
 
+        // Mới thêm - Lấy chi tiết phòng bao gồm thông tin tòa nhà
         public async Task<Room?> GetRoomDetailByIDAsync(string id)
         {
 
@@ -152,6 +154,8 @@ namespace DormitoryManagementSystem.DAO.Implementations
                 .FirstOrDefaultAsync(r => r.Roomid == id);
         }
 
+
+        // Mới thêm - Lấy danh sách sức chứa phòng khác nhau
         public async Task<IEnumerable<int>> GetDistinctCapacitiesAsync()
         {
 

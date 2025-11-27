@@ -19,7 +19,7 @@ namespace DormitoryManagementSystem.API.Controllers
 
         //Student 
         // API : lấy thông tin sinh viên
-        [HttpGet("profile")]
+        [HttpGet("student/profile")]
         //[Authorize(Roles = "Student")]// tắt này để test
         public async Task<IActionResult> GetMyProfile()
         {

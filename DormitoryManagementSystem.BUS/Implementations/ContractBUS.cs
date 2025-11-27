@@ -233,7 +233,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
                 Status = contract.Status,
                 //CreatedDate = contract.Createddate ?? DateTime.MinValue,
 
-                // Sinh viên (Lấy từ contract.Student)
+                // Sinh viên 
                 StudentID = contract.Studentid,
                 StudentName = contract.Student?.Fullname ?? "N/A",
                 Gender = contract.Student?.Gender ?? "N/A",
@@ -243,9 +243,8 @@ namespace DormitoryManagementSystem.BUS.Implementations
                 CCCD = contract.Student?.Idcard ?? "N/A",
                 Address = contract.Student?.Address ?? "N/A",
 
-                // Phòng (Lấy từ contract.Room)
+                // Phòng
                 RoomID = contract.Roomid,
-                // Check null kỹ để tránh lỗi
                 RoomNumber = contract.Room?.Roomnumber ?? 0,
                 //Price = contract.Room?.Price ?? 0,
                 BuildingName = contract.Room?.Building?.Buildingname ?? "Unknown Building"
@@ -258,12 +257,10 @@ namespace DormitoryManagementSystem.BUS.Implementations
             if (dto.EndTime <= dto.StartTime)
                 throw new ArgumentException("Ngày kết thúc phải sau ngày bắt đầu.");
 
-            //Kiểm tra Sinh viên (Có đang ở đâu không?)
             var activeContract = await _contractDAO.GetActiveContractByStudentIDAsync(studentId);
             if (activeContract != null)
                 throw new InvalidOperationException("Bạn hiện đang có hợp đồng hiệu lực, không thể đăng ký mới.");
 
-            //Kiểm tra Phòng (Có còn trống không?)
             var room = await _roomDAO.GetRoomByIDAsync(dto.RoomID);
             if (room == null) throw new KeyNotFoundException("Phòng không tồn tại.");
 
@@ -282,14 +279,14 @@ namespace DormitoryManagementSystem.BUS.Implementations
                 Roomid = dto.RoomID,
                 Starttime = DateOnly.FromDateTime(dto.StartTime), 
                 Endtime = DateOnly.FromDateTime(dto.EndTime),
-                Status = "Pending", // QUAN TRỌNG: Trạng thái Chờ duyệt
+                Status = "Pending", 
                 Createddate = DateTime.Now
             };
 
             await _contractDAO.AddContractAsync(newContract);
 
-            // Lưu ý: Chưa tăng CurrentOccupancy của phòng vội. 
-            // Khi nào Admin bấm "Duyệt" (Approve API) thì mới tăng số người.
+            // Lúc này là chưa tăng cái CurrentOccupancy của phòng vì HĐ đang ở trạng thái Pending
+            // Chờ admin duyệt rồi mới tăng
 
             return newContract.Contractid;
         }

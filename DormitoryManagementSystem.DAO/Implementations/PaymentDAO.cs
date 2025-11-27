@@ -76,7 +76,7 @@ namespace DormitoryManagementSystem.DAO.Implementations
                 .OrderBy(p => p.Billmonth) 
                 .ToListAsync();
         }
-
+        // Mới lấy danh sách thanh toán của sinh viên đó theo trạng thái
         public async Task<IEnumerable<Payment>> GetPaymentsByStudentAndStatusAsync(string studentId, string status)
         {
 

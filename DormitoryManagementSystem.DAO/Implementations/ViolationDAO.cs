@@ -70,6 +70,10 @@ namespace DormitoryManagementSystem.DAO.Implementations
 
 
 
+
+
+
+
         // Mới
         // Hiện thông tin đây đủ của Violation, bao gồm cả tên phòng
         public async Task<IEnumerable<Violation>> GetMyViolations(string studentId)
@@ -82,7 +86,7 @@ namespace DormitoryManagementSystem.DAO.Implementations
                 .OrderByDescending(v => v.Violationdate) 
                 .ToListAsync();
         }
-
+        // Mới
         public async Task<IEnumerable<Violation>> GetMyViolationsByStatus(string studentId,string status)
         {
             

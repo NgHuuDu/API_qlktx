@@ -13,6 +13,14 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         Task UpdateRoomAsync(string id, RoomUpdateDTO dto);
         Task DeleteRoomAsync(string id);
 
+
+
+
+
+
+
+
+
         //Mới thêm - Student    
         Task<IEnumerable<RoomDetailDTO>> SearchRoomInCardAsync(
                     string? buildingName,

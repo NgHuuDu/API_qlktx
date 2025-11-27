@@ -103,10 +103,8 @@ namespace DormitoryManagementSystem.BUS.Implementations
             var newsList = await _newsDAO.GetNewsSummariesAsync();
             var result = newsList.Select(n => new NewsSummaryDTO
             {
-                NewsID = n.Newsid, // Gán từng trường một
+                NewsID = n.Newsid, 
                 Title = n.Title,
-
-                // Xử lý Null (Vì trong Entity là DateTime?, còn DTO thường là DateTime)
                 PublishedDate = n.Publisheddate ?? DateTime.MinValue
             });
 

@@ -13,6 +13,10 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         Task UpdateStudentAsync(string id, StudentUpdateDTO dto);
         Task DeleteStudentAsync(string id);
 
+
+
+
+
         // Mới thêm để lấy hồ sơ sinh viên
         Task<StudentProfileDTO?> GetStudentProfileAsync(string studentId);
 

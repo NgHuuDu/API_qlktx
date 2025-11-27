@@ -55,7 +55,7 @@ namespace DormitoryManagementSystem.DAO.Implementations
         }
 
 
-        //Mới thêm - Lấy danh sách tóm tắt tin tức (chỉ gồm Newsid, Title, Publisheddate)
+        //Mới thêm - Lấy danh sách tóm tắt tin tức
         public async Task<IEnumerable<News>> GetNewsSummariesAsync()
         {
 
@@ -63,13 +63,6 @@ namespace DormitoryManagementSystem.DAO.Implementations
                 .AsNoTracking()
                 .Where(n => n.Isvisible == true)
                 .OrderByDescending(n => n.Publisheddate) // Mới nhất lên đầu
-                .Select(n => new News
-                {
-                    Newsid = n.Newsid,
-                    Title = n.Title,
-                    Publisheddate = n.Publisheddate,
-                    // QUAN TRỌNG: Không lấy Content để tiết kiệm băng thông
-                })
                 .ToListAsync();
         }
     }

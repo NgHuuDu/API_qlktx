@@ -13,6 +13,10 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         Task UpdateContractAsync(string id, ContractUpdateDTO dto);
         Task DeleteContractAsync(string id);
 
+
+
+
+
         //Student
         // Mới : Lấy chi tiết hợp đồng đầy đủ của thằng học sinh đó
         Task<ContractDetailDTO?> GetContractFullDetailAsync(string studentId);

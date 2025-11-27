@@ -100,7 +100,10 @@ namespace DormitoryManagementSystem.BUS.Implementations
             await _dao.DeleteBuildingAsync(id);
         }
 
-        // Mới thêm - Lấy danh sách phòng
+
+
+
+        // Mới thêm - Lấy danh sách phòng để hiện trên comboBox Student
         public async Task<IEnumerable<BuildingLookupDTO>> GetBuildingLookupAsync()
         {
             var buildings = await _dao.GetAllBuildingAsync();

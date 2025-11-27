@@ -21,14 +21,14 @@ namespace DormitoryManagementSystem.API.Controllers
 
         //Student
         // API: Sinh viên xem hợp đồng CỦA CHÍNH MÌNH
-        // URL: GET /api/Contract/my-contracts  
-        [HttpGet("my-contracts")]
+        [HttpGet("/student/my-contracts")]
         // [Authorize(Roles = "Student")] // Nhớ bật lại khi có Token
         public async Task<IActionResult> GetMyContracts()
         {
             try
             {
-                var studentId = "STU002"; // Test hardcode
+                // var studentId = User.FindFirst("StudentID")?.Value;
+                var studentId = "STU002"; // để test
 
                 if (string.IsNullOrEmpty(studentId))
                     return Unauthorized(new { message = "Không tìm thấy thông tin sinh viên." });
@@ -47,8 +47,7 @@ namespace DormitoryManagementSystem.API.Controllers
 
         //Student
         // API: Sinh viên gửi đơn đăng ký
-        // POST: api/contract/register
-        [HttpPost("register")]
+        [HttpPost("/student/register")]
         //[Authorize(Roles = "Student")] 
         public async Task<IActionResult> RegisterContract([FromBody] ContractRegisterDTO dto)
         {

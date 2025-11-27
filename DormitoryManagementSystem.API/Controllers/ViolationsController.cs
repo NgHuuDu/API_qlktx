@@ -18,7 +18,7 @@ namespace DormitoryManagementSystem.API.Controllers
 
         //Student
         // API : Lấy danh sách vi phạm của chính mình
-        [HttpGet("my-violations")]
+        [HttpGet("student/my-violations")]
         //[Authorize(Roles = "Student")] // tắt cái này để test
         public async Task<IActionResult> GetMyViolations()
         {
@@ -42,8 +42,9 @@ namespace DormitoryManagementSystem.API.Controllers
 
 
 
-        [HttpGet("search-by/{status}")]
-        public async Task<IActionResult> GetMyViolationByStatus(string status) // <--- THÊM VÀO ĐÂY
+        [HttpGet("student/my-violations/search-by/{status}")]
+        //[Authorize(Roles = "Student")] // tắt cái này để test
+        public async Task<IActionResult> GetMyViolationByStatus(string status) 
         {
             try
             {                

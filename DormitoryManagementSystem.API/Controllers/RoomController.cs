@@ -151,7 +151,7 @@ public class RoomController : ControllerBase
         try
         {
             var result = await _roomBUS.GetRoomCapacitiesAsync();
-            return Ok(result); // Trả về mảng: [2, 4, 6, 8]
+            return Ok(result); 
         }
         catch (Exception ex) { return StatusCode(500, ex.Message); }
     }

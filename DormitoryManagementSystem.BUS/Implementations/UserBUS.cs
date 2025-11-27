@@ -227,15 +227,14 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
         public async Task ChangePasswordAsync(string userId, ChangePasswordDTO dto)
         {
-            // 1. Tìm user trong DB
             var user = await _userDAO.GetUserByIDAsync(userId);
             if (user == null)
                 throw new KeyNotFoundException("Không tìm thấy thông tin người dùng.");
 
-            // 2. Kiểm tra mật khẩu cũ (Logic tương thích ngược)
+            //Kiểm tra mật khẩu cũ
             bool isOldPassCorrect = false;
 
-            // Tận dụng hàm IsBCryptHash (đã viết ở phần Login) để kiểm tra format mật khẩu trong DB
+            // Tận dụng hàm IsBCryptHash để kiểm tra format mật khẩu trong DB
             bool isPlainText = !IsBCryptHash(user.Password);
 
             if (isPlainText)
@@ -261,16 +260,16 @@ namespace DormitoryManagementSystem.BUS.Implementations
                 throw new ArgumentException("Mật khẩu hiện tại không chính xác.");
             }
 
-            // 3. Kiểm tra trùng (Optional: Không cho đổi trùng mật khẩu cũ để tăng bảo mật)
+            // Kiểm tra trùng (Optional: Không cho đổi trùng mật khẩu cũ để tăng bảo mật)
             if (dto.OldPassword == dto.NewPassword)
             {
                 throw new ArgumentException("Mật khẩu mới không được trùng với mật khẩu cũ.");
             }
 
-            // 4. Mã hóa (Hash) mật khẩu mới và Lưu
+            // Mã hóa (Hash) mật khẩu mới và Lưu
             user.Password = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
 
-            // Gọi DAO để update (Lưu ý: UserDAO cần có hàm UpdateUserAsync dùng Factory Context)
+            // Gọi DAO để update 
             await _userDAO.UpdateUserAsync(user);
         }
     }

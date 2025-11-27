@@ -130,11 +130,14 @@ namespace DormitoryManagementSystem.BUS.Implementations
         }
 
 
+
+
+        //Student
+        // Lấy các hóa đơn chưa thanh toán của SV dựa trên hợp đồng Active
         public async Task<IEnumerable<PaymentListDTO>> GetPendingBillsByStudentAsync(string studentId)
         {
-            // Tìm hợp đồng Active của SV
             var contract = await _contractDAO.GetActiveContractByStudentIDAsync(studentId);
-            if (contract == null) return new List<PaymentListDTO>(); // Chưa có hợp đồng -> Không có hóa đơn
+            if (contract == null) return new List<PaymentListDTO>();
 
             var unpaidPayments = await _paymentDAO.GetUnpaidPaymentsByContractIDAsync(contract.Contractid);
 
@@ -153,13 +156,14 @@ namespace DormitoryManagementSystem.BUS.Implementations
             return result;
         }
 
+
+        //student
+        // Lấy lịch sử thanh toán của SV dựa trên hợp đồng Active
         public async Task<IEnumerable<PaymentListDTO>> GetPaymentHistoryByStudentAsync(string studentId)
         {
-            // Tìm hợp đồng Active
             var contract = await _contractDAO.GetActiveContractByStudentIDAsync(studentId);
             if (contract == null) return new List<PaymentListDTO>();
 
-            //  Lấy tất cả payments
             var allPayments = await _paymentDAO.GetPaymentsByContractIDAsync(contract.Contractid);
 
             var result = allPayments.Select(p => new PaymentListDTO
@@ -176,7 +180,8 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
         }
 
-
+        // Student
+        // Lấy các hóa đơn của SV dựa trên trạng thái
         public async Task<IEnumerable<PaymentReadDTO>> GetMyPaymentsByStatusAsync(string studentId, string status)
         {
             // Gọi DAO

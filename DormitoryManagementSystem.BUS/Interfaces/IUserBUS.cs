@@ -12,6 +12,11 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         // Hàm này dùng cho Admin tìm kiếm User để quản lý
         Task<User?> GetUserByUsernameAsync(string username);
 
+
+
+
+
+
         // Hàm xử lý nghiệp vụ Đăng nhập
         // Input: LoginDTO, Output: UserReadDTO (hoặc trả về string Token sau này)
         Task<LoginResponseDTO?> LoginAsync(UserLoginDTO dto);

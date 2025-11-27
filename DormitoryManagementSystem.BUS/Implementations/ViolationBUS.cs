@@ -159,11 +159,11 @@ namespace DormitoryManagementSystem.BUS.Implementations
         //Student
         //Mới trong bản student 
         // Lấy danh sách vi phạm của học sinh đó
-        public async Task<IEnumerable<ViolationListDTO>> GetMyViolations(string studentId)
+        public async Task<IEnumerable<ViolationGridDTO>> GetMyViolations(string studentId)
         {
             var violations = await _violationDAO.GetMyViolations(studentId);
 
-            var result = violations.Select(v => new ViolationListDTO
+            var result = violations.Select(v => new ViolationGridDTO
             {
                 ViolationID = v.Violationid,
 
@@ -182,14 +182,14 @@ namespace DormitoryManagementSystem.BUS.Implementations
             return result;
         }
 
-        public async Task<IEnumerable<ViolationListDTO>> GetMyViolationsByStatus(string studentId,string status)
+        public async Task<IEnumerable<ViolationGridDTO>> GetMyViolationsByStatus(string studentId,string status)
         {
             if (string.IsNullOrWhiteSpace(status))
                 throw new ArgumentException("Status cannot be empty");
 
             IEnumerable<Violation> violations = await _violationDAO.GetMyViolationsByStatus(studentId,status);
 
-            var result = violations.Select(v => new ViolationListDTO
+            var result = violations.Select(v => new ViolationGridDTO
             {
                 ViolationID = v.Violationid,
 
