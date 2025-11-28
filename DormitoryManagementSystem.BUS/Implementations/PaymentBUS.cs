@@ -220,9 +220,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
         }
 
         // Thống kê thanh toán
-        public async Task<PaymentStatsDTO> GetPaymentStatisticsAsync()
-        {
-            return await _paymentDAO.GetPaymentStatisticsAsync();
-        }
+     
     }
 }

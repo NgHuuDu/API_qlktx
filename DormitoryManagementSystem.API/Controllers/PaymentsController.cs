@@ -107,20 +107,5 @@ public class PaymentController : ControllerBase
 
 
 
-    //  Lấy thống kê thanh toán (Cho Payment Admin)
-    // GET: api/payment/stats
-    [HttpGet("admin/stats")]
-    // [Authorize(Roles = "Admin,Manager")] 
-    public async Task<IActionResult> GetPaymentStats()
-    {
-        try
-        {
-            var stats = await _paymentBUS.GetPaymentStatisticsAsync();
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
-        }
-    }
+    
 }

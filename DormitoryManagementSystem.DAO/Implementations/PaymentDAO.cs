@@ -146,43 +146,6 @@ namespace DormitoryManagementSystem.DAO.Implementations
         // Admin: Thống kê số liệu thanh toán
         // Cái này nên chuyển về DTO chứ không phải entity Payment
         
-        public async Task<PaymentStatsDTO> GetPaymentStatisticsAsync()
-        {
-
-            var statsGrouped = await _context.Payments
-                .AsNoTracking()
-                .GroupBy(p => p.Paymentstatus)
-                .Select(g => new
-                {
-                    Status = g.Key,
-                    Count = g.Count(),
-                    TotalAmount = g.Sum(p => p.Paymentamount) // Tính tổng tiền PaymentAmount
-                })
-                .ToListAsync();
-
-            // Đổ dữ liệu vào DTO
-            var result = new PaymentStatsDTO();
-
-            foreach (var item in statsGrouped)
-            {
-                if (item.Status == "Paid")
-                {
-                    result.PaidCount = item.Count;
-                    result.PaidTotalAmount = item.TotalAmount;
-                }
-                else if (item.Status == "Unpaid")
-                {
-                    result.UnpaidCount = item.Count;
-                    result.UnpaidTotalAmount = item.TotalAmount;
-                }
-                else if (item.Status == "Late")
-                {
-                    result.LateCount = item.Count;
-                    result.LateTotalAmount = item.TotalAmount;
-                }
-            }
-
-            return result;
-        }
+       
     }
 }

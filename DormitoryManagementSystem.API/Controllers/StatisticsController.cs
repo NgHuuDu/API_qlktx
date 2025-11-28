@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
+﻿using DormitoryManagementSystem.BUS.Implementations;
 using DormitoryManagementSystem.BUS.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace DormitoryManagementSystem.API.Controllers
 {
@@ -19,7 +20,7 @@ namespace DormitoryManagementSystem.API.Controllers
         
         //admin
         // GET: api/statistics/dashboard
-        [HttpGet("admin/dashboard")]
+        [HttpGet("admin/stats/dashboard")]
         //[Authorize(Roles = "Admin,Manager")] 
         public async Task<IActionResult> GetDashboardStats()
         {
@@ -36,7 +37,7 @@ namespace DormitoryManagementSystem.API.Controllers
 
         //Admin
         // API: Lấy doanh thu theo tháng (Vẽ biểu đồ cột/đường)
-        [HttpGet("admin/revenue")]
+        [HttpGet("admin/stats/revenue")]
         //[Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> GetRevenueStats([FromQuery] int year)
         {
@@ -58,7 +59,7 @@ namespace DormitoryManagementSystem.API.Controllers
 
         // API: Lấy xu hướng lấp đầy (Vẽ biểu đồ đường Line Chart)
         // GET: api/statistics/occupancy-trend?year=2024
-        [HttpGet("admin/occupancy-trend")]
+        [HttpGet("admin/stats/occupancy-trend")]
        // [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> GetOccupancyTrend([FromQuery] int year)
         {
@@ -78,7 +79,7 @@ namespace DormitoryManagementSystem.API.Controllers
 
         // API: Thống kê tỷ lệ nam nữ
         // GET: api/statistics/gender
-        [HttpGet("admin/gender")]
+        [HttpGet("admin/stats/gender")]
         //[Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> GetGenderStats()
         {
@@ -96,7 +97,7 @@ namespace DormitoryManagementSystem.API.Controllers
 
         // API: So sánh các tòa nhà (SV & Doanh thu)
         // GET: api/statistics/building-comparison?year=2024
-        [HttpGet("admin/building-comparison")]
+        [HttpGet("admin/stats/building-comparison")]
        // [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> GetBuildingComparison([FromQuery] int? year)
         {
@@ -114,7 +115,7 @@ namespace DormitoryManagementSystem.API.Controllers
 
         // API: Lấy xu hướng vi phạm (Vẽ biểu đồ đường/cột)
         // GET: api/statistics/violation-trend?year=2024
-        [HttpGet("admin/violation-trend")]
+        [HttpGet("admin/stats/violation-trend")]
        // [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> GetViolationTrend([FromQuery] int year)
         {
@@ -128,6 +129,42 @@ namespace DormitoryManagementSystem.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+
+        // API: Thống kê vi phạm (Chưa xử lý vs Đã xử lý)
+        // GET: api/statistics/violation-summary
+        [HttpGet("admin/violation/violation-summary")]
+       // [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> GetViolationSummaryStats()
+        {
+            try
+            {
+                var stats = await _statisticsBUS.GetViolationSummaryStatsAsync();
+                return Ok(stats);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
+
+        //  Lấy thống kê thanh toán (Cho Payment Admin)
+        // GET: api/payment/stats
+        [HttpGet("admin/payemt/stats")]
+        // [Authorize(Roles = "Admin,Manager")] 
+        public async Task<IActionResult> GetPaymentStats()
+        {
+            try
+            {
+                var stats = await _statisticsBUS.GetPaymentStatisticsAsync();
+                return Ok(stats);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
             }
         }
     }

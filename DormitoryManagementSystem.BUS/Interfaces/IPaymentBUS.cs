@@ -29,9 +29,9 @@ namespace DormitoryManagementSystem.BUS.Interfaces
 
         // Xác nhận thanh toán
         Task ConfirmPaymentAsync(string id, PaymentConfirmDTO dto);
+
         
         // Thống kê thanh toán
-        Task<PaymentStatsDTO> GetPaymentStatisticsAsync();
 
     }
 }

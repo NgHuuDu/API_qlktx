@@ -27,8 +27,7 @@ namespace DormitoryManagementSystem.DAO.Interfaces
               string? building,
               string? searchKeyword);
 
-        // Cho admin thống kê
-        Task<PaymentStatsDTO> GetPaymentStatisticsAsync();
+    
 
     }
 }

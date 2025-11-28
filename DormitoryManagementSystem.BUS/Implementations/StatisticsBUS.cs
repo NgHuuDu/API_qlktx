@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DormitoryManagementSystem.BUS.Interfaces;
+using DormitoryManagementSystem.DAO.Implementations;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.Statistics;
 
@@ -114,6 +115,16 @@ namespace DormitoryManagementSystem.BUS.Implementations
             }
 
             return fullStats;
+        }
+
+        public async Task<ViolationSummaryDTO> GetViolationSummaryStatsAsync()
+        {
+            return await _statisticsDAO.GetViolationSummaryStatsAsync();
+        }
+
+        public async Task<PaymentStatsDTO> GetPaymentStatisticsAsync()
+        {
+            return await _statisticsDAO.GetPaymentStatisticsAsync();
         }
     }
 }

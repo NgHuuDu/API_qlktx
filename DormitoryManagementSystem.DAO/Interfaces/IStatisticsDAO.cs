@@ -16,5 +16,8 @@ namespace DormitoryManagementSystem.DAO.Interfaces
         Task<GenderStatsDTO> GetGenderStatsAsync();
         Task<IEnumerable<BuildingComparisonDTO>> GetBuildingComparisonAsync(int? year);
         Task<IEnumerable<ViolationTrendDTO>> GetViolationTrendAsync(int year);
+        Task<ViolationSummaryDTO> GetViolationSummaryStatsAsync();
+        // Cho admin thống kê
+        Task<PaymentStatsDTO> GetPaymentStatisticsAsync();
     }
 }

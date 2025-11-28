@@ -18,5 +18,9 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         Task<IEnumerable<BuildingComparisonDTO>> GetBuildingComparisonAsync(int? year);
 
         Task<IEnumerable<ViolationTrendDTO>> GetViolationTrendAsync(int year);
+        Task<ViolationSummaryDTO> GetViolationSummaryStatsAsync();
+
+        Task<PaymentStatsDTO> GetPaymentStatisticsAsync();
+
     }
 }

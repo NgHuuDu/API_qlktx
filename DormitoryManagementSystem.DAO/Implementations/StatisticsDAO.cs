@@ -190,5 +190,65 @@ namespace DormitoryManagementSystem.DAO.Implementations
 
             return stats;
         }
+
+        public async Task<ViolationSummaryDTO> GetViolationSummaryStatsAsync()
+        {
+
+            var query = _context.Violations.AsNoTracking();
+
+            // Đếm số lượng "Chưa xử lý" (Pending)
+            var unprocessedCount = await query
+                .CountAsync(v => v.Status == "Pending");
+
+            // Đếm số lượng "Đã xử lý" (Resolved) và "Đã đóng tiền phạt" (Paid)
+            var processedCount = await query
+                .CountAsync(v => v.Status == "Resolved" || v.Status == "Paid");
+
+            return new ViolationSummaryDTO
+            {
+                UnprocessedCount = unprocessedCount,
+                ProcessedCount = processedCount
+            };
+        }
+
+
+        public async Task<PaymentStatsDTO> GetPaymentStatisticsAsync()
+        {
+
+            var statsGrouped = await _context.Payments
+                .AsNoTracking()
+                .GroupBy(p => p.Paymentstatus)
+                .Select(g => new
+                {
+                    Status = g.Key,
+                    Count = g.Count(),
+                    TotalAmount = g.Sum(p => p.Paymentamount) // Tính tổng tiền PaymentAmount
+                })
+                .ToListAsync();
+
+            // Đổ dữ liệu vào DTO
+            var result = new PaymentStatsDTO();
+
+            foreach (var item in statsGrouped)
+            {
+                if (item.Status == "Paid")
+                {
+                    result.PaidCount = item.Count;
+                    result.PaidTotalAmount = item.TotalAmount;
+                }
+                else if (item.Status == "Unpaid")
+                {
+                    result.UnpaidCount = item.Count;
+                    result.UnpaidTotalAmount = item.TotalAmount;
+                }
+                else if (item.Status == "Late")
+                {
+                    result.LateCount = item.Count;
+                    result.LateTotalAmount = item.TotalAmount;
+                }
+            }
+
+            return result;
+        }
     }
 }
