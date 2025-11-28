@@ -25,10 +25,9 @@ namespace DormitoryManagementSystem.DAO.Implementations
             var stats = new DashboardStatsDTO();
             int currentYear = DateTime.Now.Year;
 
-            // 1. Tổng số tòa nhà
             stats.TotalBuildings = await _context.Buildings.CountAsync();
 
-            // 2. Tổng số phòng & Tính toán Tỷ lệ lấp đầy
+            // Tổng số phòng & Tính toán Tỷ lệ lấp đầy
             // Lấy tổng sức chứa (Capacity) và tổng người đang ở (CurrentOccupancy) của các phòng Active
             var roomStats = await _context.Rooms
                 .AsNoTracking()
@@ -46,7 +45,7 @@ namespace DormitoryManagementSystem.DAO.Implementations
             {
                 stats.TotalRooms = roomStats.TotalRooms;
 
-                // Tính tỷ lệ %: (Người đang ở / Tổng sức chứa) * 100
+                // Tính tỷ lệ: (Người đang ở / Tổng sức chứa) * 100
                 if (roomStats.TotalCapacity > 0)
                 {
                     stats.OccupancyRate = Math.Round(
@@ -59,7 +58,7 @@ namespace DormitoryManagementSystem.DAO.Implementations
                 stats.TotalStudents = roomStats.TotalOccupancy;
             }
 
-            // 3. Tính Doanh thu năm nay
+            // Tính Doanh thu năm nay
             // Chỉ tính các hóa đơn đã thanh toán (Paid) trong năm hiện tại
             stats.YearlyRevenue = await _context.Payments
                 .AsNoTracking()
@@ -116,10 +115,10 @@ namespace DormitoryManagementSystem.DAO.Implementations
         public async Task<GenderStatsDTO> GetGenderStatsAsync()
         {
 
-            // 1. Gom nhóm và đếm trong DB
+            //  Gom nhóm và đếm trong DB
             var stats = await _context.Students
                 .AsNoTracking()
-                // Lọc sinh viên đang hoạt động (nếu cần)
+                // Lọc sinh viên đang hoạt động 
                 // .Where(s => s.User.IsActive == true) 
                 .GroupBy(s => s.Gender)
                 .Select(g => new
@@ -129,7 +128,6 @@ namespace DormitoryManagementSystem.DAO.Implementations
                 })
                 .ToListAsync();
 
-            // 2. Đổ vào DTO
             var result = new GenderStatsDTO();
 
             foreach (var item in stats)
@@ -152,12 +150,12 @@ namespace DormitoryManagementSystem.DAO.Implementations
                     BuildingID = b.Buildingid,
                     BuildingName = b.Buildingname,
 
-                    // 1. Đếm số sinh viên đang ở (Hợp đồng Active thuộc các phòng của tòa này)
+                    //  Đếm số sinh viên đang ở (Hợp đồng Active thuộc các phòng của tòa này)
                     TotalStudents = b.Rooms
                         .SelectMany(r => r.Contracts)
                         .Count(c => c.Status == "Active"),
 
-                    // 2. Tính tổng tiền đã thu (Payment Status = Paid)
+                    // Tính tổng tiền đã thu (Payment Status = Paid)
                     // Logic: Building -> Rooms -> Contracts -> Payments
                     TotalRevenue = b.Rooms
                         .SelectMany(r => r.Contracts)
@@ -177,9 +175,9 @@ namespace DormitoryManagementSystem.DAO.Implementations
 
             var stats = await _context.Violations
                 .AsNoTracking()
-                // 1. Chỉ lấy vi phạm trong năm được chọn
+                // Chỉ lấy vi phạm trong năm được chọn
                 .Where(v => v.Violationdate.HasValue && v.Violationdate.Value.Year == year)
-                // 2. Gom nhóm theo Tháng
+                // Gom nhóm theo Tháng
                 .GroupBy(v => v.Violationdate.Value.Month)
                 .Select(g => new ViolationTrendDTO
                 {

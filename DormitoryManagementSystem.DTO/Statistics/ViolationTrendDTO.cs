@@ -10,6 +10,6 @@ namespace DormitoryManagementSystem.DTO.Statistics
     {
         public int Month { get; set; }
         public int Year { get; set; }
-        public int ViolationCount { get; set; } // Số lượng vi phạm
+        public int ViolationCount { get; set; } 
     }
 }

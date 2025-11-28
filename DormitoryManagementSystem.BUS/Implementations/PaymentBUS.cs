@@ -185,7 +185,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
         // Xác nhận thanh toán
         public async Task ConfirmPaymentAsync(string id, PaymentConfirmDTO dto)
         {
-            // 1. Tìm hóa đơn
+            //  Tìm hóa đơn
             var payment = await _paymentDAO.GetPaymentByIDAsync(id);
             if (payment == null)
                 throw new KeyNotFoundException($"Không tìm thấy hóa đơn {id}");
@@ -193,14 +193,14 @@ namespace DormitoryManagementSystem.BUS.Implementations
             if (payment.Paymentstatus == "Paid")
                 throw new InvalidOperationException("Hóa đơn này đã thanh toán rồi.");
 
-            // 2. Cập nhật thông tin QUAN TRỌNG
+            // Cập nhật thông tin QUAN TRỌNG
             payment.Paymentstatus = "Paid";
             payment.Paymentdate = DateTime.Now; // Ngày giờ thực tế admin bấm nút
 
-            // 3. Cập nhật Phương thức (Cash/Bank Transfer) lấy từ DTO
+            // Cập nhật Phương thức (Cash/Bank Transfer) lấy từ DTO
             payment.Paymentmethod = dto.PaymentMethod;
 
-            // 4. Xử lý Ghi chú (Lưu mã giao dịch)
+            // Xử lý Ghi chú (Lưu mã giao dịch)
             // Nếu có Note thì nối thêm vào Description cũ (hoặc ghi đè tùy bạn)
             if (!string.IsNullOrEmpty(dto.Note))
             {
@@ -210,13 +210,12 @@ namespace DormitoryManagementSystem.BUS.Implementations
                     : $"{payment.Description} | Note: {dto.Note}";
             }
 
-            // 5. Tự động set Full tiền (vì xác nhận là đã trả hết)
+            // Tự động set Full tiền (vì xác nhận là đã trả hết)
             if (payment.Paidamount < payment.Paymentamount)
             {
                 payment.Paidamount = payment.Paymentamount;
             }
 
-            // 6. Lưu xuống DB
             await _paymentDAO.UpdatePaymentAsync(payment);
         }
 

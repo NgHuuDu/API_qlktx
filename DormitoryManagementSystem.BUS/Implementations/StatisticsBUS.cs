@@ -49,19 +49,19 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
         public async Task<IEnumerable<OccupancyStatsDTO>> GetOccupancyTrendAsync(int year)
         {
-            // 1. Lấy danh sách hợp đồng liên quan đến năm nay
+            // Lấy danh sách hợp đồng liên quan đến năm nay
             var contracts = await _statisticsDAO.GetContractsByYearAsync(year);
 
             var result = new List<OccupancyStatsDTO>();
 
-            // 2. Chạy vòng lặp 12 tháng để tính toán
+            // Chạy vòng lặp 12 tháng để tính toán
             for (int month = 1; month <= 12; month++)
             {
                 // Xác định ngày đầu và cuối của tháng đang xét
                 var firstDayOfMonth = new DateOnly(year, month, 1);
                 var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
 
-                // 3. Đếm số hợp đồng "còn sống" trong tháng này
+                // Đếm số hợp đồng "còn sống" trong tháng này
                 int count = contracts.Count(c =>
                     c.Starttime <= lastDayOfMonth &&
                     c.Endtime >= firstDayOfMonth);
@@ -93,10 +93,10 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
         public async Task<IEnumerable<ViolationTrendDTO>> GetViolationTrendAsync(int year)
         {
-            // 1. Lấy dữ liệu thô từ DB
+            // Lấy dữ liệu thô từ DB
             var dbStats = await _statisticsDAO.GetViolationTrendAsync(year);
 
-            // 2. Chuẩn hóa dữ liệu (Đảm bảo đủ 12 tháng)
+            // Chuẩn hóa dữ liệu (Đảm bảo đủ 12 tháng)
             var fullStats = new List<ViolationTrendDTO>();
 
             for (int m = 1; m <= 12; m++)

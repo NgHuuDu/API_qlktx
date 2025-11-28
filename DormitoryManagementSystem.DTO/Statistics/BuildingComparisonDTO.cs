@@ -11,10 +11,10 @@ namespace DormitoryManagementSystem.DTO.Statistics
         public string BuildingID { get; set; } = string.Empty;
         public string BuildingName { get; set; } = string.Empty;
 
-        // Chỉ số 1: Số lượng sinh viên đang ở
+        // Số lượng sinh viên đang ở
         public int TotalStudents { get; set; }
 
-        // Chỉ số 2: Tổng doanh thu (đã thu được)
+        //  Tổng doanh thu (đã thu được)
         public decimal TotalRevenue { get; set; }
     }
 }
