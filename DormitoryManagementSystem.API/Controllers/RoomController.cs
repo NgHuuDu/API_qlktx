@@ -1,6 +1,9 @@
 ﻿using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DTO.Rooms;
+using DormitoryManagementSystem.Entity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Net.NetworkInformation;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -141,4 +144,103 @@ public class RoomController : ControllerBase
     }
 
 
+    // Tạo phòng mới admin
+    // frmAddRoom
+    [HttpPost("admin/Room/CreateRoom")]
+    public async Task<IActionResult> CreateRoom([FromBody] RoomCreateDTO dto)
+    {
+        if(!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        try
+        {
+            var newRoom = _roomBUS.AddRoomAsync(dto);
+            return Ok(new { message = "Thêm phòng thành công!"});
+        }
+        catch(Exception ex) 
+        {
+            return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+        }
+    }
+    // frmRoomDetail
+    // Cap nhat phong
+    [HttpPut("admin/Room/RoomDetail/UpdateRoom{id}")]
+    public async Task<IActionResult> UpdateRoom(string id, [FromBody] RoomUpdateDTO dto)
+    {
+        if (dto == null)
+            return BadRequest(new { message = "Dữ liệu phòng là bắt buộc" });
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        try
+        {
+            await _roomBUS.UpdateRoomAsync(id, dto);
+            return Ok(new { message = "Cập nhật thông tin phòng thành công!" });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+        }
+    }
+
+    // Xoa phong
+
+    [HttpDelete("admin/Room/RoomDetail/DeleteRoom{id}")]
+    public async Task<IActionResult> DeleteRoom(string id)
+    {
+        try
+        {
+            await _roomBUS.DeleteRoomAsync(id);
+            return Ok(new { message = "Xóa phòng thành công" });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+        }
+    }
+
+    // Lọc theo tên và mã phòng
+    //ucRoomManagement
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchRooms([FromQuery] string q)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(q))
+            {
+                return Ok(new List<RoomReadDTO>());
+            }
+
+            var result = await _roomBUS.SearchRoomsAsync(q);
+
+            if (result == null || !result.Any())
+            {
+                return NotFound(new { message = $"Không tìm thấy phòng nào với từ khóa '{q}'" });
+            }
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+        }
+    }
 }

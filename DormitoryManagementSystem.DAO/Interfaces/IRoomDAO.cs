@@ -27,5 +27,6 @@ namespace DormitoryManagementSystem.DAO.Interfaces
 
         Task<Room?> GetRoomDetailByIDAsync(string id);
         Task<IEnumerable<int>> GetDistinctCapacitiesAsync();
+        Task<IEnumerable<Room>> SearchRoomsAsync(string keyword);
     }
 }

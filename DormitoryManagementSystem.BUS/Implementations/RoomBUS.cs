@@ -3,6 +3,7 @@ using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.Rooms;
 using DormitoryManagementSystem.Entity;
+using System.Collections.Generic;
 
 namespace DormitoryManagementSystem.BUS.Implementations
 {
@@ -230,5 +231,15 @@ namespace DormitoryManagementSystem.BUS.Implementations
                     new RoomPriceDTO { DisplayText = "Trên 3 triệu", MinPrice = 3000000, MaxPrice = null }
                 };
         }
+
+
+        //ADMIN
+        // Lọc theo tên hoặc mã phòng
+        public async Task<IEnumerable<RoomReadDTO>> SearchRoomsAsync(string keyword)
+        {
+            IEnumerable<Room> rooms = await _roomDAO.SearchRoomsAsync(keyword);
+            return _mapper.Map<IEnumerable<RoomReadDTO>>(rooms);
+        }
+
     }
 }

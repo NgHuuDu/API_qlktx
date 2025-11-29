@@ -1,4 +1,5 @@
-﻿using DormitoryManagementSystem.Entity;
+﻿using DormitoryManagementSystem.DTO.Contracts;
+using DormitoryManagementSystem.Entity;
 
 namespace DormitoryManagementSystem.DAO.Interfaces
 {
@@ -22,5 +23,8 @@ namespace DormitoryManagementSystem.DAO.Interfaces
         //Mới thêm - lấy chi tiết hợp đồng - Student - Hồ sơ sinh viên
         Task<Contract?> GetContractDetailAsync(string studentId);
 
+        // Admin thêm chức năng lọc tên và mã sv
+        Task<IEnumerable<Contract>> GetContractsByFilterAsync(string SearchTerm);
+        Task<IEnumerable<Contract>> GetContractsByMultiConditionAsync(ContractFilterDTO filter);
     }
 }

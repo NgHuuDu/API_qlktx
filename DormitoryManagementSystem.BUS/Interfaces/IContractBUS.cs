@@ -9,7 +9,7 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         Task<ContractReadDTO?> GetContractByIDAsync(string id);
         Task<IEnumerable<ContractReadDTO>> GetContractsByStudentIDAsync(string studentId);
         Task<ContractReadDTO?> GetActiveContractByStudentIDAsync(string studentId);
-        Task<string> AddContractAsync(ContractCreateDTO dto);
+        Task<string> AddContractAsync(ContractCreateDTO dto, string staffUserID);
         Task UpdateContractAsync(string id, ContractUpdateDTO dto);
         Task DeleteContractAsync(string id);
 
@@ -24,6 +24,8 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         // Mới: Đăng ký hợp đồng (Sinh viên)
         Task<string> RegisterContractAsync(string studentId, ContractRegisterDTO dto);
 
-
+        // Admim them loc theo ten va ma sv
+        Task<IEnumerable<ContractReadDTO>> GetContractsAsync(string SearchTerm);
+        Task<IEnumerable<ContractReadDTO>> GetContractsByMultiConditionAsync(ContractFilterDTO filter);
     }
 }

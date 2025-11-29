@@ -46,5 +46,9 @@ namespace DormitoryManagementSystem.BUS.Interfaces
 
         IEnumerable<RoomPriceDTO> GetPriceRanges();
 
+        //ADMIN
+        // Lọc theo tên hoặc mã phòng
+        Task<IEnumerable<RoomReadDTO>> SearchRoomsAsync(string keyword);
+
     }
 }

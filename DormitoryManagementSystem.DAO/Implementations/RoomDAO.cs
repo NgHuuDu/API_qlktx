@@ -156,5 +156,24 @@ namespace DormitoryManagementSystem.DAO.Implementations
                 .ToListAsync();
         }
 
+        // ADMIN
+        // Tim kiem bang ten hoac ma phong
+        public async Task<IEnumerable<Room>> SearchRoomsAsync(string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword)) return new List<Room>();
+
+            string search = keyword.ToLower().Trim();
+            return await _context.Rooms
+                .AsNoTracking()
+                .Include(r => r.Building) // Include để hiển thị thông tin tòa nhà
+                .Where(r => r.Status != "Inactive") // Chỉ tìm phòng đang hoạt động
+                .Where(r =>
+                    r.Roomid.ToLower().Contains(search) ||
+                    r.Roomnumber.ToString().Contains(search)
+                )
+                .OrderBy(r => r.Roomnumber)
+                .ToListAsync();
+        }
+
     }
 }
