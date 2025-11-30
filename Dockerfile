@@ -17,7 +17,7 @@ COPY ["DormitoryManagementSystem.DTO/DormitoryManagementSystem.DTO.csproj", "Dor
 # COPY ["DormitoryManagementSystemV10.Entity/DormitoryManagementSystem.Entities.csproj", "DormitoryManagementSystemV10.Entity/"]
 
 # Trường hợp 2 (Khả năng cao): File .csproj cũng có V10 -> Giữ nguyên dòng này nhưng hãy chắc chắn file tồn tại
-COPY ["DormitoryManagementSystemV10.Entity/DormitoryManagementSystemV10.Entity.csproj", "DormitoryManagementSystemV10.Entity/"]
+COPY ["DormitoryManagementSystemV10.Entity/DormitoryManagementSystem.Entity.csproj", "DormitoryManagementSystemV10.Entity/"]
 
 # 4. Mappings
 COPY ["DormitoryManagementSystem.Mappings/DormitoryManagementSystem.Mappings.csproj", "DormitoryManagementSystem.Mappings/"]
