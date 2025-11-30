@@ -1,4 +1,5 @@
 using DormitoryManagementSystem.API.Models;
+using DormitoryManagementSystem.DTO.Admins;
 using DormitoryManagementSystem.DTO.Buildings;
 using DormitoryManagementSystem.DTO.Contracts;
 using DormitoryManagementSystem.DTO.Payments;
@@ -24,17 +25,16 @@ namespace DormitoryManagementSystem.GUI.Services
         public static async Task<LoginResponse?> LoginAsync(LoginRequest request)
         {
             try
+        {
+            var response = await HttpService.Client.PostAsJsonAsync("api/auth/login", request, JsonOptions);
+            if (!response.IsSuccessStatusCode)
             {
-                var response = await HttpService.Client.PostAsJsonAsync("api/auth/login", request, JsonOptions);
-                if (!response.IsSuccessStatusCode)
-                {
                     string errorMessage = "Không thể đăng nhập";
                     try
                     {
                         var errorContent = await response.Content.ReadAsStringAsync();
                         if (!string.IsNullOrWhiteSpace(errorContent))
                         {
-                            // Try to parse as JSON error object
                             try
                             {
                                 var errorObj = JsonSerializer.Deserialize<Dictionary<string, object>>(errorContent, JsonOptions);
@@ -59,24 +59,24 @@ namespace DormitoryManagementSystem.GUI.Services
                     }
 
                     return new LoginResponse
-                    {
-                        IsSuccess = false,
+                {
+                    IsSuccess = false,
                         Message = errorMessage
-                    };
-                }
+                };
+            }
 
                 var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>(JsonOptions);
-                if (loginResponse?.IsSuccess == true && loginResponse.User != null)
-                {
-                    var session = new UserSession(
-                        loginResponse.User.UserId,
-                        loginResponse.User.Username,
-                        loginResponse.User.Role);
-                    GlobalState.SetUser(session, loginResponse.Token);
-                    HttpService.SetAuthorization(loginResponse.Token);
-                }
+            if (loginResponse?.IsSuccess == true && loginResponse.User != null)
+            {
+                var session = new UserSession(
+                    loginResponse.User.UserId,
+                    loginResponse.User.Username,
+                    loginResponse.User.Role);
+                GlobalState.SetUser(session, loginResponse.Token);
+                HttpService.SetAuthorization(loginResponse.Token);
+            }
 
-                return loginResponse;
+            return loginResponse;
             }
             catch (System.Net.Http.HttpRequestException ex)
             {
@@ -148,6 +148,23 @@ namespace DormitoryManagementSystem.GUI.Services
             return rooms.Select(MapRoom).ToList();
         }
 
+        public static async Task<RoomReadDTO?> GetRoomByIdAsync(string roomId)
+        {
+            try
+            {
+                var response = await HttpService.Client.GetAsync($"api/room/{roomId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<RoomReadDTO>(JsonOptions);
+                }
+            }
+            catch (Exception)
+            {
+                // Xử lý lỗi
+            }
+            return null;
+        }
+
         public static async Task<BuildingKpiResponse> GetBuildingKPIsAsync()
         {
             return await HttpService.Client.GetFromJsonAsync<BuildingKpiResponse>("api/dashboard/buildings", JsonOptions)
@@ -167,6 +184,19 @@ namespace DormitoryManagementSystem.GUI.Services
             }
         }
 
+        public static async Task<List<AdminReadDTO>> GetAdminsAsync()
+        {
+            try
+            {
+                var admins = await HttpService.Client.GetFromJsonAsync<List<AdminReadDTO>>("api/admin", JsonOptions);
+                return admins ?? new List<AdminReadDTO>();
+            }
+            catch
+            {
+                return new List<AdminReadDTO>();
+            }
+        }
+
         public static async Task<List<ContractResponse>> GetContractsAsync(string status, string search)
         {
             var query = BuildQuery(
@@ -179,6 +209,67 @@ namespace DormitoryManagementSystem.GUI.Services
             return contracts?.Select(MapContract).ToList() ?? new List<ContractResponse>();
         }
 
+        public static async Task<ContractReadDTO?> GetContractByIdAsync(string contractId)
+        {
+            try
+            {
+                var response = await HttpService.Client.GetAsync($"api/contracts/{contractId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<ContractReadDTO>(JsonOptions);
+                }
+            }
+            catch (Exception)
+            {
+                // Handle error
+            }
+            return null;
+        }
+
+        public static async Task<(bool success, string? errorMessage)> UpdateContractAsync(string contractId, ContractUpdateDTO dto)
+        {
+            try
+            {
+                var response = await HttpService.Client.PutAsJsonAsync($"api/contracts/{contractId}", dto, JsonOptions);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, null);
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    return (false, errorContent);
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
+        public static async Task<(bool success, string? errorMessage)> DeleteContractAsync(string contractId)
+        {
+            try
+            {
+                var response = await HttpService.Client.DeleteAsync($"api/contracts/{contractId}");
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, null);
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    return (false, errorContent);
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
         private static ContractResponse MapContract(ContractReadDTO dto)
         {
             return new ContractResponse
@@ -186,10 +277,13 @@ namespace DormitoryManagementSystem.GUI.Services
                 ContractId = dto.ContractID,
                 StudentId = dto.StudentID,
                 StudentName = dto.StudentName,
+                RoomId = dto.RoomID,
                 RoomNumber = dto.RoomNumber,
+                StaffUserID = dto.StaffUserID,
                 StartDate = dto.StartTime.ToDateTime(TimeOnly.MinValue),
                 EndDate = dto.EndTime.ToDateTime(TimeOnly.MinValue),
-                Status = dto.Status
+                Status = dto.Status,
+                CreatedDate = dto.CreatedDate
             };
         }
 
@@ -201,7 +295,7 @@ namespace DormitoryManagementSystem.GUI.Services
 
             if (contracts == null) return new List<PendingContractResponse>();
 
-            // Load rooms để map MonthlyFee
+            // Tải danh sách phòng MonthlyFee
             var roomsResponse = await HttpService.Client.GetFromJsonAsync<List<RoomReadDTO>>(
                 "api/room", JsonOptions);
             var roomLookup = roomsResponse?.ToDictionary(r => r.RoomID, r => r.Price, StringComparer.OrdinalIgnoreCase)
@@ -251,7 +345,7 @@ namespace DormitoryManagementSystem.GUI.Services
 
             if (payments == null) return new List<PaymentResponse>();
 
-            // Load contracts để map thông tin student và room
+            // Tải danh sách hợp đồng để thông tin sinh viên và phòng
             var contractsResponse = await HttpService.Client.GetFromJsonAsync<List<ContractReadDTO>>(
                 "api/contracts", JsonOptions);
             var contractLookup = contractsResponse?.ToDictionary(c => c.ContractID, StringComparer.OrdinalIgnoreCase) 
@@ -267,15 +361,25 @@ namespace DormitoryManagementSystem.GUI.Services
             {
                 Id = payment.PaymentID,
                 BillCode = payment.PaymentID,
+                PaymentID = payment.PaymentID,
+                ContractID = payment.ContractID,
+                BillMonth = payment.BillMonth,
+                PaymentAmount = payment.PaymentAmount,
+                PaidAmount = payment.PaidAmount,
+                PaymentDate = payment.PaymentDate,
+                PaymentMethod = payment.PaymentMethod,
+                PaymentStatus = payment.PaymentStatus,
+                Description = payment.Description,
                 StudentId = contract?.StudentID ?? string.Empty,
                 StudentName = contract?.StudentName ?? string.Empty,
                 RoomNumber = contract?.RoomNumber ?? string.Empty,
                 Month = payment.BillMonth,
                 Year = payment.PaymentDate.Year,
                 TotalAmount = payment.PaymentAmount,
-                PaidAmount = payment.PaidAmount,
-                PaymentDate = payment.PaymentStatus.Equals("Paid", StringComparison.OrdinalIgnoreCase) ? payment.PaymentDate : null,
-                Status = payment.PaymentStatus.Equals("Paid", StringComparison.OrdinalIgnoreCase) ? "Đã thanh toán" : "Chờ thanh toán"
+                Status = payment.PaymentStatus.Equals("Paid", StringComparison.OrdinalIgnoreCase) ? "Đã thanh toán" : 
+                        payment.PaymentStatus.Equals("Unpaid", StringComparison.OrdinalIgnoreCase) ? "Chờ thanh toán" :
+                        payment.PaymentStatus.Equals("Late", StringComparison.OrdinalIgnoreCase) ? "Quá hạn" :
+                        payment.PaymentStatus
             };
         }
 
@@ -303,7 +407,7 @@ namespace DormitoryManagementSystem.GUI.Services
 
             if (violations == null) return new List<ViolationResponse>();
 
-            // Load rooms để map room number
+            // Tải danh sách phòng để thông tin số phòng
             var roomsResponse = await HttpService.Client.GetFromJsonAsync<List<RoomReadDTO>>(
                 "api/room", JsonOptions);
             var roomLookup = roomsResponse?.ToDictionary(r => r.RoomID, r => r.RoomNumber.ToString(), StringComparer.OrdinalIgnoreCase)
@@ -320,9 +424,12 @@ namespace DormitoryManagementSystem.GUI.Services
                 ViolationId = dto.ViolationID,
                 StudentId = dto.StudentID ?? string.Empty,
                 StudentName = dto.StudentName ?? dto.StudentID ?? string.Empty,
+                RoomID = dto.RoomID,
                 RoomNumber = roomNumber ?? dto.RoomID,
+                ReportedByUserID = dto.ReportedByUserID,
                 ViolationType = dto.ViolationType,
-                ReportDate = dto.ViolationDate,
+                ViolationDate = dto.ViolationDate,
+                PenaltyFee = dto.PenaltyFee,
                 Status = dto.Status
             };
         }
@@ -380,7 +487,7 @@ namespace DormitoryManagementSystem.GUI.Services
             return activities ?? new List<ActivityResponse>();
         }
 
-        // Create methods
+        // Các phương thức tạo mới
         public static async Task<(bool Success, string? ErrorMessage)> CreateRoomAsync(RoomCreateDTO dto)
         {
             try
@@ -391,65 +498,105 @@ namespace DormitoryManagementSystem.GUI.Services
                     return (true, null);
                 }
                 
-                string errorMessage = "Thêm phòng thất bại";
-                try
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    if (!string.IsNullOrWhiteSpace(errorContent))
-                    {
-                        try
-                        {
-                            var errorObj = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(errorContent, JsonOptions);
-                            if (errorObj != null && errorObj.ContainsKey("message"))
-                            {
-                                errorMessage = errorObj["message"]?.ToString() ?? errorMessage;
-                            }
-                            else
-                            {
-                                errorMessage = errorContent.Trim('"');
-                            }
-                        }
-                        catch
-                        {
-                            errorMessage = errorContent.Trim('"');
-                        }
-                    }
-                }
-                catch
-                {
-                    errorMessage = $"Lỗi: {response.StatusCode}";
-                }
-                
+                var errorMessage = await ExtractErrorMessageAsync(response, "Thêm phòng thất bại");
                 return (false, errorMessage);
-            }
-            catch (System.Net.Http.HttpRequestException ex)
-            {
-                return (false, $"Không thể kết nối đến máy chủ: {ex.Message}");
-            }
-            catch (System.Net.Sockets.SocketException ex)
-            {
-                return (false, $"Không thể kết nối đến máy chủ. API có thể chưa chạy: {ex.Message}");
-            }
-            catch (TaskCanceledException)
-            {
-                return (false, "Kết nối bị timeout. Vui lòng thử lại sau.");
             }
             catch (Exception ex)
             {
-                return (false, $"Lỗi: {ex.Message}");
+                return HandleHttpException(ex);
             }
         }
 
-        public static async Task<bool> CreatePaymentAsync(PaymentCreateDTO dto)
+        public static async Task<(bool Success, string? ErrorMessage)> UpdateRoomAsync(string roomId, RoomUpdateDTO dto)
+        {
+            try
+            {
+                var response = await HttpService.Client.PutAsJsonAsync($"api/room/{roomId}", dto, JsonOptions);
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, null);
+                }
+                
+                var errorMessage = await ExtractErrorMessageAsync(response, "Cập nhật phòng thất bại");
+                return (false, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                return HandleHttpException(ex);
+            }
+        }
+
+        public static async Task<(bool Success, string? ErrorMessage)> DeleteRoomAsync(string roomId)
+        {
+            try
+            {
+                var response = await HttpService.Client.DeleteAsync($"api/room/{roomId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, null);
+                }
+                
+                var errorMessage = await ExtractErrorMessageAsync(response, "Xóa phòng thất bại");
+                return (false, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                return HandleHttpException(ex);
+            }
+        }
+
+        public static async Task<PaymentReadDTO?> GetPaymentByIdAsync(string paymentId)
+        {
+            try
+            {
+                var response = await HttpService.Client.GetAsync($"api/payments/{paymentId}");
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<PaymentReadDTO>(JsonOptions);
+                }
+            }
+            catch (Exception)
+            {
+                // Xử lý lỗi
+            }
+            return null;
+        }
+
+        public static async Task<(bool Success, string? ErrorMessage)> CreatePaymentAsync(PaymentCreateDTO dto)
         {
             try
             {
                 var response = await HttpService.Client.PostAsJsonAsync("api/payments", dto, JsonOptions);
-                return response.IsSuccessStatusCode;
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, null);
+                }
+                
+                var errorMessage = await ExtractErrorMessageAsync(response, "Tạo thanh toán thất bại");
+                return (false, errorMessage);
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                return HandleHttpException(ex);
+            }
+        }
+
+        public static async Task<(bool Success, string? ErrorMessage)> UpdatePaymentAsync(string paymentId, PaymentUpdateDTO dto)
+        {
+            try
+            {
+                var response = await HttpService.Client.PutAsJsonAsync($"api/payments/{paymentId}", dto, JsonOptions);
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, null);
+            }
+                
+                var errorMessage = await ExtractErrorMessageAsync(response, "Cập nhật thanh toán thất bại");
+                return (false, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                return HandleHttpException(ex);
             }
         }
 
@@ -466,16 +613,56 @@ namespace DormitoryManagementSystem.GUI.Services
             }
         }
 
-        public static async Task<bool> CreateContractAsync(ContractCreateDTO dto)
+        public static async Task<ViolationReadDTO?> GetViolationByIdAsync(string id)
+        {
+            try
+            {
+                return await HttpService.Client.GetFromJsonAsync<ViolationReadDTO>($"api/violations/{id}", JsonOptions);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static async Task<(bool Success, string? ErrorMessage)> UpdateViolationAsync(string id, ViolationUpdateDTO dto)
+        {
+            try
+            {
+                var response = await HttpService.Client.PutAsJsonAsync($"api/violations/{id}", dto, JsonOptions);
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, null);
+                }
+                
+                var errorMessage = await ExtractErrorMessageAsync(response, "Cập nhật vi phạm thất bại");
+                return (false, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                return HandleHttpException(ex);
+            }
+        }
+
+        public static async Task<(bool success, string? errorMessage)> CreateContractAsync(ContractCreateDTO dto)
         {
             try
             {
                 var response = await HttpService.Client.PostAsJsonAsync("api/contracts", dto, JsonOptions);
-                return response.IsSuccessStatusCode;
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, null);
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    return (false, errorContent);
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                return (false, ex.Message);
             }
         }
 
@@ -531,6 +718,46 @@ namespace DormitoryManagementSystem.GUI.Services
                 <= 6 => "Phòng 6",
                 _ => $"Phòng {capacity}"
             };
+
+        private static async Task<string> ExtractErrorMessageAsync(System.Net.Http.HttpResponseMessage response, string defaultMessage)
+        {
+            try
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                if (!string.IsNullOrWhiteSpace(errorContent))
+                {
+                    try
+                    {
+                        var errorObj = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(errorContent, JsonOptions);
+                        if (errorObj != null && errorObj.ContainsKey("message"))
+                        {
+                            return errorObj["message"]?.ToString() ?? defaultMessage;
+                        }
+                        return errorContent.Trim('"');
+                    }
+                    catch
+                    {
+                        return errorContent.Trim('"');
+                    }
+                }
+            }
+            catch
+            {
+                // Bỏ qua
+            }
+            return $"Lỗi: {response.StatusCode}";
+        }
+
+        private static (bool Success, string? ErrorMessage) HandleHttpException(Exception ex)
+        {
+            return ex switch
+            {
+                System.Net.Http.HttpRequestException httpEx => (false, $"Không thể kết nối đến máy chủ: {httpEx.Message}"),
+                System.Net.Sockets.SocketException socketEx => (false, $"Không thể kết nối đến máy chủ. API có thể chưa chạy: {socketEx.Message}"),
+                TaskCanceledException => (false, "Kết nối bị timeout. Vui lòng thử lại sau."),
+                _ => (false, $"Lỗi: {ex.Message}")
+            };
+        }
     }
 }
 

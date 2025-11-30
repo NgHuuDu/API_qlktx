@@ -65,11 +65,12 @@ builder.Services.AddScoped<IStatisticsBUS, StatisticsBUS>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-
-app.UseSwagger();
-app.UseSwaggerUI();
-
+// Cấu hình pipeline xử lý HTTP request
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseCors("AllowAll");
 

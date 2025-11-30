@@ -29,7 +29,8 @@ namespace DormitoryManagementSystem.GUI.Forms
             var loginRequest = new LoginRequest
             {
                 Username = username,
-                Password = password
+                Password = password,
+                Role = "Admin"
             };
 
             try
