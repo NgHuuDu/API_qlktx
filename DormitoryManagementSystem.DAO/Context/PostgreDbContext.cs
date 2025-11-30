@@ -96,6 +96,7 @@ public partial class PostgreDbContext : DbContext
                 .HasColumnName("buildingid");
             entity.Property(e => e.Buildingname)
                 .HasMaxLength(50)
+                .IsRequired()
                 .HasColumnName("buildingname");
             entity.Property(e => e.Currentoccupancy)
                 .HasDefaultValue(0)
@@ -103,7 +104,9 @@ public partial class PostgreDbContext : DbContext
             entity.Property(e => e.Gendertype)
                 .HasMaxLength(10)
                 .HasColumnName("gendertype");
-            entity.Property(e => e.Numberofroom).HasColumnName("numberofroom");
+            entity.Property(e => e.Numberofroom)
+                .IsRequired()
+                .HasColumnName("numberofroom");
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("isactive");
@@ -208,6 +211,7 @@ public partial class PostgreDbContext : DbContext
                 .HasColumnName("description");
             entity.Property(e => e.Paidamount)
                 .HasPrecision(10, 2)
+                .HasDefaultValue(0)
                 .HasColumnName("paidamount");
             entity.Property(e => e.Paymentamount)
                 .HasPrecision(10, 2)

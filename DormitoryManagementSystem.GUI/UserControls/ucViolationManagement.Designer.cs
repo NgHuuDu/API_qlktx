@@ -16,7 +16,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
                 // Cleanup timers and cancellation tokens
                 cancellationTokenSource?.Cancel();
                 cancellationTokenSource?.Dispose();
-                filterTimer?.Dispose();
+                searchTimer?.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -28,7 +28,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlFilters = new Panel();
             btnAddViolation = new Button();
             btnFilter = new Button();
-            cmbFilterStatus = new ComboBox();
+            btnSearch = new Button();
             txtSearch = new TextBox();
             pnlKPICards = new Panel();
             cardUnprocessed = new Panel();
@@ -58,7 +58,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlFilters.BorderStyle = BorderStyle.FixedSingle;
             pnlFilters.Controls.Add(btnAddViolation);
             pnlFilters.Controls.Add(btnFilter);
-            pnlFilters.Controls.Add(cmbFilterStatus);
+            pnlFilters.Controls.Add(btnSearch);
             pnlFilters.Controls.Add(txtSearch);
             pnlFilters.Dock = DockStyle.Top;
             pnlFilters.Location = new Point(13, 15);
@@ -102,28 +102,33 @@ namespace DormitoryManagementSystem.GUI.UserControls
             btnFilter.UseVisualStyleBackColor = false;
             btnFilter.Click += btnFilter_Click;
             // 
-            // cmbFilterStatus
-            // 
-            cmbFilterStatus.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            cmbFilterStatus.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbFilterStatus.Font = new Font("Segoe UI", 13F);
-            cmbFilterStatus.Items.AddRange(new object[] { "Tất cả trạng thái", "Chưa xử lý", "Đã xử lý" });
-            cmbFilterStatus.Location = new Point(912, 29);
-            cmbFilterStatus.Margin = new Padding(4, 5, 4, 5);
-            cmbFilterStatus.Name = "cmbFilterStatus";
-            cmbFilterStatus.Size = new Size(225, 44);
-            cmbFilterStatus.TabIndex = 2;
-            // 
             // txtSearch
             // 
-            txtSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             txtSearch.Font = new Font("Segoe UI", 13F);
             txtSearch.Location = new Point(17, 31);
             txtSearch.Margin = new Padding(4, 5, 4, 5);
             txtSearch.Name = "txtSearch";
             txtSearch.PlaceholderText = "Tìm kiếm theo mã/tên SV...";
-            txtSearch.Size = new Size(724, 42);
+            txtSearch.Size = new Size(1000, 42);
             txtSearch.TabIndex = 0;
+            // 
+            // btnSearch
+            // 
+            btnSearch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnSearch.BackColor = Color.FromArgb(102, 118, 239);
+            btnSearch.FlatAppearance.BorderSize = 0;
+            btnSearch.FlatStyle = FlatStyle.Flat;
+            btnSearch.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
+            btnSearch.ForeColor = Color.White;
+            btnSearch.Location = new Point(1030, 30);
+            btnSearch.Margin = new Padding(4, 5, 4, 5);
+            btnSearch.Name = "btnSearch";
+            btnSearch.Size = new Size(133, 42);
+            btnSearch.TabIndex = 5;
+            btnSearch.Text = "Tìm";
+            btnSearch.UseVisualStyleBackColor = false;
+            btnSearch.Click += btnSearch_Click;
             // 
             // pnlKPICards
             // 
@@ -343,7 +348,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
         private System.Windows.Forms.Panel pnlFilters;
         private System.Windows.Forms.Button btnAddViolation;
         private System.Windows.Forms.Button btnFilter;
-        private System.Windows.Forms.ComboBox cmbFilterStatus;
+        private System.Windows.Forms.Button btnSearch;
         private System.Windows.Forms.TextBox txtSearch;
         private System.Windows.Forms.Panel pnlKPICards;
         private System.Windows.Forms.Panel cardUnprocessed;

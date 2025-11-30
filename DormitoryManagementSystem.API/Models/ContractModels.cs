@@ -7,10 +7,13 @@ namespace DormitoryManagementSystem.API.Models
         public string ContractId { get; set; } = string.Empty;
         public string StudentId { get; set; } = string.Empty;
         public string StudentName { get; set; } = string.Empty;
+        public string? RoomId { get; set; }
         public string RoomNumber { get; set; } = string.Empty;
+        public string? StaffUserID { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Status { get; set; } = string.Empty;
+        public DateTime CreatedDate { get; set; }
     }
 
     public class PendingContractResponse

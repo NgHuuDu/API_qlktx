@@ -99,15 +99,20 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblOccupancy.Location = new Point(padding, padding + 84);
 
             int progressBarY = height - padding - 20;
-            int progressBarWidth = width - (padding * 2);
+            int progressBarWidth = Math.Max(100, width - (padding * 2));
+            
+            prg.Anchor = AnchorStyles.None;
             prg.Location = new Point(padding, progressBarY);
             prg.Size = new Size(progressBarWidth, 20);
+            prg.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             prg.BringToFront();
         }
 
         private async void ucRoomManagement_Load(object sender, EventArgs e)
         {
             this.mainForm = this.FindForm();
+            cmbFilterBuilding.SelectedIndex = 0;
+            cmbFilterStatus.SelectedIndex = 0;
             SetupGridColumns();
             await RefreshDataAsync();
         }
@@ -115,6 +120,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
         private void SetupGridColumns()
         {
             dgvRooms.Columns.Clear();
+            dgvRooms.ReadOnly = true;
             dgvRooms.Columns.Add("RoomId", "Mã phòng");
             dgvRooms.Columns.Add("RoomNumber", "Số phòng");
             dgvRooms.Columns.Add("Building", "Tòa");
@@ -123,8 +129,42 @@ namespace DormitoryManagementSystem.GUI.UserControls
             dgvRooms.Columns.Add("Status", "Trạng thái");
             dgvRooms.Columns.Add("Price", "Giá");
 
+            var btnColumn = new DataGridViewButtonColumn
+            {
+                Name = "Detail",
+                HeaderText = "Thao tác",
+                Text = "Chi tiết",
+                UseColumnTextForButtonValue = true,
+                Width = 100
+            };
+            dgvRooms.Columns.Add(btnColumn);
+
             dgvRooms.Columns["Price"].DefaultCellStyle.Format = "C0";
             dgvRooms.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvRooms.CellContentClick += DgvRooms_CellContentClick;
+        }
+
+        private void DgvRooms_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            
+            if (dgvRooms.Columns[e.ColumnIndex].Name == "Detail")
+            {
+                string roomId = dgvRooms.Rows[e.RowIndex].Cells["RoomId"].Value?.ToString() ?? string.Empty;
+                if (!string.IsNullOrEmpty(roomId))
+                {
+                    ShowRoomDetail(roomId);
+                }
+            }
+        }
+
+        private void ShowRoomDetail(string roomId)
+        {
+            using var form = new Forms.frmRoomDetail(roomId);
+            if (form.ShowDialog() == DialogResult.OK && form.IsSuccess)
+            {
+                RefreshDataAsync();
+            }
         }
 
         private async Task LoadDataAsync()
@@ -258,6 +298,8 @@ namespace DormitoryManagementSystem.GUI.UserControls
                     var (card, lblBuilding, lblGender, lblFloors, lblOccupancy, prg) = buildingCards[i];
                     UpdateBuildingCard(card, lblBuilding, lblGender, lblFloors, lblOccupancy, prg, buildings[i]);
                 }
+
+                ArrangeKPICards();
             }
             catch (Exception ex)
             {
@@ -270,13 +312,17 @@ namespace DormitoryManagementSystem.GUI.UserControls
 
         private static void UpdateBuildingCard(Panel card, Label lblBuilding, Label lblGender, Label lblFloors, Label lblOccupancy, ProgressBar prg, BuildingKpiModel building)
         {
-            lblBuilding.Text = building.BuildingName;
-            lblGender.Text = building.Gender;
+            if (building == null) return;
+
+            lblBuilding.Text = building.BuildingName ?? "N/A";
+            lblGender.Text = building.Gender ?? "N/A";
             lblFloors.Text = $"{building.Floors} tầng";
             lblOccupancy.Text = $"{building.OccupiedRooms}/{building.TotalRooms}";
             
             prg.Maximum = 100;
-            prg.Value = (int)Math.Round(building.OccupancyRate);
+            prg.Minimum = 0;
+            int occupancyValue = (int)Math.Round(building.OccupancyRate);
+            prg.Value = Math.Max(0, Math.Min(100, occupancyValue));
             prg.Style = ProgressBarStyle.Continuous;
         }
 

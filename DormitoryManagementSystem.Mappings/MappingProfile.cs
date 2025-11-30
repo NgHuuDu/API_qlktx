@@ -34,7 +34,12 @@ namespace DormitoryManagementSystem.Mappings
 
             CreateMap<RoomCreateDTO, Room>();
             CreateMap<RoomUpdateDTO, Room>()
-                .ForMember(dest => dest.Roomid, opt => opt.Ignore());
+                .ForMember(dest => dest.Roomid, opt => opt.Ignore())
+                .ForMember(dest => dest.Roomnumber, opt => opt.MapFrom(src => src.RoomNumber))
+                .ForMember(dest => dest.Buildingid, opt => opt.MapFrom(src => src.BuildingID))
+                .ForMember(dest => dest.Allowcooking, opt => opt.MapFrom(src => src.AllowCooking))
+                .ForMember(dest => dest.Airconditioner, opt => opt.MapFrom(src => src.AirConditioner))
+                .ForMember(dest => dest.Currentoccupancy, opt => opt.Ignore()); 
 
 
             // ==========================================

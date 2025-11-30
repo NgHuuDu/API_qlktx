@@ -30,4 +30,3 @@ namespace DormitoryManagementSystem.API.Controllers
         }
     }
 }
-
