@@ -113,12 +113,6 @@ public class RoomController : ControllerBase
 
 
 
-
-
-
-
-
-
     // ---------------------------------------------------------
     // KHU VỰC API CHUNG CHO ADMIN VÀ STUDENT
     // ---------------------------------------------------------
@@ -155,7 +149,7 @@ public class RoomController : ControllerBase
         }
         try
         {
-            var newRoom = _roomBUS.AddRoomAsync(dto);
+            await _roomBUS.AddRoomAsync(dto);
             return Ok(new { message = "Thêm phòng thành công!"});
         }
         catch(Exception ex) 
