@@ -124,5 +124,111 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             await _roomDAO.DeleteRoomAsync(id);
         }
+
+
+
+
+
+
+        //student
+        //Mới - từ thằng này trở xuống là mới
+        public async Task<IEnumerable<RoomDetailDTO>> SearchRoomInCardAsync(
+            string? buildingName,
+            int? roomNumber,
+            int? capacity,
+            decimal? minPrice,
+            decimal? maxPrice,
+            bool? allowCooking,   
+            bool? airConditioner)  
+        {
+            var rooms = await _roomDAO.GetRoomsByFilterAsync(
+                buildingName, roomNumber, capacity, minPrice,maxPrice, allowCooking, airConditioner);
+
+            var result = rooms.Select(room => new RoomDetailDTO
+            {
+                RoomID = room.Roomid,
+                RoomNumber = room.Roomnumber,
+                BuildingName = room.Building.Buildingname,
+                Capacity = room.Capacity,
+                CurrentOccupancy = room.Currentoccupancy ?? 0,
+                Price = room.Price,
+                Status = room.Status ?? "Unknown",
+                AllowCooking = room.Allowcooking ?? false,
+                AirConditioner = room.Airconditioner ?? false
+            });
+
+            return result;
+        }
+
+         public async Task<IEnumerable<RoomGridDTO>> SearchRoomInGridAsync(
+              string? buildingId,
+             int? roomNumber,
+             int? capacity,
+             decimal? minPrice,
+             decimal? maxPrice
+             
+              )
+         {
+            var rooms = await _roomDAO.GetRoomsByFilterAsync(
+               buildingId, roomNumber, capacity, minPrice,maxPrice,null,null);
+
+            var result = rooms.Select(room => new RoomGridDTO
+            {
+                RoomID = room.Roomid,
+                RoomNumber = room.Roomnumber,
+                BuildingName = room.Building.Buildingname,
+                Capacity = room.Capacity,
+                CurrentOccupancy = room.Currentoccupancy ?? 0,
+                Status = room.Status ?? "Unknown",
+               
+            });
+            return result;
+        }
+
+
+      
+
+        public async Task<RoomDetailDTO?> GetRoomDetailByIDAsync(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                throw new ArgumentException("Room ID cannot be empty");
+
+            var room = await _roomDAO.GetRoomDetailByIDAsync(id);
+
+            if (room == null) return null;
+
+            return new RoomDetailDTO
+            {
+                RoomID = room.Roomid,
+                RoomNumber = room.Roomnumber,
+                BuildingName = room.Building.Buildingname, 
+                Capacity = room.Capacity,
+                CurrentOccupancy = room.Currentoccupancy ?? 0, 
+                Price = room.Price,
+                Status = room.Status ?? "Unknown",
+                AllowCooking = room.Allowcooking ?? false,     
+                AirConditioner = room.Airconditioner ?? false  
+            };
+        }
+
+
+
+        public async Task<IEnumerable<int>> GetRoomCapacitiesAsync()
+        {
+            return await _roomDAO.GetDistinctCapacitiesAsync();
+        }
+
+        
+        public IEnumerable<RoomPriceDTO> GetPriceRanges()
+        {
+            return new List<RoomPriceDTO>
+                {
+                    new RoomPriceDTO { DisplayText = "Tất cả", MinPrice = null, MaxPrice = null },
+                    new RoomPriceDTO { DisplayText = "Dưới 1 triệu", MinPrice = 0, MaxPrice = 1000000 },
+                    new RoomPriceDTO { DisplayText = "1 - 2 triệu", MinPrice = 1000000, MaxPrice = 2000000 },
+                    new RoomPriceDTO { DisplayText = "2 - 3 triệu", MinPrice = 2000000, MaxPrice = 3000000 },
+                    new RoomPriceDTO { DisplayText = "Trên 3 triệu", MinPrice = 3000000, MaxPrice = null }
+                };
+        }
     }
 }

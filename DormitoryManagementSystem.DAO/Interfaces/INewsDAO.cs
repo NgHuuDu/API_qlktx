@@ -10,5 +10,9 @@ namespace DormitoryManagementSystem.DAO.Interfaces
         public Task AddNewsAsync(News newNews);
         public Task UpdateNewsAsync(News newNews);
         public Task DeleteNewsAsync(string id);
+
+        //Mới thêm - Lấy danh sách tin tức nhẹ
+        public Task<IEnumerable<News>> GetNewsSummariesAsync();
+
     }
 }

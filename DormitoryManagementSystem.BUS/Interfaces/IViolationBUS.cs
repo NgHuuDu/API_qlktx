@@ -12,5 +12,17 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         Task<string> AddViolationAsync(ViolationCreateDTO dto);
         Task UpdateViolationAsync(string id, ViolationUpdateDTO dto);
         Task DeleteViolationAsync(string id);
+
+
+
+
+        //Student
+        //Mới thêm cho bản sinh viên thấy violation của mình
+        Task<IEnumerable<ViolationGridDTO>> GetViolationsWithFilterAsync(string? status, string? studentId);
+
+
+        //Admin
+        //Dùng để lọc và tìm kiếm vi phạm cho admin
+        Task<IEnumerable<ViolationAdminDTO>> GetViolationsForAdminAsync(string? search, string? status, string? roomId);
     }
 }

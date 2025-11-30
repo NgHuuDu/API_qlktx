@@ -128,5 +128,98 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             await _paymentDAO.RemovePaymentAsync(id);
         }
+
+
+
+
+        //Student
+        // Lấy các hóa đơn  của SV dựa trên trạng thái 
+        public async Task<IEnumerable<PaymentListDTO>> GetPaymentsByStudentAndStatusAsync(string studentId, string? status)
+        {
+          
+            var payments = await _paymentDAO.GetPaymentsByStudentAndStatusAsync(studentId, status);
+
+           
+            var result = payments.Select(p => new PaymentListDTO
+            {
+                PaymentID = p.Paymentid,
+
+                BillMonth = p.Billmonth,
+
+                PaymentAmount = p.Paymentamount,
+
+                PaymentStatus = p.Paymentstatus ?? "Unknown",
+
+                Description = p.Description ?? "",
+
+                PaymentDate = p.Paymentdate
+            });
+
+            return result;
+        }
+        // Admin
+        // Lấy các hóa đơn với bộ lọc cho Admin
+        public async Task<IEnumerable<PaymentAdminDTO>> GetPaymentsForAdminAsync(
+        int? month, string? status, string? building, string? search)
+            {
+            var payments = await _paymentDAO.GetPaymentsForAdminAsync(month, status, building, search);
+
+            return payments.Select(p => new PaymentAdminDTO
+            {
+                PaymentID = p.Paymentid,
+                ContractID = p.Contractid,
+
+                StudentID = p.Contract.Studentid,
+                StudentName = p.Contract.Student?.Fullname ?? "Unknown",
+                RoomName = p.Contract.Room?.Roomnumber.ToString() ?? "N/A",
+
+                BillMonth = p.Billmonth,
+                PaymentAmount = p.Paymentamount,
+                PaymentStatus = p.Paymentstatus ?? "Unpaid",
+                PaymentDate = p.Paymentdate,
+                PaymentMethod = p.Paymentmethod
+            });
+        }
+
+
+        // Xác nhận thanh toán
+        public async Task ConfirmPaymentAsync(string id, PaymentConfirmDTO dto)
+        {
+            //  Tìm hóa đơn
+            var payment = await _paymentDAO.GetPaymentByIDAsync(id);
+            if (payment == null)
+                throw new KeyNotFoundException($"Không tìm thấy hóa đơn {id}");
+
+            if (payment.Paymentstatus == "Paid")
+                throw new InvalidOperationException("Hóa đơn này đã thanh toán rồi.");
+
+            // Cập nhật thông tin QUAN TRỌNG
+            payment.Paymentstatus = "Paid";
+            payment.Paymentdate = DateTime.Now; // Ngày giờ thực tế admin bấm nút
+
+            // Cập nhật Phương thức (Cash/Bank Transfer) lấy từ DTO
+            payment.Paymentmethod = dto.PaymentMethod;
+
+            // Xử lý Ghi chú (Lưu mã giao dịch)
+            // Nếu có Note thì nối thêm vào Description cũ (hoặc ghi đè tùy bạn)
+            if (!string.IsNullOrEmpty(dto.Note))
+            {
+                // Ví dụ: "Tiền điện T9 (Mã CK: 123456789)"
+                payment.Description = string.IsNullOrEmpty(payment.Description)
+                    ? dto.Note
+                    : $"{payment.Description} | Note: {dto.Note}";
+            }
+
+            // Tự động set Full tiền (vì xác nhận là đã trả hết)
+            if (payment.Paidamount < payment.Paymentamount)
+            {
+                payment.Paidamount = payment.Paymentamount;
+            }
+
+            await _paymentDAO.UpdatePaymentAsync(payment);
+        }
+
+        // Thống kê thanh toán
+     
     }
 }

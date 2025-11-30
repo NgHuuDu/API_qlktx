@@ -53,5 +53,17 @@ namespace DormitoryManagementSystem.DAO.Implementations
             _context.News.Update(n);
             await _context.SaveChangesAsync();
         }
+
+
+        //Mới thêm - Lấy danh sách tóm tắt tin tức
+        public async Task<IEnumerable<News>> GetNewsSummariesAsync()
+        {
+
+            return await _context.News
+                .AsNoTracking()
+                .Where(n => n.Isvisible == true)
+                .OrderByDescending(n => n.Publisheddate) // Mới nhất lên đầu
+                .ToListAsync();
+        }
     }
 }

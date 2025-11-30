@@ -35,8 +35,15 @@ public partial class PostgreDbContext : DbContext
     public virtual DbSet<Violation> Violations { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=localhost;Database=QL_KTX_V10;Username=postgres;Password=Abc123");
+    {
+        // Connection string được cấu hình từ Program.cs qua Dependency Injection
+        // Không cần hardcode ở đây nữa để đảm bảo bảo mật và dễ quản lý
+        if (!optionsBuilder.IsConfigured)
+        {
+            // Trong production, DbContext luôn được cấu hình từ Program.cs
+            // Nếu chưa được cấu hình, sẽ throw exception khi khởi tạo
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -74,6 +81,7 @@ public partial class PostgreDbContext : DbContext
 
             entity.HasOne(d => d.User).WithOne(p => p.Admin)
                 .HasForeignKey<Admin>(d => d.Userid)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fk_admins_users");
         });
 
@@ -96,6 +104,9 @@ public partial class PostgreDbContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("gendertype");
             entity.Property(e => e.Numberofroom).HasColumnName("numberofroom");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("isactive");
         });
 
         modelBuilder.Entity<Contract>(entity =>
@@ -111,14 +122,18 @@ public partial class PostgreDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("createddate");
-            entity.Property(e => e.Endtime).HasColumnName("endtime");
+            entity.Property(e => e.Endtime)
+                .HasColumnType("date")
+                .HasColumnName("endtime");
             entity.Property(e => e.Roomid)
                 .HasMaxLength(10)
                 .HasColumnName("roomid");
             entity.Property(e => e.Staffuserid)
                 .HasMaxLength(10)
                 .HasColumnName("staffuserid");
-            entity.Property(e => e.Starttime).HasColumnName("starttime");
+            entity.Property(e => e.Starttime)
+                .HasColumnType("date")
+                .HasColumnName("starttime");
             entity.Property(e => e.Status)
                 .HasMaxLength(20)
                 .HasDefaultValueSql("'Active'::character varying")
@@ -129,7 +144,6 @@ public partial class PostgreDbContext : DbContext
 
             entity.HasOne(d => d.Room).WithMany(p => p.Contracts)
                 .HasForeignKey(d => d.Roomid)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_contracts_rooms");
 
             entity.HasOne(d => d.Staffuser).WithMany(p => p.Contracts)
@@ -138,7 +152,6 @@ public partial class PostgreDbContext : DbContext
 
             entity.HasOne(d => d.Student).WithMany(p => p.Contracts)
                 .HasForeignKey(d => d.Studentid)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_contracts_students");
         });
 
@@ -213,7 +226,6 @@ public partial class PostgreDbContext : DbContext
 
             entity.HasOne(d => d.Contract).WithMany(p => p.Payments)
                 .HasForeignKey(d => d.Contractid)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_payments_contracts");
         });
 
@@ -250,6 +262,7 @@ public partial class PostgreDbContext : DbContext
 
             entity.HasOne(d => d.Building).WithMany(p => p.Rooms)
                 .HasForeignKey(d => d.Buildingid)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fk_rooms_buildings");
         });
 
@@ -299,6 +312,7 @@ public partial class PostgreDbContext : DbContext
 
             entity.HasOne(d => d.User).WithOne(p => p.Student)
                 .HasForeignKey<Student>(d => d.Userid)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("fk_students_users");
         });
 
@@ -326,6 +340,9 @@ public partial class PostgreDbContext : DbContext
             entity.Property(e => e.Username)
                 .HasMaxLength(50)
                 .HasColumnName("username");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("isactive");
         });
 
         modelBuilder.Entity<Violation>(entity =>
@@ -368,7 +385,6 @@ public partial class PostgreDbContext : DbContext
 
             entity.HasOne(d => d.Room).WithMany(p => p.Violations)
                 .HasForeignKey(d => d.Roomid)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_violations_rooms");
 
             entity.HasOne(d => d.Student).WithMany(p => p.Violations)

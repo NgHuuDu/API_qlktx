@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using DormitoryManagementSystem.BUS.Interfaces;
+using DormitoryManagementSystem.DAO.Implementations;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.Students;
 using DormitoryManagementSystem.Entity;
@@ -12,11 +13,13 @@ namespace DormitoryManagementSystem.BUS.Implementations
         private readonly IContractDAO _contractDAO;
         private readonly IUserDAO _userDAO;
         private readonly IMapper _mapper;
+        private readonly IPaymentDAO _paymentDAO;
 
-        public StudentBUS(IStudentDAO studentDAO, IContractDAO contractDAO, IMapper mapper)
+        public StudentBUS(IStudentDAO studentDAO, IContractDAO contractDAO, IMapper mapper, IPaymentDAO paymentDAO)
         {
             this._studentDAO = studentDAO;
             this._contractDAO = contractDAO;
+            this._paymentDAO = paymentDAO;
             this._mapper = mapper;
         }
 
@@ -137,5 +140,83 @@ namespace DormitoryManagementSystem.BUS.Implementations
             // Khi User bị set IsActive=false, thì hàm GetAllActiveStudentsAsync sẽ tự động lọc sinh viên này ra.
             await _userDAO.DeleteUserAsync(student.Userid);
         }
+
+
+
+
+        //Student
+        //Mới thêm hàm lấy profile sinh viên
+        public async Task<StudentProfileDTO?> GetStudentProfileAsync(string studentId)
+        {
+            var student = await _studentDAO.GetStudentByIDAsync(studentId);
+            if (student == null) return null;
+
+            var activeContract = await _contractDAO.GetContractDetailAsync(studentId);
+            
+            
+
+            var profile = new StudentProfileDTO
+            {
+                StudentID = student.Studentid,
+                FullName = student.Fullname,
+                Major = student.Major ?? "N/A",
+
+                DateOfBirth = student.Dateofbirth.HasValue ? student.Dateofbirth.Value.ToString("dd/MM/yyyy") : "N/A",
+                PhoneNumber = student.Phonenumber,
+                Gender = student.Gender,
+                Email = student.Email,
+                CCCD = student.Idcard, 
+                Address = student.Address
+            };
+
+            if (activeContract != null)
+            {
+                if (activeContract.Room != null)
+                {
+                    profile.RoomName = activeContract.Room.Roomnumber.ToString();
+                    profile.BuildingName = activeContract.Room.Building != null
+                                           ? activeContract.Room.Building.Buildingname
+                                           : "Unknown";
+                }
+                profile.ContractStatus = activeContract.Status;
+
+                var payments = await _paymentDAO.GetPaymentsByContractIDAsync(activeContract.Contractid);
+
+                decimal totalDebt = payments
+                                    .Where(p => p.Paymentstatus == "Unpaid" || p.Paymentstatus == "Late")
+                                    .Sum(p => p.Paymentamount);
+
+                profile.TotalDebt = totalDebt;
+
+                profile.AmountToPay = totalDebt;
+
+                if (totalDebt > 0)
+                {
+                    profile.IsDebt = true; 
+                    profile.PaymentStatusDisplay = "Chưa thanh toán";
+                }
+                else
+                {
+                    bool hasBills = payments.Any();
+                    if (hasBills)
+                    {
+                        profile.IsDebt = false; // Không nợ -> Màu xanh
+                        profile.PaymentStatusDisplay = "Đã thanh toán";
+                    }
+                    else
+                    {
+                        profile.IsDebt = false;
+                        profile.PaymentStatusDisplay = "Chưa có hóa đơn";
+                    }
+                }
+            }
+            else
+            {
+                profile.PaymentStatusDisplay = "Chưa đăng ký phòng";
+            }
+
+            return profile;
+        }
+
     }
 }

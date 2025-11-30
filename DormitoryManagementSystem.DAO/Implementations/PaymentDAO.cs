@@ -1,10 +1,12 @@
 ﻿
 using DormitoryManagementSystem.DAO.Context;
 using DormitoryManagementSystem.DAO.Interfaces;
+using DormitoryManagementSystem.DTO.Payments;
 using DormitoryManagementSystem.Entity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
-namespace Dormitory.DAO.Implementations
+namespace DormitoryManagementSystem.DAO.Implementations
 {
     public class PaymentDAO : IPaymentDAO
     {
@@ -61,6 +63,89 @@ namespace Dormitory.DAO.Implementations
 
             await _context.SaveChangesAsync();
         }
+
+
+
+
+        // Sinh viên: Xem danh sách hóa đơn (Tất cả / Đã trả / Nợ) theo trạng thái á
+        public async Task<IEnumerable<Payment>> GetPaymentsByStudentAndStatusAsync(string studentId, string? status)
+        {
+
+            var query = _context.Payments
+                .AsNoTracking()
+                .Include(p => p.Contract) 
+                .Where(p => p.Contract.Studentid == studentId) 
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(status) && status.ToLower() != "all")
+            {
+                if (status == "Pending" || status == "Unpaid")
+                {
+                    query = query.Where(p => p.Paymentstatus == "Unpaid" || p.Paymentstatus == "Late");
+                }
+                else if (status == "Paid")
+                {
+                    query = query.Where(p => p.Paymentstatus == "Paid");
+                }
+                else
+                {
+                    query = query.Where(p => p.Paymentstatus == status);
+                }
+            }
+
+            return await query
+                .OrderByDescending(p => p.Billmonth)
+                .ThenByDescending(p => p.Paymentdate)
+                .ToListAsync();
+        }
+
+        // Admin: Lấy danh sách thanh toán với các bộ lọc
+        public async Task<IEnumerable<Payment>> GetPaymentsForAdminAsync(
+            int? month,
+            string? status,
+            string? building,
+            string? searchKeyword) // Tìm theo Tên hoặc MSSV
+        {
+
+            var query = _context.Payments
+                .AsNoTracking()
+                .Include(p => p.Contract)
+                    .ThenInclude(c => c.Student) 
+                .Include(p => p.Contract)
+                    .ThenInclude(c => c.Room)  
+                .AsQueryable();
+
+            // Lọc theo Tháng
+            if (month.HasValue && month > 0)
+                query = query.Where(p => p.Billmonth == month.Value);
+
+         
+            // Lọc theo Trạng thái
+            if (!string.IsNullOrEmpty(status) && status != "All")
+                query = query.Where(p => p.Paymentstatus == status);
+
+            if (!string.IsNullOrEmpty(building) && building != "All")
+            {
+                // Đi từ Payment -> Contract -> Room -> Buildingid
+                query = query.Where(p => p.Contract.Room.Buildingid == building);
+            }
+
+            // Tìm kiếm (MSSV hoặc Tên)
+            if (!string.IsNullOrWhiteSpace(searchKeyword))
+            {
+                string key = searchKeyword.ToLower().Trim();
+                query = query.Where(p => p.Contract.Student.Fullname.ToLower().Contains(key)
+                                      || p.Contract.Studentid.ToLower().Contains(key));
+            }
+
+            // Sắp xếp: Mới nhất lên đầu
+            return await query.OrderByDescending(p => p.Billmonth).ToListAsync();
+        }
+
+
+        // Admin: Thống kê số liệu thanh toán
+        // Cái này nên chuyển về DTO chứ không phải entity Payment
         
+       
     }
 }

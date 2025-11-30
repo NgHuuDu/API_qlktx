@@ -17,5 +17,10 @@ namespace DormitoryManagementSystem.DAO.Interfaces
         Task AddContractAsync(Contract contract);
         Task UpdateContractAsync(Contract contract);
         Task DeleteContractAsync(string id);
+
+
+        //Mới thêm - lấy chi tiết hợp đồng - Student - Hồ sơ sinh viên
+        Task<Contract?> GetContractDetailAsync(string studentId);
+
     }
 }
