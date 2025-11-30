@@ -1,7 +1,8 @@
+# 1. Build Stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# --- COPY CÁC FILE PROJECT (Khớp tên thư mục trong ảnh của bạn) ---
+# --- COPY CÁC FILE PROJECT ---
 
 # 1. API
 COPY ["DormitoryManagementSystem.API/DormitoryManagementSystem.API.csproj", "DormitoryManagementSystem.API/"]
@@ -11,12 +12,14 @@ COPY ["DormitoryManagementSystem.BUS/DormitoryManagementSystem.BUS.csproj", "Dor
 COPY ["DormitoryManagementSystem.DAO/DormitoryManagementSystem.DAO.csproj", "DormitoryManagementSystem.DAO/"]
 COPY ["DormitoryManagementSystem.DTO/DormitoryManagementSystem.DTO.csproj", "DormitoryManagementSystem.DTO/"]
 
-# 3. Entity (CHÚ Ý: Tên thư mục của bạn có V10)
-# Hãy kiểm tra xem file .csproj bên trong là 'DormitoryManagementSystemV10.Entity.csproj' hay không có V10 nhé.
-# Dưới đây mình giả định tên file csproj khớp tên thư mục:
+# 3. Entity (SỬA LẠI ĐƯỜNG DẪN Ở ĐÂY)
+# Trường hợp 1: Nếu file .csproj KHÔNG có V10 (nhưng thư mục có V10) -> Thử dòng này:
+# COPY ["DormitoryManagementSystemV10.Entity/DormitoryManagementSystem.Entities.csproj", "DormitoryManagementSystemV10.Entity/"]
+
+# Trường hợp 2 (Khả năng cao): File .csproj cũng có V10 -> Giữ nguyên dòng này nhưng hãy chắc chắn file tồn tại
 COPY ["DormitoryManagementSystemV10.Entity/DormitoryManagementSystemV10.Entity.csproj", "DormitoryManagementSystemV10.Entity/"]
 
-# 4. Mappings (Bạn có thư mục này, nên cần copy vào)
+# 4. Mappings
 COPY ["DormitoryManagementSystem.Mappings/DormitoryManagementSystem.Mappings.csproj", "DormitoryManagementSystem.Mappings/"]
 
 # --- RESTORE ---
