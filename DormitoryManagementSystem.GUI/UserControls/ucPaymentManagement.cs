@@ -1,4 +1,5 @@
 ﻿using DormitoryManagementSystem.API.Models;
+using DormitoryManagementSystem.GUI.Forms;
 using DormitoryManagementSystem.GUI.Services;
 using DormitoryManagementSystem.GUI.Utils;
 using System;
@@ -15,7 +16,14 @@ namespace DormitoryManagementSystem.GUI.UserControls
         private Form? mainForm;
         private bool isLoading = false;
         private CancellationTokenSource? cancellationTokenSource;
-        private System.Threading.Timer? filterTimer;
+        
+        // Filter values
+        private string? filterPaymentID;
+        private string? filterContractID;
+        private int? filterMonth;
+        private DateTime? filterPaymentDate;
+        private string? filterPaymentMethod;
+        private string? filterPaymentStatus;
 
         public ucPaymentManagement()
         {
@@ -55,7 +63,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             int y = padding;
             const int cardPadding = 15;
 
-            // Arrange cards
+            // Sắp xếp các thẻ
             ArrangeCard(cardCollected, lblCollectedTitle, lblCollectedValue, lblCollectedCount, startX, y, cardWidth, cardHeight, cardPadding);
             startX += cardWidth + cardSpacing;
 
@@ -107,25 +115,32 @@ namespace DormitoryManagementSystem.GUI.UserControls
         private void SetupGridColumns()
         {
             dgvPayments.Columns.Clear();
+            dgvPayments.ReadOnly = true;
             dgvPayments.Columns.Add("Id", "Id");
-            dgvPayments.Columns.Add("BillCode", "Mã HĐ");
-            dgvPayments.Columns.Add("StudentName", "Sinh viên");
-            dgvPayments.Columns.Add("RoomNumber", "Phòng");
-            dgvPayments.Columns.Add("MonthYear", "Tháng");
-            dgvPayments.Columns.Add("TotalAmount", "Số tiền");
-            dgvPayments.Columns.Add("Date", "Ngày");
-            dgvPayments.Columns.Add("Status", "Trạng thái");
+            dgvPayments.Columns.Add("PaymentID", "Mã thanh toán");
+            dgvPayments.Columns.Add("ContractID", "Mã hợp đồng");
+            dgvPayments.Columns.Add("BillMonth", "Tháng");
+            dgvPayments.Columns.Add("PaymentAmount", "Số tiền cần đóng");
+            dgvPayments.Columns.Add("PaidAmount", "Số tiền đã đóng");
+            dgvPayments.Columns.Add("PaymentDate", "Ngày thanh toán");
+            dgvPayments.Columns.Add("PaymentMethod", "Phương thức");
+            dgvPayments.Columns.Add("PaymentStatus", "Trạng thái");
+            dgvPayments.Columns.Add("Description", "Ghi chú");
             var btnDetail = new DataGridViewButtonColumn
             {
                 Name = "Detail",
+                HeaderText = "Thao tác",
                 Text = "Chi tiết",
                 UseColumnTextForButtonValue = true,
-                AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells
+                Width = 100
             };
             dgvPayments.Columns.Add(btnDetail);
             dgvPayments.Columns["Id"].Visible = false;
-            dgvPayments.Columns["TotalAmount"].DefaultCellStyle.Format = "N0";
-            dgvPayments.Columns["TotalAmount"].DefaultCellStyle.FormatProvider = new CultureInfo("vi-VN");
+            dgvPayments.Columns["PaymentAmount"].DefaultCellStyle.Format = "N0";
+            dgvPayments.Columns["PaymentAmount"].DefaultCellStyle.FormatProvider = new CultureInfo("vi-VN");
+            dgvPayments.Columns["PaidAmount"].DefaultCellStyle.Format = "N0";
+            dgvPayments.Columns["PaidAmount"].DefaultCellStyle.FormatProvider = new CultureInfo("vi-VN");
+            dgvPayments.Columns["PaymentDate"].DefaultCellStyle.Format = "dd/MM/yyyy";
             dgvPayments.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvPayments.Columns["Detail"].ReadOnly = false;
         }
@@ -143,9 +158,8 @@ namespace DormitoryManagementSystem.GUI.UserControls
             {
                 if (token.IsCancellationRequested) return;
                 
-                string status = cmbFilterStatus.SelectedIndex > 0 ? cmbFilterStatus.SelectedItem?.ToString() : "Tất cả";
                 string search = txtSearch.Text;
-                var payments = await ApiService.GetPaymentsAsync(status ?? "Tất cả", search);
+                var payments = await ApiService.GetPaymentsAsync("Tất cả", search);
 
                 if (token.IsCancellationRequested) return;
 
@@ -154,20 +168,84 @@ namespace DormitoryManagementSystem.GUI.UserControls
                 {
                     foreach (var p in payments)
                     {
-                        DateTime dueDate = new DateTime(p.Year, p.Month, 1).AddMonths(1);
-                        bool isPaid = p.PaymentDate.HasValue;
-                        bool isOverdue = !isPaid && DateTime.Now > dueDate;
-                        string statusText = isPaid ? "Đã thanh toán" : (isOverdue ? "Quá hạn" : "Chờ thanh toán");
-                        string dateText = isPaid ? $"Đã thanh toán:\n{p.PaymentDate.Value:dd/MM/yyyy}" : $"Hạn:\n{dueDate:dd/MM/yyyy}";
-                        string amountText = $"{p.TotalAmount:N0}đ";
+                        // Apply filters
+                        if (!string.IsNullOrWhiteSpace(filterPaymentID) && 
+                            !p.PaymentID.Contains(filterPaymentID, StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        
+                        if (!string.IsNullOrWhiteSpace(filterContractID) && 
+                            !p.ContractID.Contains(filterContractID, StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        
+                        if (filterMonth.HasValue && p.BillMonth != filterMonth.Value)
+                            continue;
+                        
+                        if (filterPaymentDate.HasValue && p.PaymentDate.HasValue)
+                        {
+                            if (p.PaymentDate.Value.Date != filterPaymentDate.Value.Date)
+                                continue;
+                        }
+                        else if (filterPaymentDate.HasValue && !p.PaymentDate.HasValue)
+                        {
+                            continue;
+                        }
+                        
+                        if (!string.IsNullOrWhiteSpace(filterPaymentMethod))
+                        {
+                            string method = p.PaymentMethod ?? "";
+                            if (!method.Equals(filterPaymentMethod, StringComparison.OrdinalIgnoreCase))
+                                continue;
+                        }
+                        
+                        if (!string.IsNullOrWhiteSpace(filterPaymentStatus))
+                        {
+                            string status = filterPaymentStatus;
+                            string paymentStatus = p.PaymentStatus ?? "";
+                            
+                            // Map Vietnamese status to English
+                            bool matches = false;
+                            if (status == "Đã thanh toán")
+                                matches = paymentStatus.Equals("Paid", StringComparison.OrdinalIgnoreCase);
+                            else if (status == "Chờ thanh toán")
+                                matches = paymentStatus.Equals("Unpaid", StringComparison.OrdinalIgnoreCase);
+                            else if (status == "Quá hạn")
+                                matches = paymentStatus.Equals("Late", StringComparison.OrdinalIgnoreCase);
+                            else if (status == "Đã hoàn tiền")
+                                matches = paymentStatus.Equals("Refunded", StringComparison.OrdinalIgnoreCase);
+                            else
+                                matches = paymentStatus.Equals(status, StringComparison.OrdinalIgnoreCase);
+                            
+                            if (!matches)
+                                continue;
+                        }
+                        
+                        string statusText = p.PaymentStatus.Equals("Paid", StringComparison.OrdinalIgnoreCase) ? "Đã thanh toán" :
+                                           p.PaymentStatus.Equals("Unpaid", StringComparison.OrdinalIgnoreCase) ? "Chờ thanh toán" :
+                                           p.PaymentStatus.Equals("Late", StringComparison.OrdinalIgnoreCase) ? "Quá hạn" :
+                                           p.PaymentStatus.Equals("Refunded", StringComparison.OrdinalIgnoreCase) ? "Đã hoàn tiền" :
+                                           p.PaymentStatus;
+                        string paymentMethodText = p.PaymentMethod ?? "";
+                        string descriptionText = p.Description ?? "";
 
-                        dgvPayments.Rows.Add(p.Id, p.BillCode, p.StudentName, p.RoomNumber, $"{p.Month}/{p.Year}", amountText, dateText, statusText, "Chi tiết");
+                        dgvPayments.Rows.Add(
+                            p.Id,
+                            p.PaymentID,
+                            p.ContractID,
+                            p.BillMonth,
+                            p.PaymentAmount,
+                            p.PaidAmount,
+                            p.PaymentDate.HasValue ? p.PaymentDate.Value : (DateTime?)null,
+                            paymentMethodText,
+                            statusText,
+                            descriptionText,
+                            "Chi tiết"
+                        );
                     }
                 }
             }
             catch (OperationCanceledException)
             {
-                // Ignore cancellation
+                // Bỏ qua hủy bỏ
             }
             catch (Exception ex)
             {
@@ -216,51 +294,45 @@ namespace DormitoryManagementSystem.GUI.UserControls
 
         private async void btnFilter_Click(object sender, EventArgs e)
         {
-            if (btnFilter != null)
-            {
-                btnFilter.Enabled = false;
-            }
+            using var filterForm = new frmFilterPayment(
+                filterPaymentID,
+                filterContractID,
+                filterMonth,
+                filterPaymentDate,
+                filterPaymentMethod,
+                filterPaymentStatus);
             
-            filterTimer?.Dispose();
-            filterTimer = new System.Threading.Timer(_ =>
+            if (filterForm.ShowDialog(this) == DialogResult.OK && filterForm.IsApplied)
             {
-                if (this.InvokeRequired)
-                {
-                    this.Invoke(new Action(async () => 
-                    {
-                        await LoadDataAsync();
-                        await UpdateKPICards();
-                        if (btnFilter != null) btnFilter.Enabled = true;
-                    }));
-                }
-                else
-                {
-                    Task.Run(async () =>
-                    {
-                        await LoadDataAsync();
-                        await UpdateKPICards();
-                        if (this.InvokeRequired)
-                        {
-                            this.Invoke(new Action(() => { if (btnFilter != null) btnFilter.Enabled = true; }));
-                        }
-                        else
-                        {
-                            if (btnFilter != null) btnFilter.Enabled = true;
-                        }
-                    });
-                }
-            }, null, 300, Timeout.Infinite);
-        }
-
-        private void btnAddPayment_Click(object sender, EventArgs e)
-        {
-            if (this.mainForm != null)
-            {
-                UiHelper.ShowSuccess(this.mainForm, "Chức năng Ghi nhận thanh toán (chưa hoàn thiện)");
+                // Lưu filter values
+                filterPaymentID = filterForm.PaymentID;
+                filterContractID = filterForm.ContractID;
+                filterMonth = filterForm.Month;
+                filterPaymentDate = filterForm.PaymentDate;
+                filterPaymentMethod = filterForm.PaymentMethod;
+                filterPaymentStatus = filterForm.PaymentStatus;
+                
+                await LoadDataAsync();
+                await UpdateKPICards();
             }
         }
 
-        private void dgvPayments_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private async void btnSearch_Click(object sender, EventArgs e)
+        {
+            await LoadDataAsync();
+        }
+
+        private async void btnAddPayment_Click(object sender, EventArgs e)
+        {
+            using var form = new frmAddPayment();
+            if (form.ShowDialog(this) == DialogResult.OK && form.IsSuccess)
+            {
+                await LoadDataAsync();
+                await UpdateKPICards();
+            }
+        }
+
+        private async void dgvPayments_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
             var dgv = sender as DataGridView;
@@ -269,9 +341,14 @@ namespace DormitoryManagementSystem.GUI.UserControls
             if (dgv.Columns[e.ColumnIndex].Name == "Detail")
             {
                 string paymentId = dgv.Rows[e.RowIndex].Cells["Id"].Value?.ToString() ?? string.Empty;
-                if (this.mainForm != null)
+                if (!string.IsNullOrEmpty(paymentId))
                 {
-                    UiHelper.ShowSuccess(this.mainForm, $"Xem chi tiết thanh toán ID: {paymentId}");
+                    using var form = new Forms.frmPaymentDetail(paymentId);
+                    if (form.ShowDialog(this) == DialogResult.OK && form.IsSuccess)
+                    {
+                        await LoadDataAsync();
+                        await UpdateKPICards();
+                    }
                 }
             }
         }

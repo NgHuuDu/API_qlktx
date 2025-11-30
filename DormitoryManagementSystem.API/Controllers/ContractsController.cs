@@ -77,7 +77,7 @@ namespace DormitoryManagementSystem.API.Controllers
 
         // Admin
         //ucContractManagement
-        [HttpGet]
+        [HttpGet("list")]
         public async Task<IActionResult> GetContracts([FromQuery] string? searchTerm)
         {
             if (!ModelState.IsValid)
@@ -131,7 +131,7 @@ namespace DormitoryManagementSystem.API.Controllers
                 }
                 // string staffUserId = User.FindFirst("UserID")?.Value; // nguoi thuc hien tao lay tu luc dang nhap
                 staffUserID = "U_ADM01"; // test
-                var newContract = _contractBUS.AddContractAsync(dto, staffUserID);
+                await _contractBUS.AddContractAsync(dto, staffUserID);
                 return Ok(new { message = "Tạo hợp đồng thành công!" });
             }
             catch (KeyNotFoundException ex)

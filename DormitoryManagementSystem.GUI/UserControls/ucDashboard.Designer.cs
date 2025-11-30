@@ -33,9 +33,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
             pnlHeader = new Panel();
             btnRefresh = new Button();
             cmbTimeRange = new ComboBox();
@@ -62,7 +59,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblTotalRoomsValue = new Label();
             lblTotalRoomsTitle = new Label();
             pnlCharts = new Panel();
-            chartTrend = new System.Windows.Forms.DataVisualization.Charting.Chart();
             chartOccupancyByBuilding = new System.Windows.Forms.DataVisualization.Charting.Chart();
             chartOccupancyPie = new System.Windows.Forms.DataVisualization.Charting.Chart();
             pnlPendingContracts = new Panel();
@@ -72,18 +68,19 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblPendingContractsTitle = new Label();
             txtSearchContracts = new TextBox();
             pnlBottom = new Panel();
-            pnlRecentActivity = new Panel();
-            lstRecentActivity = new ListBox();
-            lblRecentActivityTitle = new Label();
-            pnlAlerts = new Panel();
-            lstAlerts = new ListBox();
-            lblAlertsTitle = new Label();
+            tableLayoutBottom = new TableLayoutPanel();
             pnlQuickActions = new Panel();
             btnViewStats = new Button();
             btnAddViolation = new Button();
             btnAddPayment = new Button();
             btnAddRoom = new Button();
             lblQuickActionsTitle = new Label();
+            pnlAlerts = new Panel();
+            lblAlertsTitle = new Label();
+            lstAlerts = new ListBox();
+            pnlRecentActivity = new Panel();
+            lstRecentActivity = new ListBox();
+            lblRecentActivityTitle = new Label();
             scrollPanel = new Panel();
             pnlHeader.SuspendLayout();
             pnlKPICards.SuspendLayout();
@@ -94,16 +91,16 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cardAvailable.SuspendLayout();
             cardTotalRooms.SuspendLayout();
             pnlCharts.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)chartTrend).BeginInit();
             ((System.ComponentModel.ISupportInitialize)chartOccupancyByBuilding).BeginInit();
             ((System.ComponentModel.ISupportInitialize)chartOccupancyPie).BeginInit();
             pnlPendingContracts.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvPendingContracts).BeginInit();
             pnlSearchContracts.SuspendLayout();
             pnlBottom.SuspendLayout();
-            pnlRecentActivity.SuspendLayout();
-            pnlAlerts.SuspendLayout();
+            tableLayoutBottom.SuspendLayout();
             pnlQuickActions.SuspendLayout();
+            pnlAlerts.SuspendLayout();
+            pnlRecentActivity.SuspendLayout();
             SuspendLayout();
             // 
             // pnlHeader
@@ -118,14 +115,14 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlHeader.Margin = new Padding(4, 5, 4, 5);
             pnlHeader.Name = "pnlHeader";
             pnlHeader.Padding = new Padding(27, 23, 27, 23);
-            pnlHeader.Size = new Size(999, 92);
+            pnlHeader.Size = new Size(1321, 92);
             pnlHeader.TabIndex = 0;
             // 
             // btnRefresh
             // 
             btnRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnRefresh.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold);
-            btnRefresh.Location = new Point(808, 24);
+            btnRefresh.Location = new Point(1130, 24);
             btnRefresh.Margin = new Padding(4, 5, 4, 5);
             btnRefresh.Name = "btnRefresh";
             btnRefresh.Size = new Size(143, 46);
@@ -141,10 +138,10 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cmbTimeRange.Font = new Font("Microsoft Sans Serif", 13.2000008F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbTimeRange.FormattingEnabled = true;
             cmbTimeRange.Items.AddRange(new object[] { "Hôm nay", "Tuần này", "Tháng này", "3 tháng", "6 tháng", "Năm nay" });
-            cmbTimeRange.Location = new Point(583, 28);
+            cmbTimeRange.Location = new Point(905, 28);
             cmbTimeRange.Margin = new Padding(4, 5, 4, 5);
             cmbTimeRange.Name = "cmbTimeRange";
-            cmbTimeRange.Size = new Size(185, 38);
+            cmbTimeRange.Size = new Size(185, 34);
             cmbTimeRange.TabIndex = 2;
             cmbTimeRange.SelectedIndexChanged += cmbTimeRange_SelectedIndexChanged;
             // 
@@ -155,10 +152,10 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cmbBuilding.Font = new Font("Microsoft Sans Serif", 13.2000008F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbBuilding.FormattingEnabled = true;
             cmbBuilding.Items.AddRange(new object[] { "Tất cả tòa", "Tòa A1", "Tòa A2", "Tòa B1", "Tòa B2" });
-            cmbBuilding.Location = new Point(390, 27);
+            cmbBuilding.Location = new Point(712, 28);
             cmbBuilding.Margin = new Padding(4, 5, 4, 5);
             cmbBuilding.Name = "cmbBuilding";
-            cmbBuilding.Size = new Size(185, 38);
+            cmbBuilding.Size = new Size(185, 34);
             cmbBuilding.TabIndex = 1;
             cmbBuilding.SelectedIndexChanged += cmbBuilding_SelectedIndexChanged;
             // 
@@ -169,7 +166,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblLogo.Location = new Point(27, 23);
             lblLogo.Margin = new Padding(4, 0, 4, 0);
             lblLogo.Name = "lblLogo";
-            lblLogo.Size = new Size(184, 45);
+            lblLogo.Size = new Size(157, 37);
             lblLogo.TabIndex = 0;
             lblLogo.Text = "Dashboard";
             // 
@@ -187,7 +184,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlKPICards.Margin = new Padding(4, 5, 4, 5);
             pnlKPICards.Name = "pnlKPICards";
             pnlKPICards.Padding = new Padding(20, 20, 20, 15);
-            pnlKPICards.Size = new Size(999, 235);
+            pnlKPICards.Size = new Size(1321, 235);
             pnlKPICards.TabIndex = 1;
             // 
             // cardViolations
@@ -197,7 +194,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cardViolations.BorderStyle = BorderStyle.FixedSingle;
             cardViolations.Controls.Add(lblViolationsValue);
             cardViolations.Controls.Add(lblViolationsTitle);
-            cardViolations.Location = new Point(912, 58);
+            cardViolations.Location = new Point(1073, 58);
             cardViolations.Margin = new Padding(5);
             cardViolations.Name = "cardViolations";
             cardViolations.Padding = new Padding(15);
@@ -213,7 +210,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblViolationsValue.Location = new Point(15, 50);
             lblViolationsValue.Margin = new Padding(0);
             lblViolationsValue.Name = "lblViolationsValue";
-            lblViolationsValue.Size = new Size(38, 40);
+            lblViolationsValue.Size = new Size(33, 36);
             lblViolationsValue.TabIndex = 1;
             lblViolationsValue.Text = "0";
             // 
@@ -226,7 +223,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblViolationsTitle.Location = new Point(15, 15);
             lblViolationsTitle.Margin = new Padding(0);
             lblViolationsTitle.Name = "lblViolationsTitle";
-            lblViolationsTitle.Size = new Size(108, 22);
+            lblViolationsTitle.Size = new Size(90, 18);
             lblViolationsTitle.TabIndex = 0;
             lblViolationsTitle.Text = "Vi phạm mới";
             // 
@@ -237,7 +234,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cardRevenue.BorderStyle = BorderStyle.FixedSingle;
             cardRevenue.Controls.Add(lblRevenueValue);
             cardRevenue.Controls.Add(lblRevenueTitle);
-            cardRevenue.Location = new Point(702, 58);
+            cardRevenue.Location = new Point(863, 58);
             cardRevenue.Margin = new Padding(5);
             cardRevenue.Name = "cardRevenue";
             cardRevenue.Padding = new Padding(15);
@@ -253,7 +250,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblRevenueValue.Location = new Point(15, 50);
             lblRevenueValue.Margin = new Padding(0);
             lblRevenueValue.Name = "lblRevenueValue";
-            lblRevenueValue.Size = new Size(56, 37);
+            lblRevenueValue.Size = new Size(46, 31);
             lblRevenueValue.TabIndex = 1;
             lblRevenueValue.Text = "0đ";
             // 
@@ -266,7 +263,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblRevenueTitle.Location = new Point(15, 15);
             lblRevenueTitle.Margin = new Padding(0);
             lblRevenueTitle.Name = "lblRevenueTitle";
-            lblRevenueTitle.Size = new Size(126, 22);
+            lblRevenueTitle.Size = new Size(100, 18);
             lblRevenueTitle.TabIndex = 0;
             lblRevenueTitle.Text = "Thu tháng này";
             // 
@@ -278,7 +275,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cardPending.Controls.Add(btnReviewNow);
             cardPending.Controls.Add(lblPendingValue);
             cardPending.Controls.Add(lblPendingTitle);
-            cardPending.Location = new Point(492, 58);
+            cardPending.Location = new Point(653, 58);
             cardPending.Margin = new Padding(5);
             cardPending.Name = "cardPending";
             cardPending.Padding = new Padding(15);
@@ -287,12 +284,12 @@ namespace DormitoryManagementSystem.GUI.UserControls
             // 
             // btnReviewNow
             // 
-            btnReviewNow.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            btnReviewNow.Dock = DockStyle.Right;
             btnReviewNow.Font = new Font("Microsoft Sans Serif", 8F, FontStyle.Bold);
-            btnReviewNow.Location = new Point(66, 79);
+            btnReviewNow.Location = new Point(128, 15);
             btnReviewNow.Margin = new Padding(0);
             btnReviewNow.Name = "btnReviewNow";
-            btnReviewNow.Size = new Size(117, 38);
+            btnReviewNow.Size = new Size(55, 93);
             btnReviewNow.TabIndex = 2;
             btnReviewNow.Text = "Xem ngay";
             btnReviewNow.UseVisualStyleBackColor = true;
@@ -307,7 +304,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblPendingValue.Location = new Point(15, 50);
             lblPendingValue.Margin = new Padding(0);
             lblPendingValue.Name = "lblPendingValue";
-            lblPendingValue.Size = new Size(38, 40);
+            lblPendingValue.Size = new Size(33, 36);
             lblPendingValue.TabIndex = 1;
             lblPendingValue.Text = "0";
             // 
@@ -320,7 +317,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblPendingTitle.Location = new Point(15, 15);
             lblPendingTitle.Margin = new Padding(0);
             lblPendingTitle.Name = "lblPendingTitle";
-            lblPendingTitle.Size = new Size(92, 22);
+            lblPendingTitle.Size = new Size(75, 18);
             lblPendingTitle.TabIndex = 0;
             lblPendingTitle.Text = "Chờ duyệt";
             // 
@@ -331,7 +328,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cardOccupied.BorderStyle = BorderStyle.FixedSingle;
             cardOccupied.Controls.Add(lblOccupiedValue);
             cardOccupied.Controls.Add(lblOccupiedTitle);
-            cardOccupied.Location = new Point(282, 58);
+            cardOccupied.Location = new Point(443, 58);
             cardOccupied.Margin = new Padding(5);
             cardOccupied.Name = "cardOccupied";
             cardOccupied.Padding = new Padding(15);
@@ -347,7 +344,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblOccupiedValue.Location = new Point(15, 50);
             lblOccupiedValue.Margin = new Padding(0);
             lblOccupiedValue.Name = "lblOccupiedValue";
-            lblOccupiedValue.Size = new Size(38, 40);
+            lblOccupiedValue.Size = new Size(33, 36);
             lblOccupiedValue.TabIndex = 1;
             lblOccupiedValue.Text = "0";
             // 
@@ -360,7 +357,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblOccupiedTitle.Location = new Point(15, 15);
             lblOccupiedTitle.Margin = new Padding(0);
             lblOccupiedTitle.Name = "lblOccupiedTitle";
-            lblOccupiedTitle.Size = new Size(68, 22);
+            lblOccupiedTitle.Size = new Size(56, 18);
             lblOccupiedTitle.TabIndex = 0;
             lblOccupiedTitle.Text = "Đang ở";
             // 
@@ -371,7 +368,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cardAvailable.BorderStyle = BorderStyle.FixedSingle;
             cardAvailable.Controls.Add(lblAvailableValue);
             cardAvailable.Controls.Add(lblAvailableTitle);
-            cardAvailable.Location = new Point(72, 58);
+            cardAvailable.Location = new Point(233, 58);
             cardAvailable.Margin = new Padding(5);
             cardAvailable.Name = "cardAvailable";
             cardAvailable.Padding = new Padding(15);
@@ -387,7 +384,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblAvailableValue.Location = new Point(15, 50);
             lblAvailableValue.Margin = new Padding(0);
             lblAvailableValue.Name = "lblAvailableValue";
-            lblAvailableValue.Size = new Size(38, 40);
+            lblAvailableValue.Size = new Size(33, 36);
             lblAvailableValue.TabIndex = 1;
             lblAvailableValue.Text = "0";
             // 
@@ -400,7 +397,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblAvailableTitle.Location = new Point(15, 15);
             lblAvailableTitle.Margin = new Padding(0);
             lblAvailableTitle.Name = "lblAvailableTitle";
-            lblAvailableTitle.Size = new Size(99, 22);
+            lblAvailableTitle.Size = new Size(81, 18);
             lblAvailableTitle.TabIndex = 0;
             lblAvailableTitle.Text = "Đang trống";
             // 
@@ -411,7 +408,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cardTotalRooms.BorderStyle = BorderStyle.FixedSingle;
             cardTotalRooms.Controls.Add(lblTotalRoomsValue);
             cardTotalRooms.Controls.Add(lblTotalRoomsTitle);
-            cardTotalRooms.Location = new Point(-138, 58);
+            cardTotalRooms.Location = new Point(23, 58);
             cardTotalRooms.Margin = new Padding(5);
             cardTotalRooms.Name = "cardTotalRooms";
             cardTotalRooms.Padding = new Padding(15);
@@ -426,7 +423,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblTotalRoomsValue.Location = new Point(15, 50);
             lblTotalRoomsValue.Margin = new Padding(0);
             lblTotalRoomsValue.Name = "lblTotalRoomsValue";
-            lblTotalRoomsValue.Size = new Size(38, 40);
+            lblTotalRoomsValue.Size = new Size(33, 36);
             lblTotalRoomsValue.TabIndex = 1;
             lblTotalRoomsValue.Text = "0";
             // 
@@ -439,14 +436,13 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblTotalRoomsTitle.Location = new Point(15, 15);
             lblTotalRoomsTitle.Margin = new Padding(0);
             lblTotalRoomsTitle.Name = "lblTotalRoomsTitle";
-            lblTotalRoomsTitle.Size = new Size(131, 22);
+            lblTotalRoomsTitle.Size = new Size(108, 18);
             lblTotalRoomsTitle.TabIndex = 0;
             lblTotalRoomsTitle.Text = "Tổng số phòng";
             // 
             // pnlCharts
             // 
             pnlCharts.BackColor = Color.Transparent;
-            pnlCharts.Controls.Add(chartTrend);
             pnlCharts.Controls.Add(chartOccupancyByBuilding);
             pnlCharts.Controls.Add(chartOccupancyPie);
             pnlCharts.Dock = DockStyle.Top;
@@ -454,43 +450,24 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlCharts.Margin = new Padding(4, 5, 4, 5);
             pnlCharts.Name = "pnlCharts";
             pnlCharts.Padding = new Padding(27, 15, 27, 15);
-            pnlCharts.Size = new Size(999, 507);
+            pnlCharts.Size = new Size(1321, 507);
             pnlCharts.TabIndex = 2;
-            // 
-            // chartTrend
-            // 
-            chartTrend.Anchor = AnchorStyles.None;
-            chartArea1.Name = "ChartArea1";
-            chartTrend.ChartAreas.Add(chartArea1);
-            legend1.Name = "Legend1";
-            chartTrend.Legends.Add(legend1);
-            chartTrend.Location = new Point(811, 76);
-            chartTrend.Margin = new Padding(5);
-            chartTrend.Name = "chartTrend";
-            series1.ChartArea = "ChartArea1";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series1.Legend = "Legend1";
-            series1.Name = "Trend";
-            chartTrend.Series.Add(series1);
-            chartTrend.Size = new Size(449, 354);
-            chartTrend.TabIndex = 2;
-            chartTrend.Text = "Trend";
             // 
             // chartOccupancyByBuilding
             // 
             chartOccupancyByBuilding.Anchor = AnchorStyles.None;
-            chartArea2.Name = "ChartArea1";
-            chartOccupancyByBuilding.ChartAreas.Add(chartArea2);
-            legend2.Name = "Legend1";
-            chartOccupancyByBuilding.Legends.Add(legend2);
-            chartOccupancyByBuilding.Location = new Point(265, 76);
+            chartArea1.Name = "ChartArea1";
+            chartOccupancyByBuilding.ChartAreas.Add(chartArea1);
+            legend1.Name = "Legend1";
+            chartOccupancyByBuilding.Legends.Add(legend1);
+            chartOccupancyByBuilding.Location = new Point(407, 76);
             chartOccupancyByBuilding.Margin = new Padding(5);
             chartOccupancyByBuilding.Name = "chartOccupancyByBuilding";
-            series2.ChartArea = "ChartArea1";
-            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Bar;
-            series2.Legend = "Legend1";
-            series2.Name = "ByBuilding";
-            chartOccupancyByBuilding.Series.Add(series2);
+            series1.ChartArea = "ChartArea1";
+            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Bar;
+            series1.Legend = "Legend1";
+            series1.Name = "ByBuilding";
+            chartOccupancyByBuilding.Series.Add(series1);
             chartOccupancyByBuilding.Size = new Size(512, 354);
             chartOccupancyByBuilding.TabIndex = 1;
             chartOccupancyByBuilding.Text = "ByBuilding";
@@ -498,18 +475,18 @@ namespace DormitoryManagementSystem.GUI.UserControls
             // chartOccupancyPie
             // 
             chartOccupancyPie.Anchor = AnchorStyles.None;
-            chartArea3.Name = "ChartArea1";
-            chartOccupancyPie.ChartAreas.Add(chartArea3);
-            legend3.Name = "Legend1";
-            chartOccupancyPie.Legends.Add(legend3);
-            chartOccupancyPie.Location = new Point(-190, 76);
+            chartArea2.Name = "ChartArea1";
+            chartOccupancyPie.ChartAreas.Add(chartArea2);
+            legend2.Name = "Legend1";
+            chartOccupancyPie.Legends.Add(legend2);
+            chartOccupancyPie.Location = new Point(-48, 76);
             chartOccupancyPie.Margin = new Padding(5);
             chartOccupancyPie.Name = "chartOccupancyPie";
-            series3.ChartArea = "ChartArea1";
-            series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Doughnut;
-            series3.Legend = "Legend1";
-            series3.Name = "Occupancy";
-            chartOccupancyPie.Series.Add(series3);
+            series2.ChartArea = "ChartArea1";
+            series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Doughnut;
+            series2.Legend = "Legend1";
+            series2.Name = "Occupancy";
+            chartOccupancyPie.Series.Add(series2);
             chartOccupancyPie.Size = new Size(418, 354);
             chartOccupancyPie.TabIndex = 0;
             chartOccupancyPie.Text = "Occupancy";
@@ -525,7 +502,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlPendingContracts.Margin = new Padding(4, 5, 4, 5);
             pnlPendingContracts.Name = "pnlPendingContracts";
             pnlPendingContracts.Padding = new Padding(20, 23, 20, 23);
-            pnlPendingContracts.Size = new Size(999, 460);
+            pnlPendingContracts.Size = new Size(1321, 460);
             pnlPendingContracts.TabIndex = 3;
             // 
             // dgvPendingContracts
@@ -542,7 +519,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             dgvPendingContracts.ReadOnly = true;
             dgvPendingContracts.RowHeadersWidth = 51;
             dgvPendingContracts.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvPendingContracts.Size = new Size(957, 358);
+            dgvPendingContracts.Size = new Size(1279, 358);
             dgvPendingContracts.TabIndex = 0;
             dgvPendingContracts.CellContentClick += dgvPendingContracts_CellContentClick;
             // 
@@ -555,14 +532,14 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlSearchContracts.Location = new Point(20, 23);
             pnlSearchContracts.Margin = new Padding(4, 5, 4, 5);
             pnlSearchContracts.Name = "pnlSearchContracts";
-            pnlSearchContracts.Size = new Size(957, 54);
+            pnlSearchContracts.Size = new Size(1279, 54);
             pnlSearchContracts.TabIndex = 2;
             // 
             // btnSearchContracts
             // 
             btnSearchContracts.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnSearchContracts.Font = new Font("Microsoft Sans Serif", 10F, FontStyle.Bold);
-            btnSearchContracts.Location = new Point(876, 7);
+            btnSearchContracts.Location = new Point(1198, 7);
             btnSearchContracts.Margin = new Padding(4, 5, 4, 5);
             btnSearchContracts.Name = "btnSearchContracts";
             btnSearchContracts.Size = new Size(77, 42);
@@ -578,7 +555,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblPendingContractsTitle.Location = new Point(6, 12);
             lblPendingContractsTitle.Margin = new Padding(4, 0, 4, 0);
             lblPendingContractsTitle.Name = "lblPendingContractsTitle";
-            lblPendingContractsTitle.Size = new Size(246, 29);
+            lblPendingContractsTitle.Size = new Size(205, 25);
             lblPendingContractsTitle.TabIndex = 1;
             lblPendingContractsTitle.Text = "Hợp đồng chờ duyệt";
             // 
@@ -590,98 +567,38 @@ namespace DormitoryManagementSystem.GUI.UserControls
             txtSearchContracts.Margin = new Padding(4, 5, 4, 5);
             txtSearchContracts.Name = "txtSearchContracts";
             txtSearchContracts.PlaceholderText = "Tìm kiếm theo mã SV hoặc số phòng...";
-            txtSearchContracts.Size = new Size(0, 30);
+            txtSearchContracts.Size = new Size(820, 26);
             txtSearchContracts.TabIndex = 0;
             // 
             // pnlBottom
             // 
             pnlBottom.BackColor = Color.Transparent;
-            pnlBottom.Controls.Add(pnlRecentActivity);
-            pnlBottom.Controls.Add(pnlAlerts);
-            pnlBottom.Controls.Add(pnlQuickActions);
-            pnlBottom.Dock = DockStyle.Top;
+            pnlBottom.Controls.Add(tableLayoutBottom);
+            pnlBottom.Dock = DockStyle.Bottom;
             pnlBottom.Location = new Point(0, 1294);
             pnlBottom.Margin = new Padding(4, 5, 4, 5);
             pnlBottom.Name = "pnlBottom";
             pnlBottom.Padding = new Padding(27, 15, 27, 31);
-            pnlBottom.Size = new Size(999, 385);
+            pnlBottom.Size = new Size(1321, 390);
             pnlBottom.TabIndex = 4;
             // 
-            // pnlRecentActivity
+            // tableLayoutBottom
             // 
-            pnlRecentActivity.BackColor = Color.White;
-            pnlRecentActivity.BorderStyle = BorderStyle.FixedSingle;
-            pnlRecentActivity.Controls.Add(lstRecentActivity);
-            pnlRecentActivity.Controls.Add(lblRecentActivityTitle);
-            pnlRecentActivity.Dock = DockStyle.Fill;
-            pnlRecentActivity.Location = new Point(759, 15);
-            pnlRecentActivity.Margin = new Padding(4, 5, 4, 5);
-            pnlRecentActivity.Name = "pnlRecentActivity";
-            pnlRecentActivity.Padding = new Padding(20, 23, 20, 23);
-            pnlRecentActivity.Size = new Size(213, 339);
-            pnlRecentActivity.TabIndex = 2;
-            // 
-            // lstRecentActivity
-            // 
-            lstRecentActivity.BorderStyle = BorderStyle.None;
-            lstRecentActivity.Dock = DockStyle.Fill;
-            lstRecentActivity.Font = new Font("Microsoft Sans Serif", 10F);
-            lstRecentActivity.FormattingEnabled = true;
-            lstRecentActivity.ItemHeight = 25;
-            lstRecentActivity.Location = new Point(20, 23);
-            lstRecentActivity.Margin = new Padding(4, 5, 4, 5);
-            lstRecentActivity.Name = "lstRecentActivity";
-            lstRecentActivity.Size = new Size(171, 291);
-            lstRecentActivity.TabIndex = 1;
-            // 
-            // lblRecentActivityTitle
-            // 
-            lblRecentActivityTitle.AutoSize = true;
-            lblRecentActivityTitle.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
-            lblRecentActivityTitle.Location = new Point(20, 23);
-            lblRecentActivityTitle.Margin = new Padding(4, 0, 4, 0);
-            lblRecentActivityTitle.Name = "lblRecentActivityTitle";
-            lblRecentActivityTitle.Size = new Size(231, 29);
-            lblRecentActivityTitle.TabIndex = 0;
-            lblRecentActivityTitle.Text = "Hoạt động gần đây";
-            // 
-            // pnlAlerts
-            // 
-            pnlAlerts.BackColor = Color.White;
-            pnlAlerts.BorderStyle = BorderStyle.FixedSingle;
-            pnlAlerts.Controls.Add(lstAlerts);
-            pnlAlerts.Controls.Add(lblAlertsTitle);
-            pnlAlerts.Dock = DockStyle.Left;
-            pnlAlerts.Location = new Point(293, 15);
-            pnlAlerts.Margin = new Padding(4, 5, 4, 5);
-            pnlAlerts.Name = "pnlAlerts";
-            pnlAlerts.Padding = new Padding(20, 23, 20, 23);
-            pnlAlerts.Size = new Size(466, 339);
-            pnlAlerts.TabIndex = 1;
-            // 
-            // lstAlerts
-            // 
-            lstAlerts.BorderStyle = BorderStyle.None;
-            lstAlerts.Dock = DockStyle.Fill;
-            lstAlerts.Font = new Font("Microsoft Sans Serif", 10F);
-            lstAlerts.FormattingEnabled = true;
-            lstAlerts.ItemHeight = 25;
-            lstAlerts.Location = new Point(20, 23);
-            lstAlerts.Margin = new Padding(4, 5, 4, 5);
-            lstAlerts.Name = "lstAlerts";
-            lstAlerts.Size = new Size(424, 291);
-            lstAlerts.TabIndex = 1;
-            // 
-            // lblAlertsTitle
-            // 
-            lblAlertsTitle.AutoSize = true;
-            lblAlertsTitle.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
-            lblAlertsTitle.Location = new Point(20, 23);
-            lblAlertsTitle.Margin = new Padding(4, 0, 4, 0);
-            lblAlertsTitle.Name = "lblAlertsTitle";
-            lblAlertsTitle.Size = new Size(124, 29);
-            lblAlertsTitle.TabIndex = 0;
-            lblAlertsTitle.Text = "Cảnh báo";
+            tableLayoutBottom.ColumnCount = 3;
+            tableLayoutBottom.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20F));
+            tableLayoutBottom.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40F));
+            tableLayoutBottom.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40F));
+            tableLayoutBottom.Controls.Add(pnlQuickActions, 0, 0);
+            tableLayoutBottom.Controls.Add(pnlAlerts, 1, 0);
+            tableLayoutBottom.Controls.Add(pnlRecentActivity, 2, 0);
+            tableLayoutBottom.Dock = DockStyle.Fill;
+            tableLayoutBottom.Location = new Point(27, 15);
+            tableLayoutBottom.Margin = new Padding(0);
+            tableLayoutBottom.Name = "tableLayoutBottom";
+            tableLayoutBottom.RowCount = 1;
+            tableLayoutBottom.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tableLayoutBottom.Size = new Size(1267, 344);
+            tableLayoutBottom.TabIndex = 0;
             // 
             // pnlQuickActions
             // 
@@ -692,22 +609,22 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlQuickActions.Controls.Add(btnAddPayment);
             pnlQuickActions.Controls.Add(btnAddRoom);
             pnlQuickActions.Controls.Add(lblQuickActionsTitle);
-            pnlQuickActions.Dock = DockStyle.Left;
-            pnlQuickActions.Location = new Point(27, 15);
+            pnlQuickActions.Dock = DockStyle.Fill;
+            pnlQuickActions.Location = new Point(4, 5);
             pnlQuickActions.Margin = new Padding(4, 5, 4, 5);
             pnlQuickActions.Name = "pnlQuickActions";
             pnlQuickActions.Padding = new Padding(20, 23, 20, 23);
-            pnlQuickActions.Size = new Size(266, 339);
+            pnlQuickActions.Size = new Size(245, 334);
             pnlQuickActions.TabIndex = 0;
             // 
             // btnViewStats
             // 
-            btnViewStats.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            btnViewStats.Anchor = AnchorStyles.Top;
             btnViewStats.Font = new Font("Segoe UI", 11F);
-            btnViewStats.Location = new Point(20, 243);
+            btnViewStats.Location = new Point(19, 243);
             btnViewStats.Margin = new Padding(4, 5, 4, 5);
             btnViewStats.Name = "btnViewStats";
-            btnViewStats.Size = new Size(204, 54);
+            btnViewStats.Size = new Size(200, 54);
             btnViewStats.TabIndex = 4;
             btnViewStats.Text = "Xem thống kê chi tiết";
             btnViewStats.UseVisualStyleBackColor = true;
@@ -715,12 +632,12 @@ namespace DormitoryManagementSystem.GUI.UserControls
             // 
             // btnAddViolation
             // 
-            btnAddViolation.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            btnAddViolation.Anchor = AnchorStyles.Top;
             btnAddViolation.Font = new Font("Segoe UI", 11F);
-            btnAddViolation.Location = new Point(20, 179);
+            btnAddViolation.Location = new Point(19, 179);
             btnAddViolation.Margin = new Padding(4, 5, 4, 5);
             btnAddViolation.Name = "btnAddViolation";
-            btnAddViolation.Size = new Size(204, 54);
+            btnAddViolation.Size = new Size(200, 54);
             btnAddViolation.TabIndex = 3;
             btnAddViolation.Text = "Tạo vi phạm";
             btnAddViolation.UseVisualStyleBackColor = true;
@@ -728,12 +645,12 @@ namespace DormitoryManagementSystem.GUI.UserControls
             // 
             // btnAddPayment
             // 
-            btnAddPayment.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            btnAddPayment.Anchor = AnchorStyles.Top;
             btnAddPayment.Font = new Font("Segoe UI", 11F);
-            btnAddPayment.Location = new Point(20, 115);
+            btnAddPayment.Location = new Point(19, 115);
             btnAddPayment.Margin = new Padding(4, 5, 4, 5);
             btnAddPayment.Name = "btnAddPayment";
-            btnAddPayment.Size = new Size(204, 54);
+            btnAddPayment.Size = new Size(200, 54);
             btnAddPayment.TabIndex = 2;
             btnAddPayment.Text = "Ghi nhận thanh toán";
             btnAddPayment.UseVisualStyleBackColor = true;
@@ -741,12 +658,12 @@ namespace DormitoryManagementSystem.GUI.UserControls
             // 
             // btnAddRoom
             // 
-            btnAddRoom.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            btnAddRoom.Anchor = AnchorStyles.Top;
             btnAddRoom.Font = new Font("Segoe UI", 11F);
-            btnAddRoom.Location = new Point(20, 51);
+            btnAddRoom.Location = new Point(19, 51);
             btnAddRoom.Margin = new Padding(4, 5, 4, 5);
             btnAddRoom.Name = "btnAddRoom";
-            btnAddRoom.Size = new Size(204, 54);
+            btnAddRoom.Size = new Size(200, 54);
             btnAddRoom.TabIndex = 1;
             btnAddRoom.Text = "+ Thêm phòng";
             btnAddRoom.UseVisualStyleBackColor = true;
@@ -759,9 +676,85 @@ namespace DormitoryManagementSystem.GUI.UserControls
             lblQuickActionsTitle.Location = new Point(13, 9);
             lblQuickActionsTitle.Margin = new Padding(4, 0, 4, 0);
             lblQuickActionsTitle.Name = "lblQuickActionsTitle";
-            lblQuickActionsTitle.Size = new Size(189, 32);
+            lblQuickActionsTitle.Size = new Size(159, 28);
             lblQuickActionsTitle.TabIndex = 0;
             lblQuickActionsTitle.Text = "Thao tác nhanh";
+            // 
+            // pnlAlerts
+            // 
+            pnlAlerts.BackColor = Color.White;
+            pnlAlerts.BorderStyle = BorderStyle.FixedSingle;
+            pnlAlerts.Controls.Add(lblAlertsTitle);
+            pnlAlerts.Controls.Add(lstAlerts);
+            pnlAlerts.Dock = DockStyle.Fill;
+            pnlAlerts.Location = new Point(257, 5);
+            pnlAlerts.Margin = new Padding(4, 5, 4, 5);
+            pnlAlerts.Name = "pnlAlerts";
+            pnlAlerts.Padding = new Padding(20, 23, 20, 23);
+            pnlAlerts.Size = new Size(498, 334);
+            pnlAlerts.TabIndex = 1;
+            // 
+            // lblAlertsTitle
+            // 
+            lblAlertsTitle.AutoSize = true;
+            lblAlertsTitle.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
+            lblAlertsTitle.Location = new Point(20, 12);
+            lblAlertsTitle.Margin = new Padding(4, 0, 4, 0);
+            lblAlertsTitle.Name = "lblAlertsTitle";
+            lblAlertsTitle.Size = new Size(106, 25);
+            lblAlertsTitle.TabIndex = 0;
+            lblAlertsTitle.Text = "Cảnh báo";
+            // 
+            // lstAlerts
+            // 
+            lstAlerts.AllowDrop = true;
+            lstAlerts.BorderStyle = BorderStyle.None;
+            lstAlerts.Dock = DockStyle.Bottom;
+            lstAlerts.Font = new Font("Microsoft Sans Serif", 10F);
+            lstAlerts.FormattingEnabled = true;
+            lstAlerts.Location = new Point(20, 49);
+            lstAlerts.Margin = new Padding(4, 5, 4, 5);
+            lstAlerts.Name = "lstAlerts";
+            lstAlerts.Size = new Size(456, 260);
+            lstAlerts.TabIndex = 1;
+            // 
+            // pnlRecentActivity
+            // 
+            pnlRecentActivity.BackColor = Color.White;
+            pnlRecentActivity.BorderStyle = BorderStyle.FixedSingle;
+            pnlRecentActivity.Controls.Add(lstRecentActivity);
+            pnlRecentActivity.Controls.Add(lblRecentActivityTitle);
+            pnlRecentActivity.Dock = DockStyle.Fill;
+            pnlRecentActivity.Location = new Point(763, 5);
+            pnlRecentActivity.Margin = new Padding(4, 5, 4, 5);
+            pnlRecentActivity.Name = "pnlRecentActivity";
+            pnlRecentActivity.Padding = new Padding(20, 23, 20, 23);
+            pnlRecentActivity.Size = new Size(500, 334);
+            pnlRecentActivity.TabIndex = 2;
+            // 
+            // lstRecentActivity
+            // 
+            lstRecentActivity.AllowDrop = true;
+            lstRecentActivity.BorderStyle = BorderStyle.None;
+            lstRecentActivity.Dock = DockStyle.Bottom;
+            lstRecentActivity.Font = new Font("Microsoft Sans Serif", 10F);
+            lstRecentActivity.FormattingEnabled = true;
+            lstRecentActivity.Location = new Point(20, 49);
+            lstRecentActivity.Margin = new Padding(4, 5, 4, 5);
+            lstRecentActivity.Name = "lstRecentActivity";
+            lstRecentActivity.Size = new Size(458, 260);
+            lstRecentActivity.TabIndex = 1;
+            // 
+            // lblRecentActivityTitle
+            // 
+            lblRecentActivityTitle.AutoSize = true;
+            lblRecentActivityTitle.Font = new Font("Microsoft Sans Serif", 12F, FontStyle.Bold);
+            lblRecentActivityTitle.Location = new Point(20, 12);
+            lblRecentActivityTitle.Margin = new Padding(4, 0, 4, 0);
+            lblRecentActivityTitle.Name = "lblRecentActivityTitle";
+            lblRecentActivityTitle.Size = new Size(194, 25);
+            lblRecentActivityTitle.TabIndex = 0;
+            lblRecentActivityTitle.Text = "Hoạt động gần đây";
             // 
             // scrollPanel
             // 
@@ -784,7 +777,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             Controls.Add(pnlHeader);
             Margin = new Padding(4, 5, 4, 5);
             Name = "ucDashboard";
-            Size = new Size(999, 1072);
+            Size = new Size(1321, 1051);
             Load += ucDashboard_Load;
             pnlHeader.ResumeLayout(false);
             pnlHeader.PerformLayout();
@@ -802,7 +795,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
             cardTotalRooms.ResumeLayout(false);
             cardTotalRooms.PerformLayout();
             pnlCharts.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)chartTrend).EndInit();
             ((System.ComponentModel.ISupportInitialize)chartOccupancyByBuilding).EndInit();
             ((System.ComponentModel.ISupportInitialize)chartOccupancyPie).EndInit();
             pnlPendingContracts.ResumeLayout(false);
@@ -810,12 +802,13 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlSearchContracts.ResumeLayout(false);
             pnlSearchContracts.PerformLayout();
             pnlBottom.ResumeLayout(false);
-            pnlRecentActivity.ResumeLayout(false);
-            pnlRecentActivity.PerformLayout();
-            pnlAlerts.ResumeLayout(false);
-            pnlAlerts.PerformLayout();
+            tableLayoutBottom.ResumeLayout(false);
             pnlQuickActions.ResumeLayout(false);
             pnlQuickActions.PerformLayout();
+            pnlAlerts.ResumeLayout(false);
+            pnlAlerts.PerformLayout();
+            pnlRecentActivity.ResumeLayout(false);
+            pnlRecentActivity.PerformLayout();
             ResumeLayout(false);
 
         }
@@ -850,7 +843,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
         private System.Windows.Forms.Panel pnlCharts;
         private System.Windows.Forms.DataVisualization.Charting.Chart chartOccupancyPie;
         private System.Windows.Forms.DataVisualization.Charting.Chart chartOccupancyByBuilding;
-        private System.Windows.Forms.DataVisualization.Charting.Chart chartTrend;
         private System.Windows.Forms.Panel pnlPendingContracts;
         private System.Windows.Forms.DataGridView dgvPendingContracts;
         private System.Windows.Forms.Label lblPendingContractsTitle;
@@ -858,6 +850,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
         private System.Windows.Forms.Button btnSearchContracts;
         private System.Windows.Forms.TextBox txtSearchContracts;
         private System.Windows.Forms.Panel pnlBottom;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutBottom;
         private System.Windows.Forms.Panel pnlQuickActions;
         private System.Windows.Forms.Label lblQuickActionsTitle;
         private System.Windows.Forms.Button btnAddRoom;

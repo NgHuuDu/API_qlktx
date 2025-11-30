@@ -1,4 +1,5 @@
 using DormitoryManagementSystem.GUI.Utils;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -12,7 +13,7 @@ namespace DormitoryManagementSystem.GUI.Services
         private static readonly Lazy<HttpClient> _client = new(() =>
         {
             var baseUrl = Environment.GetEnvironmentVariable("DMS_API_BASE_URL")
-                ?? "http://localhost:5041/";
+                ?? "localhost:5041";
 
             // Bỏ qua SSL certificate validation cho localhost (chỉ dùng trong development)
             var handler = new HttpClientHandler

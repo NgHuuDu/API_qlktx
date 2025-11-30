@@ -55,13 +55,14 @@ namespace DormitoryManagementSystem.GUI.UserControls
             const int cardSpacing = 10;
             const int cardCount = 6;
             const int minCardWidth = 150;
-            const int maxCardWidth = 200;
+            // Tăng max width để phù hợp với fullscreen
+            int maxCardWidth = Math.Max(200, (pnlKPICards.ClientSize.Width - (padding * 2) - (cardSpacing * (cardCount - 1))) / cardCount);
 
             var (cardWidth, startX) = CalculateCardLayout(pnlKPICards.ClientSize.Width, padding, cardSpacing, cardCount, minCardWidth, maxCardWidth);
             int y = padding;
             const int cardPadding = 15;
 
-            // Arrange all cards
+            // Sắp xếp tất cả các thẻ
             ArrangeCard(cardTotalRooms, lblTotalRoomsTitle, lblTotalRoomsValue, startX, y, cardWidth, cardHeight, cardPadding);
             startX += cardWidth + cardSpacing;
 
@@ -115,19 +116,23 @@ namespace DormitoryManagementSystem.GUI.UserControls
             if (pnlCharts == null) return;
 
             int padding = 27;
-            int chartHeight = 354;
+            // Tăng chart height khi fullscreen
+            int panelHeight = pnlCharts.ClientSize.Height;
+            int chartHeight = Math.Max(354, panelHeight - 30); 
             int chartSpacing = 10;
             int panelWidth = pnlCharts.ClientSize.Width - (padding * 2);
             
-            // Tính toán kích thước chart để vừa với panel (3 charts)
-            int availableWidth = panelWidth - (chartSpacing * 2); // 2 spaces between 3 charts
-            int calculatedChartWidth = Math.Max(300, Math.Min(400, availableWidth / 3)); // Min 300px, Max 400px per chart
+            // Tính toán kích thước chart để vừa với panel (2 charts)
+            int availableWidth = panelWidth - chartSpacing; // 1 space between 2 charts
+            int minChartWidth = 300;
+            // Bỏ max width limit, để charts scale theo available space
+            int calculatedChartWidth = Math.Max(minChartWidth, availableWidth / 2);
 
-            // Nếu tổng chiều rộng vượt quá, điều chỉnh lại
-            int totalWidth = (calculatedChartWidth * 3) + (chartSpacing * 2);
+            // Đảm bảo không vượt quá available width
+            int totalWidth = (calculatedChartWidth * 2) + chartSpacing;
             if (totalWidth > panelWidth)
             {
-                calculatedChartWidth = (panelWidth - (chartSpacing * 2)) / 3;
+                calculatedChartWidth = (panelWidth - chartSpacing) / 2;
             }
 
             // Căn giữa các charts nếu còn dư không gian
@@ -138,19 +143,15 @@ namespace DormitoryManagementSystem.GUI.UserControls
                 startX = padding + (extraSpace / 2);
             }
 
-            int y = 15; // Top padding
+            int y = 15; 
 
-            // Arrange all charts
+            // Sắp xếp tất cả các biểu đồ
             chartOccupancyPie.Location = new Point(startX, y);
             chartOccupancyPie.Size = new Size(calculatedChartWidth, chartHeight);
             startX += calculatedChartWidth + chartSpacing;
 
             chartOccupancyByBuilding.Location = new Point(startX, y);
             chartOccupancyByBuilding.Size = new Size(calculatedChartWidth, chartHeight);
-            startX += calculatedChartWidth + chartSpacing;
-
-            chartTrend.Location = new Point(startX, y);
-            chartTrend.Size = new Size(calculatedChartWidth, chartHeight);
         }
 
         private void ArrangeSearchControls()
@@ -188,40 +189,53 @@ namespace DormitoryManagementSystem.GUI.UserControls
         private void SetupCharts()
         {
             // Pie chart - Occupancy
-            chartOccupancyPie.Series.Clear();
-            var pieSeries = chartOccupancyPie.Series.Add("Occupancy");
-            pieSeries.ChartType = SeriesChartType.Doughnut;
-            pieSeries["PieLabelStyle"] = "Outside";
-            pieSeries["PieLineColor"] = "Black";
-            chartOccupancyPie.ChartAreas[0].Area3DStyle.Enable3D = true;
-            chartOccupancyPie.Legends[0].Docking = Docking.Bottom;
+            if (chartOccupancyPie != null)
+            {
+                chartOccupancyPie.Series.Clear();
+                
+                if (chartOccupancyPie.ChartAreas.Count == 0)
+                    chartOccupancyPie.ChartAreas.Add(new ChartArea());
+                if (chartOccupancyPie.Legends.Count == 0)
+                    chartOccupancyPie.Legends.Add(new Legend());
+                
+                var pieSeries = chartOccupancyPie.Series.Add("Occupancy");
+                pieSeries.ChartType = SeriesChartType.Doughnut;
+                pieSeries["PieLabelStyle"] = "Outside";
+                pieSeries["PieLineColor"] = "Black";
+                if (chartOccupancyPie.ChartAreas.Count > 0)
+                    chartOccupancyPie.ChartAreas[0].Area3DStyle.Enable3D = true;
+                if (chartOccupancyPie.Legends.Count > 0)
+                    chartOccupancyPie.Legends[0].Docking = Docking.Bottom;
+            }
 
             // Bar chart - By Building
-            chartOccupancyByBuilding.Series.Clear();
-            var barSeries = chartOccupancyByBuilding.Series.Add("Occupied");
-            barSeries.ChartType = SeriesChartType.Bar;
-            barSeries.Color = Theme.Primary;
-            var barSeries2 = chartOccupancyByBuilding.Series.Add("Capacity");
-            barSeries2.ChartType = SeriesChartType.Bar;
-            barSeries2.Color = Theme.Success;
-            chartOccupancyByBuilding.ChartAreas[0].AxisX.MajorGrid.Enabled = false;
-            chartOccupancyByBuilding.ChartAreas[0].AxisY.MajorGrid.Enabled = true;
+            if (chartOccupancyByBuilding != null)
+            {
+                chartOccupancyByBuilding.Series.Clear();
+                
+                if (chartOccupancyByBuilding.ChartAreas.Count == 0)
+                    chartOccupancyByBuilding.ChartAreas.Add(new ChartArea());
+                if (chartOccupancyByBuilding.Legends.Count == 0)
+                    chartOccupancyByBuilding.Legends.Add(new Legend());
+                
+                var barSeries = chartOccupancyByBuilding.Series.Add("Đang ở");
+                barSeries.ChartType = SeriesChartType.Bar;
+                barSeries.Color = Theme.Primary;
+                var barSeries2 = chartOccupancyByBuilding.Series.Add("Sức chứa");
+                barSeries2.ChartType = SeriesChartType.Bar;
+                barSeries2.Color = Theme.Success;
+                if (chartOccupancyByBuilding.ChartAreas.Count > 0)
+                {
+                    chartOccupancyByBuilding.ChartAreas[0].AxisX.MajorGrid.Enabled = false;
+                    chartOccupancyByBuilding.ChartAreas[0].AxisY.MajorGrid.Enabled = true;
+                }
+            }
 
-            // Line chart - Trend
-            chartTrend.Series.Clear();
-            var lineSeries = chartTrend.Series.Add("New Contracts");
-            lineSeries.ChartType = SeriesChartType.Line;
-            lineSeries.Color = Theme.Primary;
-            lineSeries.BorderWidth = 3;
-            lineSeries.MarkerStyle = MarkerStyle.Circle;
-            lineSeries.MarkerSize = 8;
-            chartTrend.ChartAreas[0].AxisX.MajorGrid.Enabled = true;
-            chartTrend.ChartAreas[0].AxisY.MajorGrid.Enabled = true;
         }
 
         private async Task LoadDashboardData()
         {
-            // Prevent multiple concurrent loads
+            // Ngăn chặn nhiều lần tải đồng thời
             if (isLoading) return;
             
             isLoading = true;
@@ -231,7 +245,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             
             try
             {
-                // Check if cancelled
+                // Kiểm tra xem có bị hủy không
                 if (token.IsCancellationRequested) return;
                 
                 var kpiData = await ApiService.GetDashboardKPIsAsync(
@@ -247,22 +261,22 @@ namespace DormitoryManagementSystem.GUI.UserControls
                 }
 
                 await LoadPendingContracts();
-                
+
                 if (token.IsCancellationRequested) return;
 
                 await LoadChartsData();
-                
+
                 if (token.IsCancellationRequested) return;
 
                 await LoadAlerts();
-                
+
                 if (token.IsCancellationRequested) return;
 
                 await LoadRecentActivity();
             }
             catch (OperationCanceledException)
             {
-                // Ignore cancellation
+                // Bỏ qua hủy bỏ
             }
             catch (Exception ex)
             {
@@ -296,7 +310,15 @@ namespace DormitoryManagementSystem.GUI.UserControls
                 dgvPendingContracts.Rows.Clear();
                 dgvPendingContracts.Columns.Clear();
 
-                // Setup columns
+                // Setup columns - Thêm cột ContractId  để lấy ID khi approve/reject
+                var contractIdCol = new DataGridViewTextBoxColumn
+                {
+                    Name = "ContractId",
+                    HeaderText = "ContractId",
+                    Visible = true
+                };
+                dgvPendingContracts.Columns.Add(contractIdCol);
+                
                 dgvPendingContracts.Columns.Add("Student", "Sinh viên");
                 dgvPendingContracts.Columns.Add("Room", "Phòng");
                 dgvPendingContracts.Columns.Add("Start", "Bắt đầu");
@@ -327,6 +349,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
                     foreach (var contract in contracts)
                     {
                         dgvPendingContracts.Rows.Add(
+                            contract.ContractId,  
                             contract.StudentCode,
                             contract.RoomNumber,
                             contract.StartDate.ToString("dd/MM/yyyy"),
@@ -359,50 +382,42 @@ namespace DormitoryManagementSystem.GUI.UserControls
                     GetDateRange()
                 );
 
-                // Null check trước khi access Series
-                if (chartOccupancyPie?.Series["Occupancy"] == null) return;
-                if (chartOccupancyByBuilding?.Series["Occupied"] == null) return;
-                if (chartOccupancyByBuilding?.Series["Capacity"] == null) return;
-                if (chartTrend?.Series["New Contracts"] == null) return;
+                // Kiểm tra null và ChartAreas trước khi truy cập Series
+                if (chartOccupancyPie == null || chartOccupancyPie.Series["Occupancy"] == null || chartOccupancyPie.ChartAreas.Count == 0) return;
+                if (chartOccupancyByBuilding == null || chartOccupancyByBuilding.Series["Đang ở"] == null || chartOccupancyByBuilding.Series["Sức chứa"] == null || chartOccupancyByBuilding.ChartAreas.Count == 0) return;
 
-                // Clear all charts
+                // Xóa tất cả các biểu đồ
                 chartOccupancyPie.Series["Occupancy"].Points.Clear();
-                chartOccupancyByBuilding.Series["Occupied"].Points.Clear();
-                chartOccupancyByBuilding.Series["Capacity"].Points.Clear();
-                chartTrend.Series["New Contracts"].Points.Clear();
+                chartOccupancyByBuilding.Series["Đang ở"].Points.Clear();
+                chartOccupancyByBuilding.Series["Sức chứa"].Points.Clear();
 
-                if (chartData != null && chartData.OccupiedCount > 0 && chartData.AvailableCount > 0)
+                if (chartData != null)
                 {
-                    // Update Pie chart
+                    // Cập nhật biểu đồ tròn - hiển thị ngay cả khi một trong hai giá trị = 0
+                    if (chartData.OccupiedCount >= 0 && chartData.AvailableCount >= 0)
+                {
                     chartOccupancyPie.Series["Occupancy"].Points.AddXY("Đang ở", chartData.OccupiedCount);
                     chartOccupancyPie.Series["Occupancy"].Points.AddXY("Trống", chartData.AvailableCount);
-                    if (chartOccupancyPie.Series["Occupancy"].Points.Count > 0)
-                    {
-                        chartOccupancyPie.Series["Occupancy"].Points[0].Color = Theme.Primary;
-                        if (chartOccupancyPie.Series["Occupancy"].Points.Count > 1)
+                        if (chartOccupancyPie.Series["Occupancy"].Points.Count > 0)
                         {
-                            chartOccupancyPie.Series["Occupancy"].Points[1].Color = Theme.Success;
+                    chartOccupancyPie.Series["Occupancy"].Points[0].Color = Theme.Primary;
+                            if (chartOccupancyPie.Series["Occupancy"].Points.Count > 1)
+                            {
+                    chartOccupancyPie.Series["Occupancy"].Points[1].Color = Theme.Success;
+                            }
                         }
                     }
 
-                    // Update Bar chart
+                    // Cập nhật biểu đồ cột - không phụ thuộc vào biểu đồ tròn
                     if (chartData.OccupancyByBuilding != null && chartData.OccupancyByBuilding.Count > 0)
                     {
                         foreach (var item in chartData.OccupancyByBuilding)
                         {
-                            chartOccupancyByBuilding.Series["Occupied"].Points.AddXY(item.Building, item.Occupied);
-                            chartOccupancyByBuilding.Series["Capacity"].Points.AddXY(item.Building, item.Capacity);
+                            chartOccupancyByBuilding.Series["Đang ở"].Points.AddXY(item.Building, item.Occupied);
+                            chartOccupancyByBuilding.Series["Sức chứa"].Points.AddXY(item.Building, item.Capacity);
                         }
                     }
 
-                    // Update Trend chart
-                    if (chartData.ContractsByWeek != null && chartData.ContractsByWeek.Count > 0)
-                    {
-                        foreach (var item in chartData.ContractsByWeek)
-                        {
-                            chartTrend.Series["New Contracts"].Points.AddXY(item.Week, item.Count);
-                        }
-                    }
                 }
             }
             catch (Exception ex)
@@ -515,14 +530,14 @@ namespace DormitoryManagementSystem.GUI.UserControls
                 if (this.InvokeRequired)
                 {
                     this.Invoke(new Action(async () => 
-                    {
-                        await LoadDashboardData();
+        {
+            await LoadDashboardData();
                         if (btnRefresh != null) btnRefresh.Enabled = true;
                     }));
                 }
                 else
                 {
-                    LoadDashboardData().ContinueWith(_ =>
+                    _ = LoadDashboardData().ContinueWith(_ =>
                     {
                         if (btnRefresh != null) btnRefresh.Enabled = true;
                     }, TaskScheduler.FromCurrentSynchronizationContext());
@@ -530,7 +545,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             }, null, 300, Timeout.Infinite);
         }
 
-        private async void cmbBuilding_SelectedIndexChanged(object sender, EventArgs e)
+        private void cmbBuilding_SelectedIndexChanged(object sender, EventArgs e)
         {
             buildingChangeTimer?.Dispose();
             buildingChangeTimer = new System.Threading.Timer(_ =>
@@ -546,7 +561,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             }, null, 500, Timeout.Infinite);
         }
 
-        private async void cmbTimeRange_SelectedIndexChanged(object sender, EventArgs e)
+        private void cmbTimeRange_SelectedIndexChanged(object sender, EventArgs e)
         {
             timeRangeChangeTimer?.Dispose();
             timeRangeChangeTimer = new System.Threading.Timer(_ =>
@@ -562,7 +577,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             }, null, 500, Timeout.Infinite);
         }
 
-        private async void btnSearchContracts_Click(object sender, EventArgs e)
+        private void btnSearchContracts_Click(object sender, EventArgs e)
         {
             searchTimer?.Dispose();
             searchTimer = new System.Threading.Timer(_ =>
@@ -587,8 +602,17 @@ namespace DormitoryManagementSystem.GUI.UserControls
 
             if (dgv.Columns[e.ColumnIndex].Name == "Approve")
             {
-                var contractId = dgv.Rows[e.RowIndex].Cells["Student"].Value?.ToString();
-                if (await ApiService.ApproveContractAsync(contractId ?? ""))
+                var contractId = dgv.Rows[e.RowIndex].Cells["ContractId"].Value?.ToString();
+                if (string.IsNullOrWhiteSpace(contractId))
+                {
+                    if (this.mainForm != null)
+                    {
+                        UiHelper.ShowError(this.mainForm, "Không tìm thấy ID hợp đồng!");
+                    }
+                    return;
+                }
+                
+                if (await ApiService.ApproveContractAsync(contractId))
                 {
                     if (this.mainForm != null)
                     {
@@ -597,11 +621,27 @@ namespace DormitoryManagementSystem.GUI.UserControls
                     await LoadPendingContracts();
                     await LoadDashboardData();
                 }
+                else
+                {
+                    if (this.mainForm != null)
+                    {
+                        UiHelper.ShowError(this.mainForm, "Duyệt hợp đồng thất bại!");
+                    }
+                }
             }
             else if (dgv.Columns[e.ColumnIndex].Name == "Reject")
             {
-                var contractId = dgv.Rows[e.RowIndex].Cells["Student"].Value?.ToString();
-                if (await ApiService.RejectContractAsync(contractId ?? ""))
+                var contractId = dgv.Rows[e.RowIndex].Cells["ContractId"].Value?.ToString();
+                if (string.IsNullOrWhiteSpace(contractId))
+                {
+                    if (this.mainForm != null)
+                    {
+                        UiHelper.ShowError(this.mainForm, "Không tìm thấy ID hợp đồng!");
+                    }
+                    return;
+                }
+                
+                if (await ApiService.RejectContractAsync(contractId))
                 {
                     if (this.mainForm != null)
                     {
@@ -609,6 +649,13 @@ namespace DormitoryManagementSystem.GUI.UserControls
                     }
                     await LoadPendingContracts();
                     await LoadDashboardData();
+                }
+                else
+                {
+                    if (this.mainForm != null)
+                    {
+                        UiHelper.ShowError(this.mainForm, "Từ chối hợp đồng thất bại!");
+                    }
                 }
             }
         }
