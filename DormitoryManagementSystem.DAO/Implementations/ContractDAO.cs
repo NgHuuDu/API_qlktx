@@ -1,5 +1,6 @@
 ﻿using DormitoryManagementSystem.DAO.Context;
 using DormitoryManagementSystem.DAO.Interfaces;
+using DormitoryManagementSystem.DTO.Contracts;
 using DormitoryManagementSystem.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -92,5 +93,71 @@ namespace DormitoryManagementSystem.DAO.Implementations
                 .Where(c => c.Status == "Active")     
                 .FirstOrDefaultAsync();
         }
+
+
+
+
+        // ADMIN Thêm lọc theo mã và tên SV
+        public async Task<IEnumerable<Contract>> GetContractsByFilterAsync(string SearchTerm)
+        {
+            var query = _context.Contracts
+                                .AsNoTracking()
+                                .Include(c => c.Student) 
+                                .Include(c => c.Room) 
+                                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
+
+                query = query.Where(c =>
+                    c.Contractid.ToLower().Contains(SearchTerm) || // Tìm theo Mã hợp đồng
+                    c.Student.Fullname.ToLower().Contains(SearchTerm) || // Tìm theo Tên SV
+                    c.Student.Studentid.ToLower().Contains(SearchTerm)   // Tìm theo Mã SV
+                );
+            }
+
+
+            return await query
+                        .OrderByDescending(c => c.Createddate)
+                        .ToListAsync();
+        }
+
+        // Lọc theo tòa nhà, trạng thái ngày bất đầu và kết thúc
+        
+
+        public async Task<IEnumerable<Contract>> GetContractsByMultiConditionAsync(ContractFilterDTO filter)
+        {
+            var query = _context.Contracts
+                                .AsNoTracking()
+                                .Include(c => c.Student) 
+                                .Include(c => c.Room)    //  Để lọc theo Tòa nhà
+                                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(filter.BuildingID) && filter.BuildingID != "All")
+            {
+                query = query.Where(c => c.Room.Buildingid == filter.BuildingID);
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter.Status) && filter.Status != "All")
+            {
+                query = query.Where(c => c.Status == filter.Status);
+            }
+
+            if (filter.FromDate.HasValue)
+            {
+                var fromDate = filter.FromDate.Value;
+                query = query.Where(c => c.Starttime >= fromDate);
+            }
+
+            if (filter.ToDate.HasValue)
+            {
+                var toDate = filter.ToDate.Value;
+                query = query.Where(c => c.Endtime <= toDate);
+            }
+            return await query
+                        .OrderByDescending(c => c.Createddate)
+                        .ToListAsync();
+        }
+
     }
 }
