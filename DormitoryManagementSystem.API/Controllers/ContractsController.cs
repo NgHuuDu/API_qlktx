@@ -200,7 +200,7 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         // frmFilterContract
-        [HttpGet]
+        [HttpGet("filter")]
         public async Task<IActionResult> GetContractsByMultiCondition([FromQuery] ContractFilterDTO filter)
         {
             if (!ModelState.IsValid)
