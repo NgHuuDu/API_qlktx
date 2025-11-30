@@ -13,7 +13,7 @@ namespace DormitoryManagementSystem.GUI.Services
         private static readonly Lazy<HttpClient> _client = new(() =>
         {
             var baseUrl = Environment.GetEnvironmentVariable("DMS_API_BASE_URL")
-                ?? "https://qlktx-backend.onrender.com/";
+                ?? "localhost:5041";
 
             // Bỏ qua SSL certificate validation cho localhost (chỉ dùng trong development)
             var handler = new HttpClientHandler
