@@ -67,6 +67,23 @@ namespace DormitoryManagementSystem.GUI.Forms
             if (!ValidateInput())
                 return;
 
+            // Kiểm tra RoomID trùng lặp
+            try
+            {
+                var existingRoom = await ApiService.GetRoomByIdAsync(txtRoomID.Text.Trim());
+                if (existingRoom != null)
+                {
+                    UiHelper.ShowError(this, $"Mã phòng {txtRoomID.Text.Trim()} đã tồn tại. Vui lòng chọn mã khác.");
+                    txtRoomID.Focus();
+                    return;
+                }
+            }
+            catch
+            {
+                // Nếu lỗi khi check (có thể do API không có), tiếp tục tạo mới
+                // BUS layer sẽ validate lại
+            }
+
             try
             {
                 string selectedBuilding = cmbBuilding.SelectedItem?.ToString() ?? string.Empty;
@@ -84,7 +101,7 @@ namespace DormitoryManagementSystem.GUI.Forms
                     RoomID = txtRoomID.Text.Trim(),
                     RoomNumber = int.Parse(txtRoomNumber.Text.Trim()),
                     BuildingID = buildingID,
-                    Capacity = int.Parse(txtCapacity.Text.Trim()),
+                    Capacity = int.Parse(cmbCapacity.SelectedItem?.ToString() ?? "2"),
                     Price = decimal.Parse(txtPrice.Text.Trim()),
                     Status = cmbStatus.SelectedItem?.ToString() ?? "Active",
                     AllowCooking = chkAllowCooking.Checked,
@@ -133,10 +150,10 @@ namespace DormitoryManagementSystem.GUI.Forms
                 return false;
             }
 
-            if (!int.TryParse(txtCapacity.Text, out int capacity) || capacity <= 0)
+            if (cmbCapacity.SelectedItem == null)
             {
-                UiHelper.ShowError(this, "Sức chứa phải là số nguyên dương.");
-                txtCapacity.Focus();
+                UiHelper.ShowError(this, "Vui lòng chọn sức chứa.");
+                cmbCapacity.Focus();
                 return false;
             }
 

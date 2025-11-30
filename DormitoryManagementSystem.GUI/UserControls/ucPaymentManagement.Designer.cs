@@ -16,7 +16,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
                 // Cleanup timers and cancellation tokens
                 cancellationTokenSource?.Cancel();
                 cancellationTokenSource?.Dispose();
-                filterTimer?.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -28,7 +27,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlFilters = new Panel();
             btnAddPayment = new Button();
             btnFilter = new Button();
-            cmbFilterStatus = new ComboBox();
+            btnSearch = new Button();
             txtSearch = new TextBox();
             pnlKPICards = new Panel();
             cardCollected = new Panel();
@@ -58,7 +57,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             pnlFilters.BorderStyle = BorderStyle.FixedSingle;
             pnlFilters.Controls.Add(btnAddPayment);
             pnlFilters.Controls.Add(btnFilter);
-            pnlFilters.Controls.Add(cmbFilterStatus);
+            pnlFilters.Controls.Add(btnSearch);
             pnlFilters.Controls.Add(txtSearch);
             pnlFilters.Dock = DockStyle.Top;
             pnlFilters.Location = new Point(13, 15);
@@ -93,7 +92,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
             btnFilter.FlatStyle = FlatStyle.Flat;
             btnFilter.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
             btnFilter.ForeColor = Color.White;
-            btnFilter.Location = new Point(1273, 15);
+            btnFilter.Location = new Point(1185, 15);
             btnFilter.Margin = new Padding(4, 5, 4, 5);
             btnFilter.Name = "btnFilter";
             btnFilter.Size = new Size(133, 62);
@@ -102,27 +101,32 @@ namespace DormitoryManagementSystem.GUI.UserControls
             btnFilter.UseVisualStyleBackColor = false;
             btnFilter.Click += btnFilter_Click;
             // 
-            // cmbFilterStatus
+            // btnSearch
             // 
-            cmbFilterStatus.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            cmbFilterStatus.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbFilterStatus.Font = new Font("Segoe UI", 13F);
-            cmbFilterStatus.Items.AddRange(new object[] { "Tất cả", "Đã thanh toán", "Chờ thanh toán", "Quá hạn" });
-            cmbFilterStatus.Location = new Point(912, 28);
-            cmbFilterStatus.Margin = new Padding(4, 5, 4, 5);
-            cmbFilterStatus.Name = "cmbFilterStatus";
-            cmbFilterStatus.Size = new Size(225, 44);
-            cmbFilterStatus.TabIndex = 2;
+            btnSearch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnSearch.BackColor = Color.FromArgb(102, 118, 239);
+            btnSearch.FlatAppearance.BorderSize = 0;
+            btnSearch.FlatStyle = FlatStyle.Flat;
+            btnSearch.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
+            btnSearch.ForeColor = Color.White;
+            btnSearch.Location = new Point(1030, 30);
+            btnSearch.Margin = new Padding(4, 5, 4, 5);
+            btnSearch.Name = "btnSearch";
+            btnSearch.Size = new Size(133, 42);
+            btnSearch.TabIndex = 2;
+            btnSearch.Text = "Tìm";
+            btnSearch.UseVisualStyleBackColor = false;
+            btnSearch.Click += btnSearch_Click;
             // 
             // txtSearch
             // 
             txtSearch.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtSearch.Font = new Font("Segoe UI", 13F);
-            txtSearch.Location = new Point(28, 28);
+            txtSearch.Location = new Point(17, 30);
             txtSearch.Margin = new Padding(4, 5, 4, 5);
             txtSearch.Name = "txtSearch";
-            txtSearch.PlaceholderText = "Tìm kiếm theo mã SV/Phòng...";
-            txtSearch.Size = new Size(741, 42);
+            txtSearch.PlaceholderText = "Tìm kiếm theo mã thanh toán, mã hợp đồng...";
+            txtSearch.Size = new Size(1000, 42);
             txtSearch.TabIndex = 0;
             // 
             // pnlKPICards
@@ -345,6 +349,7 @@ namespace DormitoryManagementSystem.GUI.UserControls
         private System.Windows.Forms.Panel pnlFilters;
         private System.Windows.Forms.Button btnAddPayment;
         private System.Windows.Forms.Button btnFilter;
+        private System.Windows.Forms.Button btnSearch;
         private System.Windows.Forms.TextBox txtSearch;
         private System.Windows.Forms.Panel pnlKPICards;
         private System.Windows.Forms.Panel cardCollected;
@@ -359,7 +364,6 @@ namespace DormitoryManagementSystem.GUI.UserControls
         private System.Windows.Forms.Label lblOverdueTitle;
         private System.Windows.Forms.Label lblOverdueValue;
         private System.Windows.Forms.Label lblOverdueCount;
-        private System.Windows.Forms.ComboBox cmbFilterStatus;
         private System.Windows.Forms.DataGridView dgvPayments;
     }
 }

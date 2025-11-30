@@ -103,7 +103,8 @@ namespace DormitoryManagementSystem.BUS.Implementations
             if (room.Status != "Active")
                 throw new InvalidOperationException($"Room {dto.RoomID} is not Active (Status: {room.Status}).");
 
-            if (room.Currentoccupancy >= room.Capacity)
+            // Hợp đồng Pending không tăng occupancy nên có thể tạo ngay cả khi phòng đầy
+            if (dto.Status == "Active" && room.Currentoccupancy >= room.Capacity)
                 throw new InvalidOperationException($"Room {dto.RoomID} is full. Capacity: {room.Capacity}.");
 
             Contract contractEntity = _mapper.Map<Contract>(dto);
@@ -111,7 +112,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             await _contractDAO.AddContractAsync(contractEntity);
 
-            // Increase occupancy when contract is Active
+            // Tăng occupancy khi hợp đồng là Active
             if (contractEntity.Status == "Active")
             {
                 room.Currentoccupancy += 1;
