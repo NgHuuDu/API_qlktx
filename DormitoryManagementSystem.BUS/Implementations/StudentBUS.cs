@@ -218,5 +218,29 @@ namespace DormitoryManagementSystem.BUS.Implementations
             return profile;
         }
 
+        public async Task UpdateContactInfoAsync(string studentId, StudentContactUpdateDTO dto)
+        {
+            var student = await _studentDAO.GetStudentByIDAsync(studentId);
+            if (student == null)
+                throw new KeyNotFoundException($"Không tìm thấy sinh viên với ID {studentId}.");
+           
+
+
+            if (!string.Equals(student.Email, dto.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                var duplicateEmail = await _studentDAO.GetStudentByEmailAsync(dto.Email);
+                if (duplicateEmail != null)
+                {
+                    throw new InvalidOperationException($"Email '{dto.Email}' đã được sử dụng bởi sinh viên khác.");
+                }
+            }
+
+            student.Phonenumber = dto.PhoneNumber;
+            student.Email = dto.Email;
+            student.Address = dto.Address;
+
+            await _studentDAO.UpdateStudentAsync(student);
+        }
+
     }
 }
