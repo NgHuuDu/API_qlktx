@@ -1,5 +1,6 @@
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DTO.Admins;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,7 @@ namespace DormitoryManagementSystem.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class AdminController : ControllerBase
     {
         private readonly IAdminBUS _adminBUS;

@@ -23,13 +23,12 @@ namespace DormitoryManagementSystem.API.Controllers
         //Student
         // API: Sinh viên xem hợp đồng CỦA CHÍNH MÌNH
         [HttpGet("/student/my-contracts")]
-        // [Authorize(Roles = "Student")] // Nhớ bật lại khi có Token
+        [Authorize(Roles = "Student")] // Nhớ bật lại khi có Token
         public async Task<IActionResult> GetMyContracts()
         {
             try
             {
-                // var studentId = User.FindFirst("StudentID")?.Value;
-                var studentId = "STU002"; // để test
+                var studentId = User.FindFirst("StudentID")?.Value;
 
                 if (string.IsNullOrEmpty(studentId))
                     return Unauthorized(new { message = "Không tìm thấy thông tin sinh viên." });
@@ -49,13 +48,12 @@ namespace DormitoryManagementSystem.API.Controllers
         //Student
         // API: Sinh viên gửi đơn đăng ký
         [HttpPost("/student/register")]
-        //[Authorize(Roles = "Student")] 
+        [Authorize(Roles = "Student")] 
         public async Task<IActionResult> RegisterContract([FromBody] ContractRegisterDTO dto)
         {
             try
             {
-                // var studentId = User.FindFirst("StudentID")?.Value;
-                var studentId = "STU001"; //test
+                 var studentId = User.FindFirst("StudentID")?.Value;
                 if (string.IsNullOrEmpty(studentId))
                     return Unauthorized(new { message = "Không xác định được sinh viên." });
 
@@ -78,6 +76,7 @@ namespace DormitoryManagementSystem.API.Controllers
         // Admin
         //ucContractManagement
         [HttpGet("list")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetContracts([FromQuery] string? searchTerm)
         {
             if (!ModelState.IsValid)
@@ -96,6 +95,8 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> GetContractById(string id)
         {
             if (!ModelState.IsValid)
@@ -120,6 +121,8 @@ namespace DormitoryManagementSystem.API.Controllers
         // Tao hop dong
         // frmAddContract
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> CreateContract([FromBody] ContractCreateDTO dto, string staffUserID)
         {
 
@@ -129,8 +132,7 @@ namespace DormitoryManagementSystem.API.Controllers
                 {
                     return BadRequest(new { message = "Không xác định được người tạo (StaffUserID). Vui lòng đăng nhập lại." });
                 }
-                // string staffUserId = User.FindFirst("UserID")?.Value; // nguoi thuc hien tao lay tu luc dang nhap
-                staffUserID = "U_ADM01"; // test
+                string staffUserId = User.FindFirst("UserID")?.Value; // nguoi thuc hien tao lay tu luc dang nhap
                 await _contractBUS.AddContractAsync(dto, staffUserID);
                 return Ok(new { message = "Tạo hợp đồng thành công!" });
             }
@@ -151,6 +153,7 @@ namespace DormitoryManagementSystem.API.Controllers
         // frmContractDetail
         // Cap nhat phong
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateContract(string id, [FromBody] ContractUpdateDTO dto)
         {
             if(!ModelState.IsValid)
@@ -178,6 +181,8 @@ namespace DormitoryManagementSystem.API.Controllers
 
         // Xoa hop dong
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> DeleteContract(string id)
         {
             if(!ModelState.IsValid)
@@ -201,6 +206,8 @@ namespace DormitoryManagementSystem.API.Controllers
 
         // frmFilterContract
         [HttpGet("filter")]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> GetContractsByMultiCondition([FromQuery] ContractFilterDTO filter)
         {
             if (!ModelState.IsValid)

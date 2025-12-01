@@ -24,10 +24,10 @@ public class PaymentController : ControllerBase
 
     // API: Lấy danh sách thanh toán của sinh viên (Có thể lọc theo trạng thái)
     [HttpGet("student/filter")]
+    [Authorize(Roles = "Student")]
     public async Task<IActionResult> GetMyPayments([FromQuery] string? status)
     {
-        //var studentId = User.FindFirst("StudentID")?.Value; // Lấy từ Token
-        var studentId = "STU001"; // Dùng này để test
+        var studentId = User.FindFirst("StudentID")?.Value; // Lấy từ Token
         var list = await _paymentBUS.GetPaymentsByStudentAndStatusAsync(studentId, status);
 
         return Ok(list);
@@ -44,7 +44,7 @@ public class PaymentController : ControllerBase
     // Lấy danh sách & Lọc
     // GET: api/payment/admin/list?month=11&status=Unpaid&search=Nguyen
     [HttpGet("admin/list & search")]
-   // [Authorize(Roles = "Admin,Manager")]
+   [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAdminPaymentList(
         [FromQuery] int? month,
         [FromQuery] string? status,
@@ -57,7 +57,7 @@ public class PaymentController : ControllerBase
 
     //  Tạo hóa đơn mới
     [HttpPost("admin/Create")]
-    //[Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateBill([FromBody] PaymentCreateDTO dto)
     {
         try
@@ -70,7 +70,7 @@ public class PaymentController : ControllerBase
 
     // PUT: api/payment/{id}/confirm
     [HttpPut("admin/{id}/confirm")]
-    //[Authorize(Roles = "Admin,Manager")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ConfirmPayment(string id, [FromBody] PaymentConfirmDTO dto)
     {
         try
@@ -98,7 +98,7 @@ public class PaymentController : ControllerBase
 
     //Xóa hóa đơn (Nếu tạo sai)
     [HttpDelete("admin/{id}")]
-   // [Authorize(Roles = "Admin,Manager")]
+   [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteBill(string id)
     {
         await _paymentBUS.DeletePaymentAsync(id);

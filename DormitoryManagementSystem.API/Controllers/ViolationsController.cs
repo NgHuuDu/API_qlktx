@@ -18,13 +18,12 @@ namespace DormitoryManagementSystem.API.Controllers
 
 
         [HttpGet("student/Search/my-violations")]
-        // [Authorize(Roles = "Student")]
+        [Authorize(Roles = "Student")]
         public async Task<IActionResult> GetMyViolations([FromQuery] string? status)
         {
             try
             {
-                // var studentId = User.FindFirst("StudentID")?.Value;
-                var studentId = "STU003"; // Hardcode test
+                 var studentId = User.FindFirst("StudentID")?.Value;
 
                 if (string.IsNullOrEmpty(studentId))
                     return Unauthorized(new { message = "Không tìm thấy thông tin sinh viên." });
