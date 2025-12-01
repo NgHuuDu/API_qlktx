@@ -53,7 +53,7 @@ public class PaymentController : ControllerBase
         var list = await _paymentBUS.GetPaymentsForAdminAsync(month, status, building, search);
         return Ok(list);
     }
-
+    /*
     //  Tạo hóa đơn mới
     [HttpPost("admin/payments")]
     [Authorize(Roles = "Admin")]
@@ -66,7 +66,7 @@ public class PaymentController : ControllerBase
         }
         catch (Exception ex) { return BadRequest(new { message = ex.Message }); }
     }
-
+    */
     // PUT: api/payment/{id}/confirm
     [HttpPut("admin/payments/{id}/confirm")]
     [Authorize(Roles = "Admin")]
@@ -104,7 +104,23 @@ public class PaymentController : ControllerBase
         return Ok(new { message = "Đã xóa hóa đơn" });
     }
 
+    [HttpPost("admin/payments/auto-generate")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GenerateBills([FromQuery] int month, [FromQuery] int year)
+    {
+        try
+        {
+            if (year == 0) year = DateTime.Now.Year;
+
+            int count = await _paymentBUS.GenerateMonthlyBillsAsync(month, year);
+
+            return Ok(new { message = $"Đã tạo thành công {count} hóa đơn tiền phòng cho tháng {month}/{year}!" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
+        }
+    }
 
 
-    
 }
