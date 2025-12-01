@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DormitoryManagementSystem.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [ApiController]
     public class ViolationController : ControllerBase
     {
@@ -17,7 +17,7 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
 
-        [HttpGet("student/Search/my-violations")]
+        [HttpGet("student/violations")]
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> GetMyViolations([FromQuery] string? status)
         {
@@ -57,7 +57,7 @@ namespace DormitoryManagementSystem.API.Controllers
 
 
         //  Lấy danh sách vi phạm (Có lọc)
-        [HttpGet("admin/list")]
+        [HttpGet("admin/violations")]
         //[Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> GetAdminList(
             [FromQuery] string? search,
@@ -70,7 +70,7 @@ namespace DormitoryManagementSystem.API.Controllers
 
         // Thêm vi phạm mới 
         // POST: api/violation
-        [HttpPost("admin")]
+        [HttpPost("admin/violations")]
        // [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> CreateViolation([FromBody] ViolationCreateDTO dto)
         {
@@ -86,7 +86,7 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         // Cập nhật vi phạm
-        [HttpPut("admin/{id}")]
+        [HttpPut("admin/violations/{id}")]
        // [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> UpdateViolation(string id, [FromBody] ViolationUpdateDTO dto)
         {
@@ -99,7 +99,7 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         //  Xóa vi phạm
-        [HttpDelete("admin/{id}")]
+        [HttpDelete("admin/violations/{id}")]
        // [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> DeleteViolation(string id)
         {

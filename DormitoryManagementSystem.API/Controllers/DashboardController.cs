@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DormitoryManagementSystem.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/admin/dashboard")]
     [ApiController]
     [Authorize(Roles = "Admin")]
 

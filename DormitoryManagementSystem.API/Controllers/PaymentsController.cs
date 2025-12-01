@@ -4,7 +4,7 @@ using DormitoryManagementSystem.Entity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-[Route("api/[controller]")]
+[Route("api")]
 [ApiController]
 public class PaymentController : ControllerBase
 {
@@ -23,7 +23,7 @@ public class PaymentController : ControllerBase
 
 
     // API: Lấy danh sách thanh toán của sinh viên (Có thể lọc theo trạng thái)
-    [HttpGet("student/filter")]
+    [HttpGet("student/payments")]
     [Authorize(Roles = "Student")]
     public async Task<IActionResult> GetMyPayments([FromQuery] string? status)
     {
@@ -42,8 +42,7 @@ public class PaymentController : ControllerBase
     // ---------------------------------------------------------
 
     // Lấy danh sách & Lọc
-    // GET: api/payment/admin/list?month=11&status=Unpaid&search=Nguyen
-    [HttpGet("admin/list & search")]
+    [HttpGet("admin/payments")]
    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAdminPaymentList(
         [FromQuery] int? month,
@@ -56,7 +55,7 @@ public class PaymentController : ControllerBase
     }
 
     //  Tạo hóa đơn mới
-    [HttpPost("admin/Create")]
+    [HttpPost("admin/payments")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateBill([FromBody] PaymentCreateDTO dto)
     {
@@ -69,7 +68,7 @@ public class PaymentController : ControllerBase
     }
 
     // PUT: api/payment/{id}/confirm
-    [HttpPut("admin/{id}/confirm")]
+    [HttpPut("admin/payments/{id}/confirm")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ConfirmPayment(string id, [FromBody] PaymentConfirmDTO dto)
     {
@@ -97,8 +96,8 @@ public class PaymentController : ControllerBase
     }
 
     //Xóa hóa đơn (Nếu tạo sai)
-    [HttpDelete("admin/{id}")]
-   [Authorize(Roles = "Admin")]
+    [HttpDelete("admin/payments/{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteBill(string id)
     {
         await _paymentBUS.DeletePaymentAsync(id);

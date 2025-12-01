@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DormitoryManagementSystem.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/admin")]
     [ApiController]
     [Authorize(Roles = "Admin")]
     public class AdminController : ControllerBase
@@ -20,7 +20,8 @@ namespace DormitoryManagementSystem.API.Controllers
             _adminBUS = adminBUS;
         }
 
-        [HttpGet]
+        [HttpGet("admins")]
+
         public async Task<ActionResult<IEnumerable<AdminReadDTO>>> GetAllAdmins()
         {
             var admins = await _adminBUS.GetAllAdminsAsync();

@@ -6,7 +6,7 @@ using DormitoryManagementSystem.Entity;
 
 namespace DormitoryManagementSystem.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [ApiController]
     public class ContractController : ControllerBase
     {
@@ -22,7 +22,7 @@ namespace DormitoryManagementSystem.API.Controllers
 
         //Student
         // API: Sinh viên xem hợp đồng CỦA CHÍNH MÌNH
-        [HttpGet("/student/my-contracts")]
+        [HttpGet("student/my-contracts")]
         [Authorize(Roles = "Student")] // Nhớ bật lại khi có Token
         public async Task<IActionResult> GetMyContracts()
         {
@@ -47,7 +47,7 @@ namespace DormitoryManagementSystem.API.Controllers
 
         //Student
         // API: Sinh viên gửi đơn đăng ký
-        [HttpPost("/student/register")]
+        [HttpPost("student/contracts")]
         [Authorize(Roles = "Student")] 
         public async Task<IActionResult> RegisterContract([FromBody] ContractRegisterDTO dto)
         {
@@ -75,7 +75,7 @@ namespace DormitoryManagementSystem.API.Controllers
 
         // Admin
         //ucContractManagement
-        [HttpGet("list")]
+        [HttpGet("admin/contracts")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetContracts([FromQuery] string? searchTerm)
         {
@@ -94,7 +94,7 @@ namespace DormitoryManagementSystem.API.Controllers
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("admin/contracts/{id}")]
         [Authorize(Roles = "Admin")]
 
         public async Task<IActionResult> GetContractById(string id)
@@ -118,9 +118,10 @@ namespace DormitoryManagementSystem.API.Controllers
             }
         }
 
+        /*
         // Tao hop dong
         // frmAddContract
-        [HttpPost]
+        [HttpPost("admin/contracts")]
         [Authorize(Roles = "Admin")]
 
         public async Task<IActionResult> CreateContract([FromBody] ContractCreateDTO dto, string staffUserID)
@@ -149,10 +150,11 @@ namespace DormitoryManagementSystem.API.Controllers
                 return StatusCode(500, new { message = "Lỗi hệ thống: " + ex.Message });
             }
         }
+        */
 
         // frmContractDetail
         // Cap nhat phong
-        [HttpPut("{id}")]
+        [HttpPut("admin/contracts/{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateContract(string id, [FromBody] ContractUpdateDTO dto)
         {
@@ -180,7 +182,7 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         // Xoa hop dong
-        [HttpDelete("{id}")]
+        [HttpDelete("admin/contracts/{id}")]
         [Authorize(Roles = "Admin")]
 
         public async Task<IActionResult> DeleteContract(string id)
@@ -205,7 +207,7 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         // frmFilterContract
-        [HttpGet("filter")]
+        [HttpGet("admin/contracts/filter")]
         [Authorize(Roles = "Admin")]
 
         public async Task<IActionResult> GetContractsByMultiCondition([FromQuery] ContractFilterDTO filter)

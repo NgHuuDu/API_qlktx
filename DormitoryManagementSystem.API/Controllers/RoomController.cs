@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Net.NetworkInformation;
 
-[Route("api/[controller]")]
+[Route("api")]
 [ApiController]
 public class RoomController : ControllerBase
 {
@@ -24,7 +24,7 @@ public class RoomController : ControllerBase
     // ---------------------------------------------------------
 
 
-    [HttpGet("student/Room/{RoomID}")]
+    [HttpGet("student/rooms/{RoomID}")]
     [Authorize(Roles = "Student")]// Tắt cái này mới test được, mới lên khi chạy chính thức
     public async Task<IActionResult> GetRoomDetail(string RoomID)
     {
@@ -48,7 +48,7 @@ public class RoomController : ControllerBase
 
     //Student 
     // Duyệt phòng ở FE Student, cái trang có hiện thị phòng chi tiết á
-    [HttpGet("student/SearchInCard")]
+    [HttpGet("student/rooms/cards")]
      [Authorize(Roles = "Student")] // Tắt cái này mới test được, mới lên khi chạy chính thức
     public async Task<IActionResult> SearchRoomInCard(
     [FromQuery] string? buildingId,
@@ -80,7 +80,7 @@ public class RoomController : ControllerBase
 
     // Duyệt phòng ở FE Student, cái trang có hiện thị lưới á
 
-    [HttpGet("student/SearchInGrid")]
+    [HttpGet("student/rooms/grid")]
     [Authorize(Roles = "Student")] // Tắt cái này mới test được, mới lên khi chạy chính thức
     public async Task<IActionResult> SearchRoomInGrid(
     [FromQuery] string? buildingId,
@@ -119,7 +119,7 @@ public class RoomController : ControllerBase
     // ---------------------------------------------------------
 
 
-    [HttpGet("Load/CapacitiesInComboBox")]
+    [HttpGet("rooms/capacities")]
     public async Task<IActionResult> GetCapacities()
     {
         try
@@ -131,7 +131,7 @@ public class RoomController : ControllerBase
     }
 
     // URL: api/room/price-ranges
-    [HttpGet("Load/Price-ranges")]
+    [HttpGet("rooms/price-ranges")]
     public IActionResult GetPriceRanges()
     {
         var result = _roomBUS.GetPriceRanges();
@@ -144,7 +144,7 @@ public class RoomController : ControllerBase
 
     // Tạo phòng mới admin
     // frmAddRoom
-    [HttpPost("admin/Room/CreateRoom")]
+    [HttpPost("admin/rooms")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CreateRoom([FromBody] RoomCreateDTO dto)
     {
@@ -164,7 +164,7 @@ public class RoomController : ControllerBase
     }
     // frmRoomDetail
     // Cap nhat phong
-    [HttpPut("admin/Room/RoomDetail/UpdateRoom{id}")]
+    [HttpPut("admin/rooms/{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateRoom(string id, [FromBody] RoomUpdateDTO dto)
     {
@@ -195,7 +195,7 @@ public class RoomController : ControllerBase
 
     // Xoa phong
 
-    [HttpDelete("admin/Room/RoomDetail/DeleteRoom{id}")]
+    [HttpDelete("admin/rooms/{id}")]
     [Authorize(Roles = "Admin")]
 
     public async Task<IActionResult> DeleteRoom(string id)
@@ -221,7 +221,7 @@ public class RoomController : ControllerBase
 
     // Lọc theo tên và mã phòng
     //ucRoomManagement
-    [HttpGet("search")]
+    [HttpGet("admin/rooms/search")]
     [Authorize(Roles = "Admin")]
 
     public async Task<IActionResult> SearchRooms([FromQuery] string q)
