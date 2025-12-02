@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "DormitoryManagementSystem.API\\DormitoryManagementSystem.API.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
