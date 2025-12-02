@@ -17,8 +17,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// --- CẤU HÌNH JWT TRƯỚC ---
-var secretKey = "DayLaCaiKeyBiMatCuaNhomChungToiKhongDuocTietLo123456";
+// --- CẤU HÌNH JWT AUTHENTICATION ---
+// 1. Lấy cấu hình JWT
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+var secretKey = jwtSettings["Key"];
+var issuer = jwtSettings["Issuer"];
+var audience = jwtSettings["Audience"];
+
+// Kiểm tra (Safety check)
+if (string.IsNullOrEmpty(secretKey) || string.IsNullOrEmpty(issuer) || string.IsNullOrEmpty(audience))
+{
+    throw new InvalidOperationException("Chưa cấu hình đầy đủ JWT trong appsettings.json");
+}
 
 builder.Services.AddAuthentication(options =>
 {
@@ -30,11 +40,14 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
 
-        ValidateIssuer = false,
-        ValidateAudience = false,
+        // BẬT KIỂM TRA LẠI (Vì bây giờ tên đã cố định là "DormitoryAuthServer" ở mọi nơi)
+        ValidateIssuer = true,
+        ValidIssuer = issuer,
+
+        ValidateAudience = true,
+        ValidAudience = audience,
 
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
@@ -46,7 +59,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Dormitory API", Version = "v1" });
 
-    // Định nghĩa Bearer Token
+    // Định nghĩa Bearer Token (Đơn giản hóa để tránh lỗi thao tác)
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -54,7 +67,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Nhập Token vào ô bên dưới (Chỉ dán mã Token, không cần gõ chữ Bearer)"
+        Description = "Nhập Token vào ô bên dưới (CHỈ DÁN MÃ TOKEN, KHÔNG CẦN GÕ CHỮ BEARER)"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -78,13 +91,15 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
-// Database Context (Factory Pattern)
+// Database Context
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-// LƯU Ý: Bạn đang dùng Factory trong DAO nên ở đây phải đăng ký Factory
+// Bạn đang dùng Factory Pattern trong DAO, nên phải đăng ký Factory ở đây
 builder.Services.AddDbContextFactory<PostgreDbContext>(options =>
     options.UseNpgsql(connectionString));
 
@@ -102,7 +117,6 @@ builder.Services.AddScoped<IPaymentDAO, PaymentDAO>();
 builder.Services.AddScoped<IViolationDAO, ViolationDAO>();
 builder.Services.AddScoped<IAdminDAO, AdminDAO>();
 builder.Services.AddScoped<IStatisticsDAO, StatisticsDAO>();
-// Nhớ đăng ký DAO mới nếu có (PendingBillDAO...)
 
 // BUSs
 builder.Services.AddScoped<IUserBUS, UserBUS>();
@@ -126,8 +140,8 @@ app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 
-// QUAN TRỌNG: Authentication phải trước Authorization
-app.UseAuthentication();
+// --- QUAN TRỌNG: BẬT XÁC THỰC TRƯỚC KHI BẬT PHÂN QUYỀN ---
+app.UseAuthentication(); // <--- Dòng này cứu mạng bạn đây
 app.UseAuthorization();
 
 app.MapControllers();

@@ -133,38 +133,29 @@ namespace DormitoryManagementSystem.BUS.Implementations
         //Generate JWT Token
         private string GenerateJwtToken(User user)
         {
-            // 1. Lấy Key ra và kiểm tra null ngay lập tức
-            var secretKey = "DayLaCaiKeyBiMatCuaNhomChungToiKhongDuocTietLo123456";
+            // Đọc từ cấu hình (Inject IConfiguration vào Constructor trước nhé)
+            var secretKey = _configuration["Jwt:Key"];
+            var issuer = _configuration["Jwt:Issuer"];
+            var audience = _configuration["Jwt:Audience"];
 
-            // Nếu quên cấu hình trong appsettings.json -> Báo lỗi ngay để biết đường sửa
-            if (string.IsNullOrEmpty(secretKey))
-            {
-                throw new InvalidOperationException("Chưa cấu hình 'Jwt:Key' trong file appsettings.json");
-            }
-
-            // 2. Lấy Issuer và Audience (Dùng toán tử ?? "" để nếu null thì lấy chuỗi rỗng, tránh lỗi đỏ)
-            var issuer = _configuration["Jwt:Issuer"] ?? "";
-            var audience = _configuration["Jwt:Audience"] ?? "";
-
-            // 3. Bây giờ biến 'secretKey' chắc chắn không null, ném vào GetBytes vô tư
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var claims = new List<Claim>
-    {
-        new Claim("UserID", user.Userid),
-        new Claim(ClaimTypes.Name, user.Username),
-        new Claim(ClaimTypes.Role, user.Role),
-        // Dùng toán tử ?? "" để tránh lỗi nếu Studentid bị null
-        new Claim("StudentID", user.Student?.Studentid ?? "")   
-        };
+                    var claims = new List<Claim>
+            {
+                new Claim("UserID", user.Userid),
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim("StudentID", user.Student?.Studentid ?? "")
+            };
 
             var token = new JwtSecurityToken(
-                issuer: issuer,      // Đã xử lý null ở trên
-                audience: audience,  // Đã xử lý null ở trên
+                issuer: issuer,      // Sử dụng "DormitoryAuthServer"
+                audience: audience,  // Sử dụng "DormitoryAuthClient"
                 claims: claims,
-                expires: DateTime.Now.AddHours(2),
-                signingCredentials: creds);
+                expires: DateTime.Now.AddHours(4),
+                signingCredentials: creds
+            );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
