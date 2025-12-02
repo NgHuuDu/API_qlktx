@@ -18,7 +18,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // --- CẤU HÌNH JWT TRƯỚC ---
-var secretKey = builder.Configuration["Jwt:Key"] ?? "DayLaCaiKeyBiMatCuaNhomChungToiKhongDuocTietLo123456";
+var secretKey = "DayLaCaiKeyBiMatCuaNhomChungToiKhongDuocTietLo123456";
 
 builder.Services.AddAuthentication(options =>
 {
@@ -31,7 +31,7 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuerSigningKey = true,
 
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
 
         ValidateIssuer = false,
         ValidateAudience = false,

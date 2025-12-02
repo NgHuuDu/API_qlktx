@@ -134,7 +134,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
         private string GenerateJwtToken(User user)
         {
             // 1. Lấy Key ra và kiểm tra null ngay lập tức
-            var secretKey = _configuration["Jwt:Key"];
+            var secretKey = "DayLaCaiKeyBiMatCuaNhomChungToiKhongDuocTietLo123456";
 
             // Nếu quên cấu hình trong appsettings.json -> Báo lỗi ngay để biết đường sửa
             if (string.IsNullOrEmpty(secretKey))
@@ -148,7 +148,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             // 3. Bây giờ biến 'secretKey' chắc chắn không null, ném vào GetBytes vô tư
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new List<Claim>
