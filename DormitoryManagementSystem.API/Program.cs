@@ -53,7 +53,7 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero
     };
 });
-
+builder.Services.AddAuthorization();
 // --- CẤU HÌNH SWAGGER CHUẨN ---
 builder.Services.AddSwaggerGen(c =>
 {
