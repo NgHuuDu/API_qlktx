@@ -76,9 +76,10 @@ namespace DormitoryManagementSystem.API.Controllers
         {
             try
             {
+                /*
                 var userId = User.FindFirst("UserID")?.Value;
                 if (!string.IsNullOrEmpty(userId)) dto.ReportedByUserID = userId;
-
+                */
                 var id = await _violationBUS.AddViolationAsync(dto);
                 return Ok(new { message = "Tạo vi phạm thành công", id });
             }
