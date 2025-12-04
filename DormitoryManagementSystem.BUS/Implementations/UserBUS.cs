@@ -5,7 +5,7 @@ using AutoMapper;
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.Users;
-using DormitoryManagementSystem.DTO.Utils; // Nhớ dùng namespace chứa AppConstants bạn mới tạo
+using DormitoryManagementSystem.Utils; // Nhớ dùng namespace chứa AppConstants bạn mới tạo
 using DormitoryManagementSystem.Entity;
 using DormitoryManagementSystem.Utils;
 using Microsoft.Extensions.Configuration;

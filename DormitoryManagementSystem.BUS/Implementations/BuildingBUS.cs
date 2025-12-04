@@ -2,6 +2,8 @@
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.Buildings;
+using DormitoryManagementSystem.DTO.SearchCriteria; // Để dùng RoomSearchCriteria
+using DormitoryManagementSystem.Utils;          // Để dùng AppConstants
 using DormitoryManagementSystem.Entity;
 
 namespace DormitoryManagementSystem.BUS.Implementations
@@ -19,6 +21,8 @@ namespace DormitoryManagementSystem.BUS.Implementations
             _mapper = mapper;
         }
 
+        // ======================== READ ========================
+
         public async Task<IEnumerable<BuildingReadDTO>> GetAllBuildingAsync() =>
             _mapper.Map<IEnumerable<BuildingReadDTO>>(await _dao.GetAllBuildingAsync());
 
@@ -31,6 +35,18 @@ namespace DormitoryManagementSystem.BUS.Implementations
             return building == null ? null : _mapper.Map<BuildingReadDTO>(building);
         }
 
+        public async Task<IEnumerable<BuildingLookupDTO>> GetBuildingLookupAsync()
+        {
+            var buildings = await _dao.GetAllBuildingAsync();
+            return buildings.Select(b => new BuildingLookupDTO
+            {
+                BuildingID = b.Buildingid,
+                BuildingName = b.Buildingname
+            });
+        }
+
+        // ======================== TRANSACTIONS ========================
+
         public async Task<string> AddBuildingAsync(BuildingCreateDTO dto)
         {
             if (await _dao.GetByIDAsync(dto.BuildingID) != null)
@@ -38,6 +54,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             var building = _mapper.Map<Building>(dto);
             await _dao.AddBuildingAsync(building);
+
             return building.Buildingid;
         }
 
@@ -46,15 +63,20 @@ namespace DormitoryManagementSystem.BUS.Implementations
             var building = await _dao.GetByIDAsync(id)
                            ?? throw new KeyNotFoundException($"Tòa nhà {id} không tồn tại.");
 
+            // Logic: Không đổi giới tính khi đang có người ở
             if (building.Currentoccupancy > 0 && building.Gendertype != dto.Gender)
                 throw new InvalidOperationException($"Không thể đổi loại giới tính khi đang có {building.Currentoccupancy} sinh viên ở.");
 
-            var actualRooms = await _daoRoom.GetRoomsByBuildingIDAsync(id);
+            // Logic: Số phòng mới không được nhỏ hơn số phòng thực tế đang có trong DB
+            // Gọi IRoomDAO mới thông qua SearchCriteria
+            var actualRooms = await _daoRoom.SearchRoomsAsync(new RoomSearchCriteria { BuildingID = id });
+
             if (dto.NumberOfRooms < actualRooms.Count())
-                throw new InvalidOperationException($"Số phòng mới ({dto.NumberOfRooms}) nhỏ hơn số phòng thực tế ({actualRooms.Count()}).");
+                throw new InvalidOperationException($"Số phòng mới ({dto.NumberOfRooms}) không thể nhỏ hơn số lượng phòng thực tế ({actualRooms.Count()}).");
 
             _mapper.Map(dto, building);
             building.Buildingid = id;
+
             await _dao.UpdateBuildingAsync(building);
         }
 
@@ -66,19 +88,17 @@ namespace DormitoryManagementSystem.BUS.Implementations
             if (building.Currentoccupancy > 0)
                 throw new InvalidOperationException($"Không thể xóa tòa nhà {id} vì đang có sinh viên.");
 
-            // Cascade Soft Delete: Delete Rooms -> Delete Building
-            var rooms = await _daoRoom.GetRoomsByBuildingIDAsync(id);
+            // Cascade Soft Delete: Xóa (ẩn) tất cả phòng thuộc tòa nhà trước
+            // Lấy danh sách phòng bằng hàm Search mới
+            var rooms = await _daoRoom.SearchRoomsAsync(new RoomSearchCriteria { BuildingID = id });
+
             foreach (var room in rooms)
             {
                 await _daoRoom.DeleteRoomAsync(room.Roomid);
             }
-            await _dao.DeleteBuildingAsync(id);
-        }
 
-        public async Task<IEnumerable<BuildingLookupDTO>> GetBuildingLookupAsync()
-        {
-            var buildings = await _dao.GetAllBuildingAsync();
-            return buildings.Select(b => new BuildingLookupDTO { BuildingID = b.Buildingid, BuildingName = b.Buildingname });
+            // Xóa (ẩn) tòa nhà
+            await _dao.DeleteBuildingAsync(id);
         }
     }
 }

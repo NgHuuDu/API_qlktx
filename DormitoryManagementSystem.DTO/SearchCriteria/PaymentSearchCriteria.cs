@@ -16,4 +16,6 @@ namespace DormitoryManagementSystem.DTO.SearchCriteria
         public int? Month { get; set; }
         public int? Year { get; set; }
     }
+
+
 }

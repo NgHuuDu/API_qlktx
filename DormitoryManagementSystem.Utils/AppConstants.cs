@@ -34,5 +34,12 @@
             public const string Paid = "Paid";
             public const string Closed = "Closed";
         }
+
+        public static class Gender
+        {
+            public const string Male = "Male";
+            public const string Female = "Female";
+            public const string Mixed = "Mixed";
+        }
     }
 }

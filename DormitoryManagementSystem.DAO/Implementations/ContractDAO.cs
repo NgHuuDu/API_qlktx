@@ -1,10 +1,8 @@
 ﻿using DormitoryManagementSystem.DAO.Context;
 using DormitoryManagementSystem.DAO.Interfaces;
-using DormitoryManagementSystem.DTO.Contracts; // Criteria
 using DormitoryManagementSystem.DTO.SearchCriteria;
-using DormitoryManagementSystem.DTO.Utils; // AppConstants
+using DormitoryManagementSystem.Utils; // AppConstants
 using DormitoryManagementSystem.Entity;
-using DormitoryManagementSystem.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace DormitoryManagementSystem.DAO.Implementations

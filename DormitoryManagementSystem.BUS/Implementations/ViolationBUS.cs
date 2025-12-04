@@ -2,7 +2,7 @@
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.SearchCriteria; // Criteria
-using DormitoryManagementSystem.DTO.Utils; // AppConstants
+using DormitoryManagementSystem.Utils; // AppConstants
 using DormitoryManagementSystem.DTO.Violations;
 using DormitoryManagementSystem.Entity;
 

@@ -3,7 +3,7 @@ using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.Rooms;
 using DormitoryManagementSystem.DTO.SearchCriteria; // RoomSearchCriteria
-using DormitoryManagementSystem.DTO.Utils; // AppConstants
+using DormitoryManagementSystem.Utils; // AppConstants
 using DormitoryManagementSystem.Entity;
 
 namespace DormitoryManagementSystem.BUS.Implementations

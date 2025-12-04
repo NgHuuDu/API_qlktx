@@ -1,17 +1,21 @@
 ﻿using DormitoryManagementSystem.Entity;
+using DormitoryManagementSystem.DTO.SearchCriteria;
 
 namespace DormitoryManagementSystem.DAO.Interfaces
 {
     public interface IStudentDAO
     {
-        public Task<IEnumerable<Student>> GetAllStudentsAsync();
-        public Task<IEnumerable<Student>> GetAllStudentsIncludingInactivesAsync();
-        public Task<Student?> GetStudentByIDAsync(string id);
-        public Task<Student?> GetStudentByCCCDAsync(string cccd);
-        public Task<Student?> GetStudentByEmailAsync(string email);
-        public Task<Student?> GetStudentByUserIDAsync(string userID);
-        public Task AddStudentAsync(Student student);
-        public Task UpdateStudentAsync(Student student);
-        //public Task DeleteStudentAsync(string id);
+        // Các hàm Get Single (Giữ nguyên)
+        Task<Student?> GetStudentByIDAsync(string id);
+        Task<Student?> GetStudentByCCCDAsync(string cccd);
+        Task<Student?> GetStudentByEmailAsync(string email);
+        Task<Student?> GetStudentByUserIDAsync(string userID);
+
+        // CRUD (Giữ nguyên)
+        Task AddStudentAsync(Student student);
+        Task UpdateStudentAsync(Student student);
+
+        // HÀM SEARCH GỘP (Thay thế GetAll)
+        Task<IEnumerable<Student>> SearchStudentsAsync(StudentSearchCriteria criteria);
     }
 }
