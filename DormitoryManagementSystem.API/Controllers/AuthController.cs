@@ -15,7 +15,7 @@ namespace DormitoryManagementSystem.API.Controllers
         public async Task<IActionResult> Login([FromBody] UserLoginDTO loginDto)
         {
             var result = await _userBUS.LoginAsync(loginDto);
-            // Nếu login fail, trả về Unauthorized
+
             if (result == null)
                 throw new UnauthorizedAccessException("Sai tài khoản, mật khẩu hoặc vai trò không hợp lệ.");
             return Ok(result);

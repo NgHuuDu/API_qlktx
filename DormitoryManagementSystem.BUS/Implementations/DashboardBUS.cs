@@ -25,7 +25,6 @@ namespace DormitoryManagementSystem.BUS.Implements
 
         public async Task<List<AlertDTO>> GetAlertsAsync()
         {
-            // Chạy tuần tự để tránh lỗi DbContext (Concurrency Issue)
             var paymentAlerts = await _dao.GetPaymentAlertsAsync();
             var violationAlerts = await _dao.GetViolationAlertsAsync();
 

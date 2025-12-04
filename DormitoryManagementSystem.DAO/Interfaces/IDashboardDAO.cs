@@ -10,17 +10,17 @@ namespace DormitoryManagementSystem.DAO.Interfaces
         // Thống kê từng tòa nhà
         Task<List<BuildingKpiDTO>> GetBuildingStatsAsync();
 
-        // KPI tổng quan (Header dashboard)
+        // Header dashboard
         Task<DashboardKpiDTO> GetGeneralKpiAsync(string? buildingFilter, DateTime from, DateTime to);
 
         // Dữ liệu biểu đồ
         Task<DashboardChartsDTO> GetChartDataAsync(string? buildingFilter, DateTime from, DateTime to);
 
-        // Cảnh báo (Alerts)
+        // Cảnh báo
         Task<List<AlertDTO>> GetPaymentAlertsAsync();
         Task<List<AlertDTO>> GetViolationAlertsAsync();
 
-        // Hoạt động gần đây (Activities)
+        // Hoạt động gần đây
         Task<List<ActivityDTO>> GetRecentContractsAsync(int limit);
         Task<List<ActivityDTO>> GetRecentPaymentsAsync(int limit);
         Task<List<ActivityDTO>> GetRecentViolationsAsync(int limit);

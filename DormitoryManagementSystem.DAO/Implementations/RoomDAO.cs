@@ -40,7 +40,6 @@ namespace DormitoryManagementSystem.DAO.Implementations
             }
         }
 
-        // --- HELPER ---
         public async Task<Room?> GetRoomDetailByIDAsync(string id) =>
             await _context.Rooms.AsNoTracking()
                                 .Include(r => r.Building)
@@ -49,20 +48,19 @@ namespace DormitoryManagementSystem.DAO.Implementations
         public async Task<IEnumerable<int>> GetDistinctCapacitiesAsync() =>
             await _context.Rooms.AsNoTracking().Select(r => r.Capacity).Distinct().OrderBy(c => c).ToListAsync();
 
-        // --- MAIN SEARCH FUNCTION ---
         public async Task<IEnumerable<Room>> SearchRoomsAsync(RoomSearchCriteria criteria)
         {
             var query = _context.Rooms.AsNoTracking()
                 .Include(r => r.Building)
                 .AsQueryable();
 
-            // 1. Filter by Status (Default: exclude Inactive if criteria is null/empty)
+            // trạng thái
             if (!string.IsNullOrEmpty(criteria.Status))
                 query = query.Where(r => r.Status == criteria.Status);
             else
                 query = query.Where(r => r.Status != AppConstants.RoomStatus.Inactive);
 
-            // 2. Filters
+            // Filters
             if (!string.IsNullOrEmpty(criteria.BuildingID) && criteria.BuildingID != "All")
                 query = query.Where(r => r.Buildingid == criteria.BuildingID);
 
@@ -84,7 +82,7 @@ namespace DormitoryManagementSystem.DAO.Implementations
             if (criteria.AirConditioner.HasValue)
                 query = query.Where(r => r.Airconditioner == criteria.AirConditioner.Value);
 
-            // 3. Keyword Search
+            // Key 
             if (!string.IsNullOrWhiteSpace(criteria.Keyword))
             {
                 string key = criteria.Keyword.ToLower().Trim();

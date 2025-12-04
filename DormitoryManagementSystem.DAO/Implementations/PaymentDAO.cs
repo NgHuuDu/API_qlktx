@@ -1,6 +1,6 @@
 ﻿using DormitoryManagementSystem.DAO.Context;
 using DormitoryManagementSystem.DAO.Interfaces;
-using DormitoryManagementSystem.DTO.SearchCriteria; // Criteria
+using DormitoryManagementSystem.DTO.SearchCriteria; 
 using DormitoryManagementSystem.Entity;
 using DormitoryManagementSystem.Utils;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +12,6 @@ namespace DormitoryManagementSystem.DAO.Implementations
         private readonly PostgreDbContext _context;
         public PaymentDAO(PostgreDbContext context) => _context = context;
 
-        // --- CRUD ---
         public async Task<Payment?> GetPaymentByIDAsync(string id) => await _context.Payments.FindAsync(id);
 
         public async Task AddPaymentAsync(Payment payment)
@@ -37,15 +36,14 @@ namespace DormitoryManagementSystem.DAO.Implementations
             }
         }
 
-        // --- SEARCH ALL-IN-ONE ---
         public async Task<IEnumerable<Payment>> SearchPaymentsAsync(PaymentSearchCriteria criteria)
         {
             var query = _context.Payments.AsNoTracking()
-                .Include(p => p.Contract).ThenInclude(c => c.Student) // Join lấy tên SV
-                .Include(p => p.Contract).ThenInclude(c => c.Room)    // Join lấy phòng/tòa nhà
+                .Include(p => p.Contract).ThenInclude(c => c.Student) 
+                .Include(p => p.Contract).ThenInclude(c => c.Room)   
                 .AsQueryable();
 
-            // 1. Lọc ID quan hệ
+            // Lọc trước
             if (!string.IsNullOrEmpty(criteria.ContractID))
                 query = query.Where(p => p.Contractid == criteria.ContractID);
 
@@ -55,14 +53,14 @@ namespace DormitoryManagementSystem.DAO.Implementations
             if (!string.IsNullOrEmpty(criteria.BuildingID) && criteria.BuildingID != "All")
                 query = query.Where(p => p.Contract.Room.Buildingid == criteria.BuildingID);
 
-            // 2. Lọc thời gian
+            // Lọc thời gian
             if (criteria.Month.HasValue && criteria.Month > 0)
                 query = query.Where(p => p.Billmonth == criteria.Month.Value);
 
             if (criteria.Year.HasValue && criteria.Year > 0)
                 query = query.Where(p => p.Paymentdate.HasValue && p.Paymentdate.Value.Year == criteria.Year.Value);
 
-            // 3. Lọc trạng thái
+            // Lọc trạng thái
             if (!string.IsNullOrEmpty(criteria.Status) && criteria.Status != "All")
             {
                 if (criteria.Status == "Pending") // Logic: Pending = Unpaid OR Late
@@ -71,7 +69,7 @@ namespace DormitoryManagementSystem.DAO.Implementations
                     query = query.Where(p => p.Paymentstatus == criteria.Status);
             }
 
-            // 4. Tìm kiếm từ khóa (Keyword)
+            // từ khóa
             if (!string.IsNullOrWhiteSpace(criteria.Keyword))
             {
                 string key = criteria.Keyword.ToLower().Trim();

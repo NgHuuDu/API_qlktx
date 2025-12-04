@@ -5,7 +5,6 @@ namespace DormitoryManagementSystem.DAO.Interfaces
 {
     public interface IContractDAO
     {
-        // CRUD
         Task<Contract?> GetContractByIDAsync(string id);
         Task AddContractAsync(Contract contract);
         Task UpdateContractAsync(Contract contract);
@@ -13,9 +12,10 @@ namespace DormitoryManagementSystem.DAO.Interfaces
 
         // Check logic 
         Task<Contract?> GetActiveContractByStudentIDAsync(string studentId);
-        Task<Contract?> GetContractDetailAsync(string studentId); // Kèm thông tin chi tiết Room/Building
+        Task<Contract?> GetContractDetailAsync(string studentId); 
 
-        // MAIN SEARCH FUNCTION
+        // tìm kiếm
+
         Task<IEnumerable<Contract>> SearchContractsAsync(ContractSearchCriteria criteria);
     }
 }

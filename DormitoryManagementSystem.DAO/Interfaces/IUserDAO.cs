@@ -10,7 +10,6 @@ namespace DormitoryManagementSystem.DAO.Interfaces
 
         Task<User?> GetUserByIDAsync(string id);
 
-        // Cần thiết cho chức năng Đăng Nhập (Login)
         Task<User?> GetUserByUsernameAsync(string username);
 
         Task AddUserAsync(User user);

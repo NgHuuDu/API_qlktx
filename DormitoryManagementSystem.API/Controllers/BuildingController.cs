@@ -1,5 +1,6 @@
 ﻿using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DTO.Buildings;
+using DormitoryManagementSystem.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,6 +14,7 @@ namespace DormitoryManagementSystem.API.Controllers
         public BuildingController(IBuildingBUS buildingBUS) => _buildingBUS = buildingBUS;
 
         [HttpGet("buildings/lookup/combobox")]
+
         public async Task<IActionResult> GetBuildingLookup()
         {
             var result = await _buildingBUS.GetBuildingLookupAsync();
@@ -20,7 +22,7 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         [HttpPost("buildings")]
-        [Authorize(Roles = "Admin")] // Bảo mật: Chỉ Admin được tạo
+        [Authorize(Roles = AppConstants.Role.Admin)]
         public async Task<IActionResult> CreateBuilding([FromBody] BuildingCreateDTO dto)
         {
             var result = await _buildingBUS.AddBuildingAsync(dto);
@@ -28,7 +30,7 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         [HttpPut("buildings/{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Role.Admin)]
         public async Task<IActionResult> UpdateBuilding(string id, [FromBody] BuildingUpdateDTO dto)
         {
             await _buildingBUS.UpdateBuildingAsync(id, dto);
@@ -36,7 +38,7 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         [HttpDelete("buildings/{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Role.Admin)]
         public async Task<IActionResult> DeleteBuilding(string id)
         {
             await _buildingBUS.DeleteBuildingAsync(id);

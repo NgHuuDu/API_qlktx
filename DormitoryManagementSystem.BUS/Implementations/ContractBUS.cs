@@ -2,7 +2,7 @@
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.Contracts;
-using DormitoryManagementSystem.DTO.SearchCriteria; // Criteria
+using DormitoryManagementSystem.DTO.SearchCriteria; 
 using DormitoryManagementSystem.Entity;
 using DormitoryManagementSystem.Utils;
 
@@ -23,7 +23,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             _mapper = mapper;
         }
 
-        // ======================== GET METHODS ========================
 
         public async Task<IEnumerable<ContractReadDTO>> GetAllContractsAsync()
         {
@@ -51,7 +50,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
         public async Task<IEnumerable<ContractReadDTO>> GetContractsByMultiConditionAsync(ContractFilterDTO filter)
         {
-            // Logic swap ngày nếu bị ngược
+            // swap ngày nếu bị ngược
             if (filter.FromDate.HasValue && filter.ToDate.HasValue && filter.FromDate > filter.ToDate)
                 (filter.FromDate, filter.ToDate) = (filter.ToDate, filter.FromDate);
 
@@ -92,7 +91,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             };
         }
 
-        // ======================== TRANSACTION METHODS ========================
 
         public async Task<string> RegisterContractAsync(string studentId, ContractRegisterDTO dto)
         {
@@ -119,7 +117,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
                 Roomid = dto.RoomID,
                 Starttime = DateOnly.FromDateTime(dto.StartTime),
                 Endtime = DateOnly.FromDateTime(dto.EndTime),
-                Status = AppConstants.ContractStatus.Pending, // Chờ duyệt
+                Status = AppConstants.ContractStatus.Pending,
                 Createddate = DateTime.Now
             };
 
@@ -135,16 +133,13 @@ namespace DormitoryManagementSystem.BUS.Implementations
             if (dto.EndTime <= dto.StartTime)
                 throw new ArgumentException("Ngày kết thúc phải sau ngày bắt đầu.");
 
-            // Kiểm tra sinh viên
             if (await _studentDAO.GetStudentByIDAsync(dto.StudentID) == null)
                 throw new KeyNotFoundException($"Không tìm thấy sinh viên {dto.StudentID}.");
 
-            // Kiểm tra trùng hợp đồng
             var activeContract = await _contractDAO.GetActiveContractByStudentIDAsync(dto.StudentID);
             if (activeContract != null)
                 throw new InvalidOperationException($"Sinh viên này đã có hợp đồng tại phòng {activeContract.Roomid}.");
 
-            // Kiểm tra phòng
             var room = await _roomDAO.GetRoomByIDAsync(dto.RoomID)
                        ?? throw new KeyNotFoundException($"Không tìm thấy phòng {dto.RoomID}.");
 
@@ -160,7 +155,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             await _contractDAO.AddContractAsync(contract);
 
-            // Nếu tạo hợp đồng Active ngay thì tăng slot phòng
             if (contract.Status == AppConstants.ContractStatus.Active)
             {
                 room.Currentoccupancy += 1;
@@ -176,7 +170,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             if (dto.EndTime <= dto.StartTime) throw new ArgumentException("Thời gian không hợp lệ.");
 
-            // Logic phức tạp: Đổi phòng hoặc đổi trạng thái
+            //Đổi phòng hoặc đổi trạng thái
             bool isRoomChanged = contract.Roomid != dto.RoomID;
             bool isStatusChanged = (contract.Status ?? AppConstants.ContractStatus.Active) != dto.Status;
 
@@ -192,7 +186,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
                         await _roomDAO.UpdateRoomAsync(oldRoom);
                     }
                 }
-                // Chiếm slot phòng mới
+                //  slot phòng mới
                 if (dto.Status == AppConstants.ContractStatus.Active)
                 {
                     var newRoom = await _roomDAO.GetRoomByIDAsync(dto.RoomID)

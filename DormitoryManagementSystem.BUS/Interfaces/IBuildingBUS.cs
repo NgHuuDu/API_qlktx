@@ -12,7 +12,7 @@ namespace DormitoryManagementSystem.BUS.Interfaces
         Task DeleteBuildingAsync(string id);
 
 
-        //Mới thêm - Student
+        //Student
         Task<IEnumerable<BuildingLookupDTO>> GetBuildingLookupAsync();
 
     }

@@ -2,8 +2,8 @@
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.Payments;
-using DormitoryManagementSystem.DTO.SearchCriteria; // PaymentSearchCriteria
-using DormitoryManagementSystem.Utils; // AppConstants
+using DormitoryManagementSystem.DTO.SearchCriteria; 
+using DormitoryManagementSystem.Utils; 
 using DormitoryManagementSystem.Entity;
 
 namespace DormitoryManagementSystem.BUS.Implementations
@@ -23,7 +23,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             _roomDAO = roomDAO;
         }
 
-        // ======================== GET & SEARCH ========================
 
         public async Task<IEnumerable<PaymentReadDTO>> GetAllPaymentsAsync()
         {
@@ -52,7 +51,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             return _mapper.Map<IEnumerable<PaymentReadDTO>>(list);
         }
 
-        // Student View
         public async Task<IEnumerable<PaymentListDTO>> GetPaymentsByStudentAndStatusAsync(string studentId, string? status)
         {
             var criteria = new PaymentSearchCriteria { StudentID = studentId, Status = status };
@@ -69,7 +67,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             });
         }
 
-        // Admin View
         public async Task<IEnumerable<PaymentAdminDTO>> GetPaymentsForAdminAsync(int? month, string? status, string? building, string? search)
         {
             var criteria = new PaymentSearchCriteria
@@ -97,7 +94,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             });
         }
 
-        // ======================== TRANSACTIONS ========================
 
         public async Task<string> AddPaymentAsync(PaymentCreateDTO dto)
         {
@@ -132,7 +128,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
             _mapper.Map(dto, payment);
             payment.Paymentid = id;
 
-            // Logic tự động cập nhật trạng thái
+            //  Tự động cập nhật trạng thái
             if (payment.Paidamount >= payment.Paymentamount && payment.Paymentstatus != AppConstants.PaymentStatus.Paid)
                 payment.Paymentstatus = AppConstants.PaymentStatus.Paid;
 
@@ -161,7 +157,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
             if (!string.IsNullOrEmpty(dto.Note))
                 payment.Description = string.IsNullOrEmpty(payment.Description) ? dto.Note : $"{payment.Description} | Note: {dto.Note}";
 
-            // Auto-fill amount
+            // Tự động điền số tiền
             if (payment.Paidamount < payment.Paymentamount) payment.Paidamount = payment.Paymentamount;
 
             await _paymentDAO.UpdatePaymentAsync(payment);
@@ -169,7 +165,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
         public async Task<int> GenerateMonthlyBillsAsync(int month, int year)
         {
-            // Lấy Hợp đồng Active
             var activeContracts = await _contractDAO.SearchContractsAsync(new ContractSearchCriteria { Status = AppConstants.ContractStatus.Active });
             int count = 0;
 

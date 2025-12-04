@@ -1,5 +1,5 @@
 using DormitoryManagementSystem.BUS.Interfaces;
-using DormitoryManagementSystem.Utils; // AppConstants
+using DormitoryManagementSystem.Utils; 
 using DormitoryManagementSystem.DTO.Violations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +22,6 @@ namespace DormitoryManagementSystem.API.Controllers
             var studentId = User.FindFirst("StudentID")?.Value;
             if (string.IsNullOrEmpty(studentId)) throw new UnauthorizedAccessException("Token lỗi: Không tìm thấy StudentID.");
 
-            // Nếu status là "All" hoặc rỗng thì truyền null để BUS xử lý
             if (string.IsNullOrEmpty(status) || status.ToLower() == "all") status = null;
 
             var violations = await _violationBUS.GetViolationsWithFilterAsync(status, studentId);
@@ -47,7 +46,7 @@ namespace DormitoryManagementSystem.API.Controllers
         public async Task<IActionResult> CreateViolation([FromBody] ViolationCreateDTO dto)
         {
             var userId = User.FindFirst("UserID")?.Value;
-            // Nếu DTO chưa có người báo cáo, lấy từ Token của Admin đang đăng nhập
+
             if (string.IsNullOrEmpty(dto.ReportedByUserID) && !string.IsNullOrEmpty(userId))
             {
                 dto.ReportedByUserID = userId;

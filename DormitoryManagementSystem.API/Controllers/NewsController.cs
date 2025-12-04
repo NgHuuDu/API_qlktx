@@ -1,5 +1,6 @@
 ﻿using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DTO.News;
+using DormitoryManagementSystem.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +11,6 @@ public class NewsController : ControllerBase
     private readonly INewsBUS _newsBUS;
     public NewsController(INewsBUS newsBUS) => _newsBUS = newsBUS;
 
-    // API Public: Xem danh sách tin (chỉ tiêu đề)
     [HttpGet("summary")]
     public async Task<IActionResult> GetNewsList()
     {
@@ -18,7 +18,6 @@ public class NewsController : ControllerBase
         return Ok(news);
     }
 
-    // API Public: Xem chi tiết tin
     [HttpGet("{id}")]
     public async Task<IActionResult> GetNewsByID(string id)
     {
@@ -28,7 +27,7 @@ public class NewsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = AppConstants.Role.Admin)]
     public async Task<IActionResult> CreateNews([FromBody] NewsCreateDTO dto)
     {
         var newNewsId = await _newsBUS.AddNewsAsync(dto);
@@ -36,7 +35,7 @@ public class NewsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = AppConstants.Role.Admin)]
     public async Task<IActionResult> UpdateNews(string id, [FromBody] NewsUpdateDTO dto)
     {
         await _newsBUS.UpdateNewsAsync(id, dto);
@@ -44,7 +43,7 @@ public class NewsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = AppConstants.Role.Admin)]
     public async Task<IActionResult> DeleteNews(string id)
     {
         await _newsBUS.DeleteNewsAsync(id);

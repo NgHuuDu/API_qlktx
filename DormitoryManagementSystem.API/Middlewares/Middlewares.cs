@@ -1,5 +1,4 @@
-﻿// File: DormitoryManagementSystem.API/Middlewares/GlobalExceptionMiddleware.cs
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
 using DormitoryManagementSystem.DTO.Errors;
 
@@ -33,11 +32,11 @@ namespace DormitoryManagementSystem.API.Middlewares
         {
             context.Response.ContentType = "application/json";
 
-            // Mặc định lỗi 500
+            // lỗi 500
             var statusCode = (int)HttpStatusCode.InternalServerError;
             var message = "Lỗi hệ thống. Vui lòng liên hệ Admin.";
 
-            // Xử lý các lỗi cụ thể từ BUS/DAO ném ra
+            // Xử lý các lỗi từ bus/dao
             switch (exception)
             {
                 case KeyNotFoundException: // Lỗi không tìm thấy (404)

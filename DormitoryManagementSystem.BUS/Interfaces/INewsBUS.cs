@@ -14,7 +14,6 @@ namespace DormitoryManagementSystem.BUS.Interfaces
 
 
 
-        // Mới thêm - lấy tóm tắt tin tức - trong trang chủ sinh viên
         Task<IEnumerable<NewsSummaryDTO>> GetNewsSummariesAsync();
         
     }

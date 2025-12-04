@@ -1,5 +1,6 @@
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DTO.Dashboard;
+using DormitoryManagementSystem.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,7 +8,7 @@ namespace DormitoryManagementSystem.API.Controllers
 {
     [Route("api/admin/dashboard")]
     [ApiController]
-    [Authorize(Roles = "Admin")] // Chỉ Admin mới xem được Dashboard
+    [Authorize(Roles = AppConstants.Role.Admin)]
     public class DashboardController : ControllerBase
     {
         private readonly IDashboardBUS _dashboardBUS;

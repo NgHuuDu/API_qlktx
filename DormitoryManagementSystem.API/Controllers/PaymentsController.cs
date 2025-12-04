@@ -1,6 +1,6 @@
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DTO.Payments;
-using DormitoryManagementSystem.Utils; // AppConstants
+using DormitoryManagementSystem.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,7 +22,6 @@ namespace DormitoryManagementSystem.API.Controllers
             var studentId = User.FindFirst("StudentID")?.Value;
             if (string.IsNullOrEmpty(studentId)) throw new UnauthorizedAccessException("Token lỗi: Không tìm thấy StudentID.");
 
-            // Nếu status rỗng hoặc "All" -> gửi null để BUS xử lý lấy tất cả
             if (string.IsNullOrEmpty(status) || status.ToLower() == "all") status = null;
 
             var list = await _paymentBUS.GetPaymentsByStudentAndStatusAsync(studentId, status);
@@ -43,7 +42,6 @@ namespace DormitoryManagementSystem.API.Controllers
             return Ok(list);
         }
 
-        // Xác nhận đã thanh toán (nghiệp vụ quan trọng)
         [HttpPut("admin/payments/{id}/confirm")]
         [Authorize(Roles = AppConstants.Role.Admin)]
         public async Task<IActionResult> ConfirmPayment(string id, [FromBody] PaymentConfirmDTO dto)
@@ -52,7 +50,7 @@ namespace DormitoryManagementSystem.API.Controllers
             return Ok(new { message = "Ghi nhận thanh toán thành công!" });
         }
 
-        // Tạo hóa đơn thủ công (ít dùng, thường dùng tự động)
+        // Tạo hóa đơn thủ công 
         [HttpPost("admin/payments")]
         [Authorize(Roles = AppConstants.Role.Admin)]
         public async Task<IActionResult> CreateBill([FromBody] PaymentCreateDTO dto)
@@ -61,7 +59,7 @@ namespace DormitoryManagementSystem.API.Controllers
             return Ok(new { message = "Tạo hóa đơn thành công", id });
         }
 
-        // Xóa hóa đơn (nếu tạo sai)
+        // Xóa hóa đơn 
         [HttpDelete("admin/payments/{id}")]
         [Authorize(Roles = AppConstants.Role.Admin)]
         public async Task<IActionResult> DeleteBill(string id)
@@ -70,7 +68,7 @@ namespace DormitoryManagementSystem.API.Controllers
             return Ok(new { message = "Đã xóa hóa đơn" });
         }
 
-        // Chức năng "Chốt sổ" hàng tháng
+        // Chức năng tạo hóa đơn hàng tháng
         [HttpPost("admin/payments/auto-generate")]
         [Authorize(Roles = AppConstants.Role.Admin)]
         public async Task<IActionResult> GenerateBills([FromQuery] int month, [FromQuery] int year)

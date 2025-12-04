@@ -1,5 +1,6 @@
 ﻿using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DTO.Users;
+using DormitoryManagementSystem.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,7 +14,7 @@ namespace DormitoryManagementSystem.API.Controllers
         public UserController(IUserBUS userBUS) => _userBUS = userBUS;
 
         [HttpPut("user/change-password")]
-        [Authorize(Roles = "Student")]
+        [Authorize(Roles = AppConstants.Role.Student)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDTO dto)
         {
             var userId = User.FindFirst("UserID")?.Value;
@@ -24,7 +25,7 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         [HttpGet("user")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Role.Admin)]
         public async Task<IActionResult> GetAllUsers([FromQuery] string? search)
         {
             var users = await _userBUS.GetAllUsersAsync();
@@ -32,7 +33,7 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         [HttpPost("user")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Role.Admin)]
         public async Task<IActionResult> CreateUser([FromBody] UserCreateDTO dto)
         {
             var newUserId = await _userBUS.AddUserAsync(dto);
@@ -40,7 +41,7 @@ namespace DormitoryManagementSystem.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Role.Admin)]
         public async Task<IActionResult> DeleteUser(string id)
         {
             await _userBUS.DeleteUserAsync(id);

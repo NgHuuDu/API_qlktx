@@ -1,7 +1,7 @@
 ﻿using DormitoryManagementSystem.DAO.Context;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.Entity;
-using DormitoryManagementSystem.DTO.SearchCriteria; // Criteria
+using DormitoryManagementSystem.DTO.SearchCriteria; 
 using Microsoft.EntityFrameworkCore;
 
 namespace DormitoryManagementSystem.DAO.Implementations
@@ -11,7 +11,6 @@ namespace DormitoryManagementSystem.DAO.Implementations
         private readonly PostgreDbContext _context;
         public ViolationDAO(PostgreDbContext context) => _context = context;
 
-        // --- CRUD ---
         public async Task<Violation?> GetViolationByIdAsync(string id) => await _context.Violations.FindAsync(id);
 
         public async Task AddNewViolationAsync(Violation violation)
@@ -36,12 +35,11 @@ namespace DormitoryManagementSystem.DAO.Implementations
             }
         }
 
-        // --- SEARCH ALL-IN-ONE ---
         public async Task<IEnumerable<Violation>> SearchViolationsAsync(ViolationSearchCriteria criteria)
         {
             var query = _context.Violations.AsNoTracking()
-                .Include(v => v.Student) // Join Student để lấy tên
-                .Include(v => v.Room)    // Join Room để lấy số phòng
+                .Include(v => v.Student) 
+                .Include(v => v.Room)  
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(criteria.StudentID))
@@ -53,7 +51,6 @@ namespace DormitoryManagementSystem.DAO.Implementations
             if (!string.IsNullOrEmpty(criteria.Status) && criteria.Status != "All")
                 query = query.Where(v => v.Status == criteria.Status);
 
-            // Keyword Search: Tìm theo Tên SV hoặc Mã SV
             if (!string.IsNullOrWhiteSpace(criteria.Keyword))
             {
                 string key = criteria.Keyword.ToLower().Trim();

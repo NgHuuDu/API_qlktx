@@ -5,7 +5,7 @@ using AutoMapper;
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.Users;
-using DormitoryManagementSystem.Utils; // Nhớ dùng namespace chứa AppConstants bạn mới tạo
+using DormitoryManagementSystem.Utils; 
 using DormitoryManagementSystem.Entity;
 using DormitoryManagementSystem.Utils;
 using Microsoft.Extensions.Configuration;
@@ -52,10 +52,8 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             if (isPlainText)
             {
-                // Logic tương thích ngược: Nếu pass chưa hash thì so sánh thường
                 if (user.Password == dto.Password)
                 {
-                    // Tự động cập nhật bảo mật: Hash lại mật khẩu
                     user.Password = BCrypt.Net.BCrypt.HashPassword(dto.Password);
                     await _userDAO.UpdateUserAsync(user);
                     isPasswordValid = true;
@@ -135,7 +133,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             await _userDAO.UpdateUserAsync(user);
         }
 
-        // --- Helper Methods ---
         private bool IsBCryptHash(string hash) =>
             !string.IsNullOrWhiteSpace(hash) && hash.Length == 60 &&
             (hash.StartsWith("$2a$") || hash.StartsWith("$2b$") || hash.StartsWith("$2y$"));

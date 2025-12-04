@@ -1,5 +1,5 @@
 ﻿using DormitoryManagementSystem.Entity;
-using DormitoryManagementSystem.DTO.SearchCriteria; // ViolationSearchCriteria
+using DormitoryManagementSystem.DTO.SearchCriteria; 
 
 namespace DormitoryManagementSystem.DAO.Interfaces
 {
@@ -11,7 +11,7 @@ namespace DormitoryManagementSystem.DAO.Interfaces
         Task UpdateViolationAsync(Violation violation);
         Task DeleteViolationAsync(string id);
 
-        // MAIN SEARCH FUNCTION
+        // Tìm kiếm
         Task<IEnumerable<Violation>> SearchViolationsAsync(ViolationSearchCriteria criteria);
     }
 }

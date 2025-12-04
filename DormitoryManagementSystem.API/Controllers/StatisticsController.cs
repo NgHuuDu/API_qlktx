@@ -1,4 +1,5 @@
 ﻿using DormitoryManagementSystem.BUS.Interfaces;
+using DormitoryManagementSystem.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,7 +7,7 @@ namespace DormitoryManagementSystem.API.Controllers
 {
     [Route("api/admin/statistics")]
     [ApiController]
-    [Authorize(Roles = "Admin")] // Áp dụng cho toàn bộ Controller
+    [Authorize(Roles = AppConstants.Role.Admin)]
     public class StatisticsController : ControllerBase
     {
         private readonly IStatisticsBUS _statisticsBUS;

@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
-using DormitoryManagementSystem.DTO.SearchCriteria; // Criteria
-using DormitoryManagementSystem.Utils; // AppConstants
+using DormitoryManagementSystem.DTO.SearchCriteria;
+using DormitoryManagementSystem.Utils; 
 using DormitoryManagementSystem.DTO.Violations;
 using DormitoryManagementSystem.Entity;
 
@@ -25,7 +25,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             _mapper = mapper;
         }
 
-        // ======================== GET & SEARCH ========================
 
         public async Task<IEnumerable<ViolationReadDTO>> GetAllViolationsAsync()
         {
@@ -60,7 +59,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             return _mapper.Map<IEnumerable<ViolationReadDTO>>(list);
         }
 
-        // Student View
         public async Task<IEnumerable<ViolationGridDTO>> GetViolationsWithFilterAsync(string? status, string? sId)
         {
             var criteria = new ViolationSearchCriteria { Status = status, StudentID = sId };
@@ -77,7 +75,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             });
         }
 
-        // Admin View
         public async Task<IEnumerable<ViolationAdminDTO>> GetViolationsForAdminAsync(string? search, string? status, string? roomId)
         {
             var criteria = new ViolationSearchCriteria { Keyword = search, Status = status, RoomID = roomId };
@@ -96,7 +93,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             });
         }
 
-        // ======================== TRANSACTIONS ========================
 
         public async Task<string> AddViolationAsync(ViolationCreateDTO dto)
         {
@@ -122,7 +118,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             var violation = _mapper.Map<Violation>(dto);
             if (violation.Violationdate == null) violation.Violationdate = DateTime.Now;
 
-            // Set Default Status if needed
             if (string.IsNullOrEmpty(violation.Status)) violation.Status = AppConstants.ViolationStatus.Pending;
 
             await _violationDAO.AddNewViolationAsync(violation);
@@ -134,7 +129,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             var violation = await _violationDAO.GetViolationByIdAsync(id)
                             ?? throw new KeyNotFoundException($"Vi phạm {id} không tồn tại.");
 
-            // Nếu cập nhật sinh viên vi phạm, phải check tồn tại
             if (!string.IsNullOrEmpty(dto.StudentID) && dto.StudentID != violation.Studentid)
             {
                 if (await _studentDAO.GetStudentByIDAsync(dto.StudentID) == null)
@@ -142,7 +136,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
             }
 
             _mapper.Map(dto, violation);
-            violation.Violationid = id; // Bảo vệ ID
+            violation.Violationid = id; 
             await _violationDAO.UpdateViolationAsync(violation);
         }
 

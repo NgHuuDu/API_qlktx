@@ -5,13 +5,12 @@ namespace DormitoryManagementSystem.DAO.Interfaces
 {
     public interface IPaymentDAO
     {
-        // CRUD
         Task<Payment?> GetPaymentByIDAsync(string id);
         Task AddPaymentAsync(Payment payment);
         Task UpdatePaymentAsync(Payment payment);
         Task RemovePaymentAsync(string id);
 
-        // MAIN SEARCH FUNCTION
+        // tìm kiếm
         Task<IEnumerable<Payment>> SearchPaymentsAsync(PaymentSearchCriteria criteria);
     }
 }

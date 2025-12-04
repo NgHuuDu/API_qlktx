@@ -1,7 +1,7 @@
 ﻿using DormitoryManagementSystem.DAO.Context;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.SearchCriteria;
-using DormitoryManagementSystem.Utils; // AppConstants
+using DormitoryManagementSystem.Utils; 
 using DormitoryManagementSystem.Entity;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,7 +12,6 @@ namespace DormitoryManagementSystem.DAO.Implementations
         private readonly PostgreDbContext _context;
         public ContractDAO(PostgreDbContext context) => _context = context;
 
-        // --- CRUD ---
         public async Task<Contract?> GetContractByIDAsync(string id) => await _context.Contracts.FindAsync(id);
 
         public async Task AddContractAsync(Contract contract)
@@ -32,12 +31,11 @@ namespace DormitoryManagementSystem.DAO.Implementations
             var c = await _context.Contracts.FindAsync(id);
             if (c != null)
             {
-                c.Status = AppConstants.ContractStatus.Terminated; // Soft Delete
+                c.Status = AppConstants.ContractStatus.Terminated; 
                 await _context.SaveChangesAsync();
             }
         }
 
-        // --- LOGIC CHECKS ---
         public async Task<Contract?> GetActiveContractByStudentIDAsync(string studentID) =>
             await _context.Contracts.AsNoTracking()
                                     .Where(c => c.Studentid == studentID && c.Status == AppConstants.ContractStatus.Active)
@@ -50,15 +48,13 @@ namespace DormitoryManagementSystem.DAO.Implementations
                 .Where(c => c.Studentid == studentId && c.Status == AppConstants.ContractStatus.Active)
                 .FirstOrDefaultAsync();
 
-        // --- SEARCH ALL-IN-ONE ---
         public async Task<IEnumerable<Contract>> SearchContractsAsync(ContractSearchCriteria criteria)
         {
             var query = _context.Contracts.AsNoTracking()
                 .Include(c => c.Student)
-                .Include(c => c.Room).ThenInclude(r => r.Building) // Include sâu để lấy tên tòa nhà luôn
+                .Include(c => c.Room).ThenInclude(r => r.Building) 
                 .AsQueryable();
 
-            // Default: Không lấy HĐ đã hủy (trừ khi có yêu cầu khác)
             if (string.IsNullOrEmpty(criteria.Status))
                 query = query.Where(c => c.Status != AppConstants.ContractStatus.Terminated);
             else if (criteria.Status != "All")

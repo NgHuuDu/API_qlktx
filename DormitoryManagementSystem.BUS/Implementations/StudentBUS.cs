@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
-using DormitoryManagementSystem.DTO.SearchCriteria; // StudentSearchCriteria
+using DormitoryManagementSystem.DTO.SearchCriteria; 
 using DormitoryManagementSystem.DTO.Students;
 using DormitoryManagementSystem.Entity;
 using DormitoryManagementSystem.Utils;
@@ -25,17 +25,15 @@ namespace DormitoryManagementSystem.BUS.Implementations
             _mapper = mapper;
         }
 
-        // ======================== SEARCH & GET ========================
 
         public async Task<IEnumerable<StudentReadDTO>> SearchStudentsAsync(string? keyword, string? major, string? gender, bool? isActive)
         {
-            // Đóng gói tham số vào Criteria
             var criteria = new StudentSearchCriteria
             {
                 Keyword = keyword,
                 Major = major,
                 Gender = gender,
-                IsActive = isActive // Nếu null thì DAO sẽ mặc định lấy Active=true
+                IsActive = isActive
             };
 
             var students = await _studentDAO.SearchStudentsAsync(criteria);
@@ -48,11 +46,9 @@ namespace DormitoryManagementSystem.BUS.Implementations
             return student == null ? null : _mapper.Map<StudentReadDTO>(student);
         }
 
-        // ======================== TRANSACTIONS ========================
 
         public async Task<string> AddStudentAsync(StudentCreateDTO dto)
         {
-            // Validate Logic: Check trùng ID, CCCD, Email
             if (await _studentDAO.GetStudentByIDAsync(dto.StudentID) != null)
                 throw new InvalidOperationException($"Mã sinh viên {dto.StudentID} đã tồn tại.");
 
@@ -62,8 +58,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             if (!string.IsNullOrEmpty(dto.Email) && await _studentDAO.GetStudentByEmailAsync(dto.Email) != null)
                 throw new InvalidOperationException($"Email {dto.Email} đã được sử dụng.");
 
-            // Kiểm tra UserID liên kết (nếu cần thiết phải có User trước)
-            // Tùy logic DB, nếu Student.UserID là FK bắt buộc
             if (await _userDAO.GetUserByIDAsync(dto.UserID) == null)
                 throw new KeyNotFoundException($"Tài khoản User {dto.UserID} không tồn tại. Vui lòng tạo User trước.");
 
@@ -78,16 +72,14 @@ namespace DormitoryManagementSystem.BUS.Implementations
             var student = await _studentDAO.GetStudentByIDAsync(id)
                           ?? throw new KeyNotFoundException($"Sinh viên {id} không tồn tại.");
 
-            // Check trùng CCCD nếu có thay đổi
             if (dto.CCCD != student.Idcard && await _studentDAO.GetStudentByCCCDAsync(dto.CCCD) != null)
                 throw new InvalidOperationException($"CCCD {dto.CCCD} đã được sử dụng bởi người khác.");
 
-            // Check trùng Email nếu có thay đổi
             if (!string.IsNullOrEmpty(dto.Email) && dto.Email != student.Email && await _studentDAO.GetStudentByEmailAsync(dto.Email) != null)
                 throw new InvalidOperationException($"Email {dto.Email} đã được sử dụng.");
 
             _mapper.Map(dto, student);
-            student.Studentid = id; // Đảm bảo ID không bị đổi
+            student.Studentid = id; 
 
             await _studentDAO.UpdateStudentAsync(student);
         }
@@ -97,12 +89,10 @@ namespace DormitoryManagementSystem.BUS.Implementations
             var student = await _studentDAO.GetStudentByIDAsync(id)
                           ?? throw new KeyNotFoundException($"Sinh viên {id} không tồn tại.");
 
-            // Logic nghiệp vụ: Không được xóa nếu đang ở KTX
             var activeContract = await _contractDAO.GetActiveContractByStudentIDAsync(id);
             if (activeContract != null)
                 throw new InvalidOperationException($"Sinh viên đang có hợp đồng tại phòng {activeContract.Roomid}. Vui lòng thanh lý hợp đồng trước.");
 
-            // Soft Delete: Ẩn User -> Ẩn Student (do query DAO lọc theo User.IsActive)
             await _userDAO.DeleteUserAsync(student.Userid);
         }
 
@@ -111,7 +101,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             var student = await _studentDAO.GetStudentByIDAsync(studentId)
                           ?? throw new KeyNotFoundException($"Sinh viên {studentId} không tìm thấy.");
 
-            // Check email trùng (trừ chính mình)
             if (!string.Equals(student.Email, dto.Email, StringComparison.OrdinalIgnoreCase))
             {
                 if (await _studentDAO.GetStudentByEmailAsync(dto.Email) != null)
@@ -125,14 +114,13 @@ namespace DormitoryManagementSystem.BUS.Implementations
             await _studentDAO.UpdateStudentAsync(student);
         }
 
-        // ======================== STUDENT PROFILE LOGIC ========================
 
         public async Task<StudentProfileDTO?> GetStudentProfileAsync(string studentId)
         {
             var student = await _studentDAO.GetStudentByIDAsync(studentId);
             if (student == null) return null;
 
-            // 1. Map thông tin cơ bản
+          // thông tin cơ bản
             var profile = new StudentProfileDTO
             {
                 StudentID = student.Studentid,
@@ -146,7 +134,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
                 Address = student.Address ?? "N/A"
             };
 
-            // 2. Lấy thông tin Hợp đồng & Phòng ở
+            //  Hợp đồng & Phòng ở
             var activeContract = await _contractDAO.GetContractDetailAsync(studentId);
 
             if (activeContract != null)
@@ -155,7 +143,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
                 profile.BuildingName = activeContract.Room?.Building?.Buildingname ?? "Unknown";
                 profile.ContractStatus = activeContract.Status ?? "N/A";
 
-                // 3. Tính toán công nợ (Sử dụng hàm SearchPayment của DAO)
+                // Tính toán công nợ 
                 // Lấy tất cả hóa đơn của hợp đồng này
                 var payments = await _paymentDAO.SearchPaymentsAsync(new PaymentSearchCriteria
                 {
@@ -167,10 +155,10 @@ namespace DormitoryManagementSystem.BUS.Implementations
                                                     || p.Paymentstatus == AppConstants.PaymentStatus.Late).ToList();
 
                 profile.TotalDebt = debtPayments.Sum(p => p.Paymentamount - p.Paidamount);
-                profile.AmountToPay = profile.TotalDebt; // Logic hiển thị FE
+                profile.AmountToPay = profile.TotalDebt;
                 profile.IsDebt = profile.TotalDebt > 0;
 
-                // Set trạng thái hiển thị
+                // Set trạng thái 
                 if (profile.IsDebt)
                     profile.PaymentStatusDisplay = "Chưa thanh toán";
                 else

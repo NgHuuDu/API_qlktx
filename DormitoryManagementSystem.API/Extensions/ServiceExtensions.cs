@@ -17,7 +17,7 @@ namespace DormitoryManagementSystem.API.Extensions
 {
     public static class ServiceExtensions
     {
-        // 1. Cấu hình Database
+        // Database
         public static void ConfigureDatabase(this IServiceCollection services, IConfiguration configuration)
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -25,7 +25,7 @@ namespace DormitoryManagementSystem.API.Extensions
                 options.UseNpgsql(connectionString));
         }
 
-        // 2. Cấu hình JWT Authentication & Authorization
+        // JWT Authentication & Authorization
         public static void ConfigureIdentity(this IServiceCollection services, IConfiguration configuration)
         {
             var jwtSettings = configuration.GetSection("Jwt");
@@ -78,7 +78,7 @@ namespace DormitoryManagementSystem.API.Extensions
             services.AddAuthorization();
         }
 
-        // 3. Cấu hình Swagger
+        // Swagger
         public static void ConfigureSwagger(this IServiceCollection services)
         {
             services.AddSwaggerGen(c =>
@@ -110,7 +110,7 @@ namespace DormitoryManagementSystem.API.Extensions
             });
         }
 
-        // 4. Cấu hình Dependency Injection (BUS & DAO)
+        // Dependency Injection (BUS & DAO)
         public static void ConfigureDependencyInjection(this IServiceCollection services)
         {
             // AutoMapper
@@ -143,7 +143,7 @@ namespace DormitoryManagementSystem.API.Extensions
             services.AddScoped<IDashboardBUS, DashboardBUS>();
         }
 
-        // 5. Cấu hình CORS
+        // CORS
         public static void ConfigureCors(this IServiceCollection services)
         {
             services.AddCors(options =>

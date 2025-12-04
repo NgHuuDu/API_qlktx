@@ -1,6 +1,6 @@
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DTO.Contracts;
-using DormitoryManagementSystem.Utils; // AppConstants
+using DormitoryManagementSystem.Utils; 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,7 +23,6 @@ namespace DormitoryManagementSystem.API.Controllers
             if (string.IsNullOrEmpty(studentId)) throw new UnauthorizedAccessException("Không xác định được sinh viên.");
 
             var contract = await _contractBUS.GetContractFullDetailAsync(studentId);
-            // Trả về null nếu chưa có HĐ cũng ok, FE tự xử lý
             return Ok(contract);
         }
 
@@ -65,6 +64,7 @@ namespace DormitoryManagementSystem.API.Controllers
             return Ok(contract);
         }
 
+        /*
         // Tạo hợp đồng thủ công (nếu cần)
         [HttpPost("admin/contracts")]
         [Authorize(Roles = AppConstants.Role.Admin)]
@@ -74,6 +74,7 @@ namespace DormitoryManagementSystem.API.Controllers
             await _contractBUS.AddContractAsync(dto, staffId ?? "Unknown");
             return Ok(new { message = "Tạo hợp đồng thành công!" });
         }
+        */
 
         [HttpPut("admin/contracts/{id}")]
         [Authorize(Roles = AppConstants.Role.Admin)]

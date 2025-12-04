@@ -3,7 +3,7 @@ using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.Admins;
 using DormitoryManagementSystem.Entity;
-using DormitoryManagementSystem.Utils; // Using AppConstants
+using DormitoryManagementSystem.Utils; 
 
 namespace DormitoryManagementSystem.BUS.Implementations
 {
@@ -78,7 +78,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             var existing = await _adminDAO.GetAdminByIDAsync(id)
                            ?? throw new KeyNotFoundException($"Admin {id} không tồn tại.");
 
-            // Soft Delete User liên kết
             await _userDAO.DeleteUserAsync(existing.Userid);
         }
     }

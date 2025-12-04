@@ -2,8 +2,8 @@
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.Buildings;
-using DormitoryManagementSystem.DTO.SearchCriteria; // Để dùng RoomSearchCriteria
-using DormitoryManagementSystem.Utils;          // Để dùng AppConstants
+using DormitoryManagementSystem.DTO.SearchCriteria; 
+using DormitoryManagementSystem.Utils;          
 using DormitoryManagementSystem.Entity;
 
 namespace DormitoryManagementSystem.BUS.Implementations
@@ -21,7 +21,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             _mapper = mapper;
         }
 
-        // ======================== READ ========================
 
         public async Task<IEnumerable<BuildingReadDTO>> GetAllBuildingAsync() =>
             _mapper.Map<IEnumerable<BuildingReadDTO>>(await _dao.GetAllBuildingAsync());
@@ -45,7 +44,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             });
         }
 
-        // ======================== TRANSACTIONS ========================
 
         public async Task<string> AddBuildingAsync(BuildingCreateDTO dto)
         {
@@ -63,12 +61,11 @@ namespace DormitoryManagementSystem.BUS.Implementations
             var building = await _dao.GetByIDAsync(id)
                            ?? throw new KeyNotFoundException($"Tòa nhà {id} không tồn tại.");
 
-            // Logic: Không đổi giới tính khi đang có người ở
+            //  Không đổi giới tính khi đang có người ở
             if (building.Currentoccupancy > 0 && building.Gendertype != dto.Gender)
                 throw new InvalidOperationException($"Không thể đổi loại giới tính khi đang có {building.Currentoccupancy} sinh viên ở.");
 
-            // Logic: Số phòng mới không được nhỏ hơn số phòng thực tế đang có trong DB
-            // Gọi IRoomDAO mới thông qua SearchCriteria
+            //  Số phòng mới không được nhỏ hơn số phòng thực tế đang có trong DB
             var actualRooms = await _daoRoom.SearchRoomsAsync(new RoomSearchCriteria { BuildingID = id });
 
             if (dto.NumberOfRooms < actualRooms.Count())
@@ -88,8 +85,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             if (building.Currentoccupancy > 0)
                 throw new InvalidOperationException($"Không thể xóa tòa nhà {id} vì đang có sinh viên.");
 
-            // Cascade Soft Delete: Xóa (ẩn) tất cả phòng thuộc tòa nhà trước
-            // Lấy danh sách phòng bằng hàm Search mới
             var rooms = await _daoRoom.SearchRoomsAsync(new RoomSearchCriteria { BuildingID = id });
 
             foreach (var room in rooms)
@@ -97,7 +92,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
                 await _daoRoom.DeleteRoomAsync(room.Roomid);
             }
 
-            // Xóa (ẩn) tòa nhà
             await _dao.DeleteBuildingAsync(id);
         }
     }

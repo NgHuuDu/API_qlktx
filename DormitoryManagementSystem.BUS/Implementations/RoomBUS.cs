@@ -2,8 +2,8 @@
 using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.Rooms;
-using DormitoryManagementSystem.DTO.SearchCriteria; // RoomSearchCriteria
-using DormitoryManagementSystem.Utils; // AppConstants
+using DormitoryManagementSystem.DTO.SearchCriteria; 
+using DormitoryManagementSystem.Utils; 
 using DormitoryManagementSystem.Entity;
 
 namespace DormitoryManagementSystem.BUS.Implementations
@@ -21,13 +21,11 @@ namespace DormitoryManagementSystem.BUS.Implementations
             _mapper = mapper;
         }
 
-        // ======================== GET & SEARCH ========================
 
         public async Task<IEnumerable<RoomReadDTO>> GetAllRoomsAsync()
         {
-            // Lấy tất cả phòng Active/Maintenance (trừ Inactive)
+
             var list = await _roomDAO.SearchRoomsAsync(new RoomSearchCriteria { Status = null });
-            // Lưu ý: DAO đã mặc định lọc != Inactive nếu status truyền vào là null
             return _mapper.Map<IEnumerable<RoomReadDTO>>(list);
         }
 
@@ -68,14 +66,12 @@ namespace DormitoryManagementSystem.BUS.Implementations
             return _mapper.Map<IEnumerable<RoomReadDTO>>(list);
         }
 
-        // Admin Search Keyword
         public async Task<IEnumerable<RoomReadDTO>> SearchRoomsAsync(string keyword)
         {
             var list = await _roomDAO.SearchRoomsAsync(new RoomSearchCriteria { Keyword = keyword });
             return _mapper.Map<IEnumerable<RoomReadDTO>>(list);
         }
 
-        // Student Search (Card View)
         public async Task<IEnumerable<RoomDetailDTO>> SearchRoomInCardAsync(
             string? bId, int? num, int? cap, decimal? min, decimal? max, bool? cook, bool? ac)
         {
@@ -88,12 +84,11 @@ namespace DormitoryManagementSystem.BUS.Implementations
                 MaxPrice = max,
                 AllowCooking = cook,
                 AirConditioner = ac,
-                Status = AppConstants.RoomStatus.Active // Chỉ hiện phòng Active cho SV
+                Status = AppConstants.RoomStatus.Active 
             };
 
             var rooms = await _roomDAO.SearchRoomsAsync(criteria);
 
-            // Logic nghiệp vụ: Chỉ lấy phòng còn chỗ (Occupancy < Capacity)
             var availableRooms = rooms.Where(r => r.Currentoccupancy < r.Capacity);
 
             return availableRooms.Select(r => new RoomDetailDTO
@@ -110,7 +105,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             });
         }
 
-        // Student Search (Grid View)
         public async Task<IEnumerable<RoomGridDTO>> SearchRoomInGridAsync(
              string? bId, int? num, int? cap, decimal? min, decimal? max)
         {
@@ -149,7 +143,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
             new() { DisplayText = "Trên 3 triệu", MinPrice = 3000000, MaxPrice = null }
         };
 
-        // ======================== TRANSACTIONS ========================
 
         public async Task<string> AddRoomAsync(RoomCreateDTO dto)
         {
