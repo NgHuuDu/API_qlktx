@@ -1,10 +1,7 @@
-﻿using System;
+﻿// File: DormitoryManagementSystem.API/Middlewares/GlobalExceptionMiddleware.cs
 using System.Net;
-using System.Threading.Tasks;
-using DormitoryManagementSystem.DTO; // Nhớ import DTO
+using System.Text.Json;
 using DormitoryManagementSystem.DTO.Errors;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 
 namespace DormitoryManagementSystem.API.Middlewares
 {
@@ -23,13 +20,11 @@ namespace DormitoryManagementSystem.API.Middlewares
         {
             try
             {
-                // Cho request đi qua bình thường
                 await _next(context);
             }
             catch (Exception ex)
             {
-                // Nếu có lỗi, nhảy vào đây xử lý
-                _logger.LogError(ex, "Đã xảy ra lỗi hệ thống: {Message}", ex.Message);
+                _logger.LogError(ex, "Lỗi hệ thống: {Message}", ex.Message);
                 await HandleExceptionAsync(context, ex);
             }
         }
@@ -38,31 +33,34 @@ namespace DormitoryManagementSystem.API.Middlewares
         {
             context.Response.ContentType = "application/json";
 
-            // Mặc định là lỗi 500 (Internal Server Error)
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            var message = "Đã xảy ra lỗi hệ thống. Vui lòng liên hệ Admin.";
+            // Mặc định lỗi 500
+            var statusCode = (int)HttpStatusCode.InternalServerError;
+            var message = "Lỗi hệ thống. Vui lòng liên hệ Admin.";
 
-            // Tùy chỉnh thông báo dựa trên loại lỗi (Ví dụ: Lỗi nghiệp vụ, lỗi tìm không thấy...)
-            // Bạn có thể mở rộng phần này sau
-            if (exception is ArgumentException || exception is InvalidOperationException)
+            // Xử lý các lỗi cụ thể từ BUS/DAO ném ra
+            switch (exception)
             {
-                context.Response.StatusCode = (int)HttpStatusCode.BadRequest; // 400
-                message = exception.Message; // Lỗi do người dùng gửi sai dữ liệu thì báo chi tiết
+                case KeyNotFoundException: // Lỗi không tìm thấy (404)
+                    statusCode = (int)HttpStatusCode.NotFound;
+                    message = exception.Message;
+                    break;
+
+                case ArgumentException:    // Lỗi tham số (400)
+                case InvalidOperationException: // Lỗi logic nghiệp vụ (400)
+                    statusCode = (int)HttpStatusCode.BadRequest;
+                    message = exception.Message;
+                    break;
+
+                case UnauthorizedAccessException: // Lỗi quyền (401)
+                    statusCode = (int)HttpStatusCode.Unauthorized;
+                    message = exception.Message;
+                    break;
             }
-            else if (exception is KeyNotFoundException)
-            {
-                context.Response.StatusCode = (int)HttpStatusCode.NotFound; // 404
-                message = "Không tìm thấy dữ liệu yêu cầu.";
-            }
 
-            // Tạo object trả về
-            var response = new ErrorResponse
-            {
-                StatusCode = context.Response.StatusCode,
-                Message = message
-            };
+            context.Response.StatusCode = statusCode;
+            var response = new ErrorResponse { StatusCode = statusCode, Message = message };
 
-            return context.Response.WriteAsync(response.ToString());
+            return context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
     }
 }
