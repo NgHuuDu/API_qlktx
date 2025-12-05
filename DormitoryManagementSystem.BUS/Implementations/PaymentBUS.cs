@@ -165,37 +165,66 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
         public async Task<int> GenerateMonthlyBillsAsync(int month, int year)
         {
-            var activeContracts = await _contractDAO.SearchContractsAsync(new ContractSearchCriteria { Status = AppConstants.ContractStatus.Active });
-            int count = 0;
-
-            foreach (var contract in activeContracts)
-            {
-                // Check đã có bill tháng này chưa
-                var existing = await _paymentDAO.SearchPaymentsAsync(new PaymentSearchCriteria
+            var activeContracts = await _contractDAO.SearchContractsAsync(
+                new ContractSearchCriteria
                 {
-                    ContractID = contract.Contractid,
+                       Status = AppConstants.ContractStatus.Active
+                 });
+
+
+            if (activeContracts == null || !activeContracts.Any())
+                return 0;
+
+
+            var existingPayments = await _paymentDAO.SearchPaymentsAsync(
+                new PaymentSearchCriteria
+                {
                     Month = month,
                     Year = year
                 });
 
-                if (existing.Any()) continue;
+            var existingContractIds = new HashSet<string>(existingPayments.Select(p => p.Contractid));
 
-                var room = await _roomDAO.GetRoomByIDAsync(contract.Roomid);
-                var newBill = new PaymentCreateDTO
+            int createdCount = 0;
+
+
+            foreach (var contract in activeContracts)
+            {
+                if (existingContractIds.Contains(contract.Contractid))
+                    continue;
+
+                decimal roomPrice = contract?.Room?.Price ?? 0;
+
+                if (roomPrice <= 0)
                 {
-                    PaymentID = $"PAY_{year}{month}_{contract.Contractid}",
-                    ContractID = contract.Contractid,
-                    BillMonth = month,
-                    PaymentAmount = room?.Price ?? 0,
-                    PaymentStatus = AppConstants.PaymentStatus.Unpaid,
+                    continue;
+                }
+
+                var newPayment = new Payment
+                {
+                    Paymentid = Guid.NewGuid().ToString(),  
+                    Contractid = contract.Contractid,
+                    Billmonth = month,
+                    Paymentamount = roomPrice,
+                    Paidamount = 0,
+                    Paymentstatus = AppConstants.PaymentStatus.Unpaid,
                     Description = $"Tiền phòng tháng {month}/{year}",
-                    PaymentDate = null
+                    Paymentdate = DateTime.Now
                 };
 
-                await AddPaymentAsync(newBill);
-                count++;
+                try
+                {
+                    await _paymentDAO.AddPaymentAsync(newPayment);
+                    createdCount++;
+                }
+                catch (Exception ex)
+                {
+                    // Để cho làm tiếp tục
+                    continue;
+                }
             }
-            return count;
+
+            return createdCount;
         }
     }
 }
