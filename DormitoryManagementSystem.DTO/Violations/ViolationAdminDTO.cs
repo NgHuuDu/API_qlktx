@@ -14,6 +14,11 @@ namespace DormitoryManagementSystem.DTO.Violations
         public string StudentName { get; set; } = string.Empty; 
         public string RoomID { get; set; } = string.Empty;      
 
+
+
+        public int RoomNumber { get; set; }
+        public string? ReportedByUserID { get; set; }
+
         public string ViolationType { get; set; } = string.Empty;
         public DateTime ViolationDate { get; set; }
         public decimal PenaltyFee { get; set; }
