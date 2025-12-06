@@ -57,6 +57,14 @@ namespace DormitoryManagementSystem.API.Controllers
 
         // ======================== ADMIN API ========================
 
+        [HttpGet("admins/rooms")]
+        [Authorize(Roles = AppConstants.Role.Admin)]
+        public async Task<IActionResult> GetRooms()
+        {
+            var result = await _roomBUS.GetAllRoomsAsync();
+            return Ok(result);
+        }
+
         [HttpGet("admin/rooms/search")]
         [Authorize(Roles = AppConstants.Role.Admin)]
         public async Task<IActionResult> SearchRooms([FromQuery] string q)
