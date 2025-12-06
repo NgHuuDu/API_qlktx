@@ -19,7 +19,8 @@ namespace DormitoryManagementSystem.Mappings
             // ==========================================
             // 1. STUDENT MAPPING
             // ==========================================
-            CreateMap<Student, StudentReadDTO>();
+            CreateMap<Student, StudentReadDTO>()
+                .ForMember(dest => dest.StudentName, opt => opt.MapFrom(src => src.Fullname));
             CreateMap<StudentCreateDTO, Student>();
             CreateMap<StudentUpdateDTO, Student>()
                 .ForMember(dest => dest.Studentid, opt => opt.Ignore()); // Không update ID

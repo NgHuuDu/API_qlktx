@@ -97,22 +97,23 @@ namespace DormitoryManagementSystem.BUS.Implementations
             if (dto.EndTime <= dto.StartTime)
                 throw new ArgumentException("Ngày kết thúc phải sau ngày bắt đầu.");
 
+            var student = await _studentDAO.GetStudentByIDAsync(studentId);
+            if (student == null) throw new KeyNotFoundException("Sinh viên không tồn tại.");
+
             var activeContract = await _contractDAO.GetActiveContractByStudentIDAsync(studentId);
             if (activeContract != null)
-                throw new InvalidOperationException($"Bạn hiện đang có hợp đồng tại phòng {activeContract.Roomid}.");
+                throw new InvalidOperationException($"Bạn đã có hợp đồng tại phòng {activeContract.Roomid}.");
 
-            var room = await _roomDAO.GetRoomByIDAsync(dto.RoomID)
-                       ?? throw new KeyNotFoundException("Phòng không tồn tại.");
+            var room = await _roomDAO.GetRoomByIDAsync(dto.RoomID);
+            if (room == null) throw new KeyNotFoundException("Phòng không tồn tại.");
+            if (room.Status != AppConstants.RoomStatus.Active) throw new InvalidOperationException("Phòng đang bảo trì.");
 
-            if (room.Status != AppConstants.RoomStatus.Active)
-                throw new InvalidOperationException("Phòng này đang bảo trì/không hoạt động.");
-
-            if (room.Currentoccupancy >= room.Capacity)
-                throw new InvalidOperationException("Phòng này đã đầy.");
+            if ((room.Currentoccupancy ?? 0) >= room.Capacity)
+                throw new InvalidOperationException("Phòng đã hết chỗ.");
 
             var newContract = new Contract
             {
-                Contractid = $"CTR_{DateTime.Now:yyyyMMdd}_{new Random().Next(1000, 9999)}",
+                Contractid = $"CTR_{DateTime.Now:yyMMdd}_{Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper()}",
                 Studentid = studentId,
                 Roomid = dto.RoomID,
                 Starttime = DateOnly.FromDateTime(dto.StartTime),
@@ -122,32 +123,35 @@ namespace DormitoryManagementSystem.BUS.Implementations
             };
 
             await _contractDAO.AddContractAsync(newContract);
+
+            room.Currentoccupancy = (room.Currentoccupancy ?? 0) + 1;
+            await _roomDAO.UpdateRoomAsync(room);
+
             return newContract.Contractid;
         }
 
         public async Task<string> AddContractAsync(ContractCreateDTO dto, string staffUserID)
         {
-            if (await _contractDAO.GetContractByIDAsync(dto.ContractID) != null)
-                throw new InvalidOperationException($"Hợp đồng {dto.ContractID} đã tồn tại.");
-
             if (dto.EndTime <= dto.StartTime)
                 throw new ArgumentException("Ngày kết thúc phải sau ngày bắt đầu.");
 
-            if (await _studentDAO.GetStudentByIDAsync(dto.StudentID) == null)
-                throw new KeyNotFoundException($"Không tìm thấy sinh viên {dto.StudentID}.");
+            if (await _contractDAO.GetContractByIDAsync(dto.ContractID) != null)
+                throw new InvalidOperationException($"Hợp đồng {dto.ContractID} đã tồn tại.");
 
             var activeContract = await _contractDAO.GetActiveContractByStudentIDAsync(dto.StudentID);
-            if (activeContract != null)
-                throw new InvalidOperationException($"Sinh viên này đã có hợp đồng tại phòng {activeContract.Roomid}.");
+            if (activeContract != null) throw new InvalidOperationException("Sinh viên đã có hợp đồng.");
 
-            var room = await _roomDAO.GetRoomByIDAsync(dto.RoomID)
-                       ?? throw new KeyNotFoundException($"Không tìm thấy phòng {dto.RoomID}.");
+            var room = await _roomDAO.GetRoomByIDAsync(dto.RoomID);
+            if (room == null) throw new KeyNotFoundException($"Phòng {dto.RoomID} không tồn tại.");
+            if (room.Status != AppConstants.RoomStatus.Active) throw new InvalidOperationException("Phòng bảo trì.");
 
-            if (room.Status != AppConstants.RoomStatus.Active)
-                throw new InvalidOperationException($"Phòng {dto.RoomID} không hoạt động.");
+            bool willOccupy = (dto.Status == AppConstants.ContractStatus.Active || dto.Status == AppConstants.ContractStatus.Pending);
 
-            if (room.Currentoccupancy >= room.Capacity)
-                throw new InvalidOperationException($"Phòng {dto.RoomID} đã đầy.");
+            if (willOccupy)
+            {
+                if ((room.Currentoccupancy ?? 0) >= room.Capacity)
+                    throw new InvalidOperationException("Phòng đã đầy.");
+            }
 
             var contract = _mapper.Map<Contract>(dto);
             contract.Createddate = DateTime.Now;
@@ -155,91 +159,118 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             await _contractDAO.AddContractAsync(contract);
 
-            if (contract.Status == AppConstants.ContractStatus.Active)
+            if (willOccupy)
             {
-                room.Currentoccupancy += 1;
+                room.Currentoccupancy = (room.Currentoccupancy ?? 0) + 1;
                 await _roomDAO.UpdateRoomAsync(room);
             }
+
             return contract.Contractid;
         }
 
         public async Task UpdateContractAsync(string id, ContractUpdateDTO dto)
         {
-            var contract = await _contractDAO.GetContractByIDAsync(id)
-                           ?? throw new KeyNotFoundException($"Hợp đồng {id} không tồn tại.");
+            if (dto.EndTime <= dto.StartTime)
+                throw new ArgumentException("Ngày kết thúc phải sau ngày bắt đầu.");
 
-            if (dto.EndTime <= dto.StartTime) throw new ArgumentException("Thời gian không hợp lệ.");
+            var contract = await _contractDAO.GetContractByIDAsync(id);
+            if (contract == null) throw new KeyNotFoundException("Hợp đồng không tồn tại.");
 
-            //Đổi phòng hoặc đổi trạng thái
             bool isRoomChanged = contract.Roomid != dto.RoomID;
-            bool isStatusChanged = (contract.Status ?? AppConstants.ContractStatus.Active) != dto.Status;
+            bool isStatusChanged = contract.Status != dto.Status;
 
+            // ĐỔI PHÒNG
             if (isRoomChanged)
             {
-                // Trả slot phòng cũ
-                if (contract.Status == AppConstants.ContractStatus.Active)
+                // Trả phòng cũ (Nếu đang chiếm chỗ: Active/Pending)
+                bool wasOccupying = (contract.Status == AppConstants.ContractStatus.Active || contract.Status == AppConstants.ContractStatus.Pending);
+                if (wasOccupying)
                 {
                     var oldRoom = await _roomDAO.GetRoomByIDAsync(contract.Roomid);
-                    if (oldRoom != null && oldRoom.Currentoccupancy > 0)
+                    if (oldRoom != null && (oldRoom.Currentoccupancy ?? 0) > 0)
                     {
                         oldRoom.Currentoccupancy--;
                         await _roomDAO.UpdateRoomAsync(oldRoom);
                     }
                 }
-                //  slot phòng mới
-                if (dto.Status == AppConstants.ContractStatus.Active)
+
+                // Nhận phòng mới (Nếu trạng thái mới cần chiếm chỗ)
+                bool willOccupy = (dto.Status == AppConstants.ContractStatus.Active || dto.Status == AppConstants.ContractStatus.Pending);
+                if (willOccupy)
                 {
-                    var newRoom = await _roomDAO.GetRoomByIDAsync(dto.RoomID)
-                                  ?? throw new KeyNotFoundException($"Phòng mới {dto.RoomID} không tồn tại.");
+                    var newRoom = await _roomDAO.GetRoomByIDAsync(dto.RoomID);
+                    if (newRoom == null) throw new KeyNotFoundException($"Phòng mới {dto.RoomID} không tồn tại.");
+                    if (newRoom.Status != AppConstants.RoomStatus.Active) throw new InvalidOperationException("Phòng mới đang bảo trì.");
 
-                    if (newRoom.Currentoccupancy >= newRoom.Capacity)
-                        throw new InvalidOperationException($"Phòng {dto.RoomID} đã đầy.");
+                    if ((newRoom.Currentoccupancy ?? 0) >= newRoom.Capacity)
+                        throw new InvalidOperationException("Phòng mới đã đầy.");
 
-                    newRoom.Currentoccupancy++;
+                    newRoom.Currentoccupancy = (newRoom.Currentoccupancy ?? 0) + 1;
                     await _roomDAO.UpdateRoomAsync(newRoom);
                 }
+
+                // Cập nhật mã phòng
+                contract.Roomid = dto.RoomID;
             }
+
+            // ĐỔI TRẠNG THÁI (CÙNG PHÒNG)
             else if (isStatusChanged)
             {
                 var room = await _roomDAO.GetRoomByIDAsync(contract.Roomid);
-                if (room != null)
+                if (room == null) throw new KeyNotFoundException("Phòng không tồn tại.");
+
+                bool wasOccupying = (contract.Status == AppConstants.ContractStatus.Active || contract.Status == AppConstants.ContractStatus.Pending);
+                bool willOccupy = (dto.Status == AppConstants.ContractStatus.Active || dto.Status == AppConstants.ContractStatus.Pending);
+
+                // Dùng để hủy  hoặc từ chối hợp đồng
+                if (wasOccupying && !willOccupy)
                 {
-                    // Active -> Non-Active: Giảm slot
-                    if (contract.Status == AppConstants.ContractStatus.Active && dto.Status != AppConstants.ContractStatus.Active)
+                    if ((room.Currentoccupancy ?? 0) > 0)
                     {
-                        if (room.Currentoccupancy > 0) room.Currentoccupancy--;
+                        room.Currentoccupancy--;
+                        await _roomDAO.UpdateRoomAsync(room);
                     }
-                    // Non-Active -> Active: Tăng slot
-                    else if (contract.Status != AppConstants.ContractStatus.Active && dto.Status == AppConstants.ContractStatus.Active)
-                    {
-                        if (room.Currentoccupancy >= room.Capacity) throw new InvalidOperationException("Phòng đã đầy.");
-                        room.Currentoccupancy++;
-                    }
+                }
+                // KHÔI PHỤC (Chưa giữ chỗ -> Giữ chỗ)
+                else if (!wasOccupying && willOccupy)
+                {
+                    if ((room.Currentoccupancy ?? 0) >= room.Capacity)
+                        throw new InvalidOperationException("Phòng đã đầy, không thể kích hoạt lại.");
+
+                    room.Currentoccupancy++;
                     await _roomDAO.UpdateRoomAsync(room);
                 }
+               
             }
 
-            _mapper.Map(dto, contract);
-            contract.Contractid = id;
+            contract.Starttime = dto.StartTime; 
+            contract.Endtime = dto.EndTime;     
+            contract.Status = dto.Status;
+
             await _contractDAO.UpdateContractAsync(contract);
         }
 
         public async Task DeleteContractAsync(string id)
         {
-            var contract = await _contractDAO.GetContractByIDAsync(id)
-                           ?? throw new KeyNotFoundException($"Hợp đồng {id} không tồn tại.");
+            var contract = await _contractDAO.GetContractByIDAsync(id);
+            if (contract == null) throw new KeyNotFoundException("Hợp đồng không tồn tại.");
 
-            // Nếu xóa HĐ đang Active, trả lại slot phòng
-            if (contract.Status == AppConstants.ContractStatus.Active)
+            // Trả slot trước khi xóa
+            bool isOccupying = (contract.Status == AppConstants.ContractStatus.Active || contract.Status == AppConstants.ContractStatus.Pending);
+
+            if (isOccupying)
             {
                 var room = await _roomDAO.GetRoomByIDAsync(contract.Roomid);
-                if (room != null && room.Currentoccupancy > 0)
+                if (room != null && (room.Currentoccupancy ?? 0) > 0)
                 {
                     room.Currentoccupancy--;
                     await _roomDAO.UpdateRoomAsync(room);
                 }
             }
+
             await _contractDAO.DeleteContractAsync(id);
         }
+
+
     }
 }

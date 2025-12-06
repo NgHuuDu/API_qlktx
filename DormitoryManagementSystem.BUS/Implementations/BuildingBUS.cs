@@ -79,14 +79,16 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
         public async Task DeleteBuildingAsync(string id)
         {
-            var building = await _dao.GetByIDAsync(id)
-                           ?? throw new KeyNotFoundException($"Tòa nhà {id} không tồn tại.");
+
+            var building = await _dao.GetByIDAsync(id);
+            if (building == null) throw new KeyNotFoundException($"Tòa nhà {id} không tồn tại.");
 
             if (building.Currentoccupancy > 0)
-                throw new InvalidOperationException($"Không thể xóa tòa nhà {id} vì đang có sinh viên.");
+                throw new InvalidOperationException($"Không thể xóa tòa nhà {id} vì đang có {building.Currentoccupancy} sinh viên cư trú.");
 
             var rooms = await _daoRoom.SearchRoomsAsync(new RoomSearchCriteria { BuildingID = id });
 
+          
             foreach (var room in rooms)
             {
                 await _daoRoom.DeleteRoomAsync(room.Roomid);

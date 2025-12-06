@@ -49,4 +49,17 @@ public class NewsController : ControllerBase
         await _newsBUS.DeleteNewsAsync(id);
         return Ok(new { message = "Xóa bài viết thành công!" });
     }
+
+    [HttpGet("admin/all")]
+    [Authorize(Roles = AppConstants.Role.Admin)]
+    public async Task<IActionResult> GetAllNewsForAdmin()
+    {
+        var result = await _newsBUS.GetAllNewsIncludingInactivesAsync();
+
+        var sortedResult = result
+            .OrderByDescending(n => n.Priority)
+            .ThenByDescending(n => n.PublishedDate);
+
+        return Ok(sortedResult);
+    }
 }
