@@ -86,7 +86,6 @@ namespace DormitoryManagementSystem.BUS.Implementations
                 StudentID = v.Studentid,
                 StudentName = v.Student?.Fullname ?? "Unknown",
                 RoomID = v.Roomid,
-                RoomNumber = v.Roomnumber,
                 ReportedByUserID = v.Reportedbyuser,
                 ViolationType = v.Violationtype,
                 ViolationDate = v.Violationdate ?? DateTime.Now,
