@@ -3,8 +3,10 @@ using DormitoryManagementSystem.BUS.Interfaces;
 using DormitoryManagementSystem.DAO.Interfaces;
 using DormitoryManagementSystem.DTO.SearchCriteria; 
 using DormitoryManagementSystem.DTO.Students;
+using DormitoryManagementSystem.DTO.Users;
 using DormitoryManagementSystem.Entity;
 using DormitoryManagementSystem.Utils;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace DormitoryManagementSystem.BUS.Implementations
 {
@@ -58,10 +60,40 @@ namespace DormitoryManagementSystem.BUS.Implementations
             if (!string.IsNullOrEmpty(dto.Email) && await _studentDAO.GetStudentByEmailAsync(dto.Email) != null)
                 throw new InvalidOperationException($"Email {dto.Email} đã được sử dụng.");
 
+            if (await _userDAO.GetUserByIDAsync(dto.UserID) != null)
+                throw new InvalidOperationException($"UserID {dto.UserID} đã tồn tại trong hệ thống.");
+
             if (await _userDAO.GetUserByIDAsync(dto.UserID) == null)
-                throw new KeyNotFoundException($"Tài khoản User {dto.UserID} không tồn tại. Vui lòng tạo User trước.");
+            {
+                string userID = dto.UserID;
+                List<string> username_split = (dto.FullName.Trim().Split(" ")).ToList();
+                string username = "";
+
+                if (username_split.Count() > 0)
+                    username += username_split[0].ToLower() + "_" + username_split[username_split.Count() - 1].ToLower();
+                string password = dto.CCCD.Trim();
+                string Role = "Student";
+
+                UserCreateDTO newUser = new UserCreateDTO
+                {
+                    UserID = userID,
+                    UserName = username,
+                    Password = password,
+                    Role = Role
+                };
+
+                await _userDAO.AddUserAsync(new User
+                {
+                    Userid = newUser.UserID,
+                    Username = newUser.UserName,
+                    Password = newUser.Password,
+                    Role = newUser.Role,
+                    IsActive = true
+                });
+            }
 
             var student = _mapper.Map<Student>(dto);
+
             await _studentDAO.AddStudentAsync(student);
 
             return student.Studentid;
@@ -80,6 +112,8 @@ namespace DormitoryManagementSystem.BUS.Implementations
 
             _mapper.Map(dto, student);
             student.Studentid = id; 
+
+
 
             await _studentDAO.UpdateStudentAsync(student);
         }
