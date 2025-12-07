@@ -18,7 +18,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
         private readonly IUserDAO _userDAO;
         private readonly IMapper _mapper;
 
-        public StudentBUS(IStudentDAO studentDAO, IContractDAO contractDAO, IPaymentDAO paymentDAO, IUserDAO userDAO, IMapper mapper)
+        public StudentBUS(IStudentDAO studentDAO, IContractDAO contractDAO, IPaymentDAO paymentDAO, IUserDAO userDAO, IUserBUS userBUS, IMapper mapper)
         {
             _studentDAO = studentDAO;
             _contractDAO = contractDAO;
@@ -63,34 +63,33 @@ namespace DormitoryManagementSystem.BUS.Implementations
             if (await _userDAO.GetUserByIDAsync(dto.UserID) != null)
                 throw new InvalidOperationException($"UserID {dto.UserID} đã tồn tại trong hệ thống.");
 
-            if (await _userDAO.GetUserByIDAsync(dto.UserID) == null)
+           
+            string userID = dto.UserID;
+            List<string> username_split = (dto.FullName.Trim().Split(" ")).ToList();
+            string username = "";
+
+            if (username_split.Count() > 0)
+                username += username_split[0].ToLower() + "_" + username_split[username_split.Count() - 1].ToLower();
+            string password = dto.CCCD.Trim();
+            string Role = "Student";
+
+            UserCreateDTO newUser = new UserCreateDTO
             {
-                string userID = dto.UserID;
-                List<string> username_split = (dto.FullName.Trim().Split(" ")).ToList();
-                string username = "";
+                UserID = userID,
+                UserName = username,
+                Password = password,
+                Role = Role
+            };
 
-                if (username_split.Count() > 0)
-                    username += username_split[0].ToLower() + "_" + username_split[username_split.Count() - 1].ToLower();
-                string password = dto.CCCD.Trim();
-                string Role = "Student";
-
-                UserCreateDTO newUser = new UserCreateDTO
-                {
-                    UserID = userID,
-                    UserName = username,
-                    Password = password,
-                    Role = Role
-                };
-
-                await _userDAO.AddUserAsync(new User
-                {
-                    Userid = newUser.UserID,
-                    Username = newUser.UserName,
-                    Password = newUser.Password,
-                    Role = newUser.Role,
-                    IsActive = true
-                });
-            }
+            await _userDAO.AddUserAsync(new User
+            {
+                Userid = newUser.UserID,
+                Username = newUser.UserName,
+                Password = newUser.Password,
+                Role = newUser.Role,
+                IsActive = true
+            });
+            
 
             var student = _mapper.Map<Student>(dto);
 
