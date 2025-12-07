@@ -18,7 +18,7 @@ namespace DormitoryManagementSystem.BUS.Implementations
         private readonly IUserDAO _userDAO;
         private readonly IMapper _mapper;
 
-        public StudentBUS(IStudentDAO studentDAO, IContractDAO contractDAO, IPaymentDAO paymentDAO, IUserDAO userDAO, IUserBUS userBUS, IMapper mapper)
+        public StudentBUS(IStudentDAO studentDAO, IContractDAO contractDAO, IPaymentDAO paymentDAO, IUserDAO userDAO, IMapper mapper)
         {
             _studentDAO = studentDAO;
             _contractDAO = contractDAO;
